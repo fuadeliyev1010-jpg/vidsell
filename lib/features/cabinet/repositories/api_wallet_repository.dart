@@ -2,7 +2,6 @@ import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/network/page_response_parser.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/models/enums/payment_method.dart';
-import 'package:vidsell/models/enums/transaction_type.dart';
 import 'package:vidsell/models/wallet/top_up_intent.dart';
 import 'package:vidsell/models/wallet/top_up_request.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
@@ -21,13 +20,7 @@ class ApiWalletRepository implements WalletRepository {
         data['currency'] is! String) {
       throw StateError('Invalid wallet balance response.');
     }
-    return WalletBalance(
-      balance: (data['balance'] as num).toDouble(),
-      currency: data['currency'] as String,
-      updatedAt: data['updatedAt'] is String
-          ? DateTime.tryParse(data['updatedAt'] as String)
-          : null,
-    );
+    return WalletBalance.fromJson(data);
   }
 
   @override
@@ -106,31 +99,6 @@ class ApiWalletRepository implements WalletRepository {
     if (id == null || amount is! num || createdAt is! String) {
       throw StateError('Invalid wallet transaction response.');
     }
-    return WalletTransaction(
-      id: id,
-      amount: amount.toDouble(),
-      currency: data['currency'] as String? ?? 'TRY',
-      type:
-          TransactionType.fromCode(data['type'] as String?) ??
-          TransactionType.unknown,
-      description: data['description'] as String? ?? '',
-      status: _status(data['status']),
-      createdAt: DateTime.tryParse(createdAt),
-    );
-  }
-
-  static WalletTransactionStatus _status(dynamic value) {
-    switch ('$value'.toUpperCase()) {
-      case 'PENDING':
-        return WalletTransactionStatus.pending;
-      case 'FAILED':
-        return WalletTransactionStatus.failed;
-      case 'COMPLETED':
-      case 'SUCCESS':
-      case 'null':
-        return WalletTransactionStatus.completed;
-      default:
-        return WalletTransactionStatus.pending;
-    }
+    return WalletTransaction.fromJson(data);
   }
 }

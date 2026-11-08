@@ -7,7 +7,12 @@ class NotificationItemModel extends AppNotification {
     required String description,
     required super.date,
     super.read = false,
-  }) : super(type: '', body: description, createdAt: null);
+    super.type = '',
+    super.actorId,
+    super.conversationId,
+    super.productId,
+    super.createdAt,
+  }) : super(body: description);
 
   bool get isRead => read;
 
@@ -27,9 +32,17 @@ class NotificationItemModel extends AppNotification {
     return NotificationItemModel(
       id: '$id',
       title: json['title'] is String ? json['title'] as String : '',
-      description: json['description'] ?? json['body'] ?? '',
+      description: json['body'] ?? json['description'] ?? '',
       date: date,
-      read: json['isRead'] == true || json['readAt'] != null,
+      read:
+          json['read'] == true ||
+          json['isRead'] == true ||
+          json['readAt'] != null,
+      type: json['type'] as String? ?? '',
+      actorId: json['actorId']?.toString(),
+      conversationId: json['conversationId']?.toString(),
+      productId: json['productId']?.toString(),
+      createdAt: createdAt,
     );
   }
 
@@ -41,5 +54,10 @@ class NotificationItemModel extends AppNotification {
         description: description,
         date: date,
         read: isRead ?? read ?? this.isRead,
+        type: type,
+        actorId: actorId,
+        conversationId: conversationId,
+        productId: productId,
+        createdAt: createdAt,
       );
 }

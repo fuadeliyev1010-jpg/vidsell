@@ -56,7 +56,7 @@ class Store {
     stats: json['stats'] is Map
         ? StoreStats.fromJson(Map<String, dynamic>.from(json['stats'] as Map))
         : null,
-    isOpen: json['isOpen'] as bool?,
+    isOpen: (json['open'] ?? json['isOpen']) as bool?,
     openUntil: json['openUntil']?.toString(),
   );
 

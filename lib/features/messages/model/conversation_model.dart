@@ -36,11 +36,15 @@ class ConversationModel extends Conversation {
 
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     final participant =
+        _map(json['otherUser']) ??
         _map(json['otherParticipant']) ??
         _map(json['participant']) ??
         _map(json['seller']) ??
         const <String, dynamic>{};
-    final listing = _map(json['listing']) ?? const <String, dynamic>{};
+    final listing =
+        _map(json['product']) ??
+        _map(json['listing']) ??
+        const <String, dynamic>{};
     final lastMessage = _map(json['lastMessage']);
     final id = _string(json['id'] ?? json['conversationId']);
     if (id.isEmpty) throw const FormatException('Conversation ID is missing.');
@@ -50,7 +54,8 @@ class ConversationModel extends Conversation {
         participant['id'] ?? json['participantId'] ?? json['sellerId'],
       ),
       participantName: _string(
-        participant['name'] ??
+        participant['fullName'] ??
+            participant['name'] ??
             participant['displayName'] ??
             json['participantName'] ??
             json['sellerName'],
@@ -63,12 +68,18 @@ class ConversationModel extends Conversation {
         listing['priceLabel'] ?? listing['price'] ?? json['listingPrice'],
       ),
       lastMessage: _string(
-        lastMessage?['text'] ?? lastMessage?['body'] ?? json['lastMessageText'],
+        lastMessage?['content'] ??
+            lastMessage?['text'] ??
+            lastMessage?['body'] ??
+            json['lastMessageText'],
       ),
       updatedAt: _date(
         json['updatedAt'] ?? json['lastMessageAt'] ?? lastMessage?['createdAt'],
       ),
-      unreadCount: json['unreadCount'] is int ? json['unreadCount'] as int : 0,
+      unreadCount: json['unreadCount'] is num
+          ? (json['unreadCount'] as num).toInt()
+          : 0,
+      muted: json['muted'] == true,
     );
   }
 

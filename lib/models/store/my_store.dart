@@ -45,7 +45,7 @@ class MyStore {
     phone: '${json['phone'] ?? json['phoneNumber'] ?? ''}',
     workingHours: '${json['workingHours'] ?? ''}',
     status: '${json['status'] ?? ''}',
-    isOpen: json['isOpen'] as bool? ?? false,
+    isOpen: (json['open'] ?? json['isOpen']) as bool? ?? false,
     rejectionReason: json['rejectionReason'] as String?,
     reviewedAt: DateTime.tryParse('${json['reviewedAt'] ?? ''}'),
     createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),

@@ -21,6 +21,26 @@ class WalletTransaction {
   final DateTime? createdAt;
   final String currency;
   final WalletTransactionStatus status;
+
+  factory WalletTransaction.fromJson(Map<String, dynamic> json) {
+    final rawStatus = json['status']?.toString().toUpperCase();
+    return WalletTransaction(
+      id: '${json['id'] ?? ''}',
+      type:
+          TransactionType.fromCode(json['type'] as String?) ??
+          TransactionType.unknown,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      description: json['description'] as String? ?? '',
+      createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+      currency: json['currency'] as String? ?? fallbackCurrencyCode,
+      status: switch (rawStatus) {
+        'PENDING' => WalletTransactionStatus.pending,
+        'FAILED' => WalletTransactionStatus.failed,
+        'COMPLETED' || 'SUCCESS' || null => WalletTransactionStatus.completed,
+        _ => WalletTransactionStatus.pending,
+      },
+    );
+  }
 }
 
 class RefundRequest {

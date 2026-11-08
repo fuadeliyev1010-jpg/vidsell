@@ -65,7 +65,7 @@ class FeedItem {
     products: _products(json),
     createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
     ownerId: json['ownerId'] as String?,
-    ownerName: json['ownerName'] as String?,
+    ownerName: json['ownerFullName'] as String? ?? json['ownerName'] as String?,
     ownerAvatarUrl: json['ownerAvatarUrl'] as String?,
   );
 

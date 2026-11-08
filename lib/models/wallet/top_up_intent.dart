@@ -5,6 +5,11 @@ class TopUpIntent {
     required this.method,
     required this.status,
     required this.invoiceNumber,
+    this.currency = 'TRY',
+    this.methodLabel,
+    this.statusLabel,
+    this.createdAt,
+    this.completedAt,
   });
 
   final String id;
@@ -12,6 +17,11 @@ class TopUpIntent {
   final String method;
   final String status;
   final String invoiceNumber;
+  final String currency;
+  final String? methodLabel;
+  final String? statusLabel;
+  final DateTime? createdAt;
+  final DateTime? completedAt;
 
   factory TopUpIntent.fromJson(Map<String, dynamic> json) {
     return TopUpIntent(
@@ -20,7 +30,14 @@ class TopUpIntent {
       method: json['method']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       invoiceNumber:
-          (json['invoiceNumber'] ?? json['invoice_number'])?.toString() ?? '',
+          (json['invoiceNo'] ?? json['invoiceNumber'] ?? json['invoice_number'])
+              ?.toString() ??
+          '',
+      currency: json['currency'] as String? ?? 'TRY',
+      methodLabel: json['methodLabel'] as String?,
+      statusLabel: json['statusLabel'] as String?,
+      createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+      completedAt: DateTime.tryParse('${json['completedAt'] ?? ''}'),
     );
   }
 
@@ -29,6 +46,11 @@ class TopUpIntent {
     'amount': amount,
     'method': method,
     'status': status,
-    'invoiceNumber': invoiceNumber,
+    'invoiceNo': invoiceNumber,
+    'currency': currency,
+    if (methodLabel != null) 'methodLabel': methodLabel,
+    if (statusLabel != null) 'statusLabel': statusLabel,
+    if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+    if (completedAt != null) 'completedAt': completedAt!.toIso8601String(),
   };
 }

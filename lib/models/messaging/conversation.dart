@@ -43,7 +43,9 @@ class Conversation {
             Map<String, dynamic>.from(json['product'] as Map),
           )
         : null,
-    lastMessage: '${json['lastMessage'] ?? ''}',
+    lastMessage: json['lastMessage'] is Map
+        ? '${(json['lastMessage'] as Map)['content'] ?? ''}'
+        : '${json['lastMessage'] ?? ''}',
     unreadCount: json['unreadCount'] is num
         ? (json['unreadCount'] as num).toInt()
         : 0,

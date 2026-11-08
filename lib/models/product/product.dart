@@ -121,7 +121,7 @@ class Product {
   List<String> get mediaUrls => imageUrls;
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
-    id: '${json['id'] ?? ''}',
+    id: '${json['id'] ?? json['productId'] ?? ''}',
     title: '${json['title'] ?? ''}',
     price: _double(json['price']),
     originalPrice: _doubleOrNull(json['originalPrice']),
@@ -144,14 +144,18 @@ class Product {
             json['promotionType']?.toString().toUpperCase(),
           ),
     promotionTypeLabel: json['promotionTypeLabel'] as String?,
-    imageUrls: _strings(json['imageUrls']),
+    imageUrls: _strings(
+      json['imageUrls'] ??
+          [if (json['imageUrl'] is String) json['imageUrl'] as String],
+    ),
     averageRating: _doubleOrNull(json['averageRating']),
     reviewCount: _int(json['reviewCount']),
     viewCount: _int(json['viewCount']),
     shareCount: _int(json['shareCount']),
     distanceKm: _doubleOrNull(json['distanceKm']),
     sellerId: json['sellerId'] as String?,
-    sellerName: json['sellerName'] as String?,
+    sellerName:
+        json['sellerName'] as String? ?? json['sellerFullName'] as String?,
     sellerHandle: json['sellerHandle'] as String?,
     sellerAvatarUrl:
         json['sellerAvatarUrl'] as String? ?? json['sellerAvatar'] as String?,

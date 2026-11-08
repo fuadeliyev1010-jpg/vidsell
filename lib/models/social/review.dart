@@ -6,6 +6,7 @@ class Review {
     required this.rating,
     required this.comment,
     required this.createdAt,
+    this.authorAvatarUrl,
   });
 
   final String id;
@@ -14,6 +15,7 @@ class Review {
   final double rating;
   final String comment;
   final DateTime? createdAt;
+  final String? authorAvatarUrl;
 
   factory Review.fromJson(Map<String, dynamic> json) => Review(
     id: '${json['id'] ?? ''}',
@@ -25,5 +27,6 @@ class Review {
         : double.tryParse('${json['rating'] ?? 0}') ?? 0,
     comment: '${json['comment'] ?? json['content'] ?? ''}',
     createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+    authorAvatarUrl: json['authorAvatarUrl'] as String?,
   );
 }
