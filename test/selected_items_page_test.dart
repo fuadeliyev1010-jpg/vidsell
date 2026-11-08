@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,7 +27,7 @@ void main() {
         visibilityUpdateInterval;
   });
 
-  testWidgets('an empty favorites response preserves a recent in-memory like', (
+  testWidgets('an empty favorites response preserves a pending local like', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(375, 1024);
@@ -40,7 +42,7 @@ void main() {
     final following = FollowingCubit(repository);
     addTearDown(favorites.close);
     addTearDown(following.close);
-    await favorites.toggle(
+    final favoriteMutation = favorites.toggle(
       listingId: 'recent-listing',
       enabled: true,
       item: const EngagementItem(
@@ -57,6 +59,8 @@ void main() {
 
     expect(find.text('Recently liked video'), findsOneWidget);
     expect(repository.favoriteFetchCount, 1);
+    repository.favoriteMutation.complete();
+    await favoriteMutation;
   });
 
   testWidgets(
@@ -163,10 +167,18 @@ class _EmptyFetchEngagementRepository extends MockEngagementRepository {
   _EmptyFetchEngagementRepository({required super.sessionStore});
 
   int favoriteFetchCount = 0;
+  final favoriteMutation = Completer<void>();
 
   @override
   Future<List<EngagementItem>> fetchFavorites() async {
     favoriteFetchCount++;
     return const [];
   }
+
+  @override
+  Future<void> setFavorite(
+    String listingId,
+    bool enabled, {
+    EngagementItem? item,
+  }) => favoriteMutation.future;
 }

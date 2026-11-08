@@ -43,6 +43,7 @@ void main() {
     await sessionStore.write(_session('user-2'));
     favorites.reset();
     following.reset();
+    expect(favorites.state, isEmpty);
     await favorites.load();
     await following.load();
     expect(favorites.isFavorite('listing-1'), isFalse);
