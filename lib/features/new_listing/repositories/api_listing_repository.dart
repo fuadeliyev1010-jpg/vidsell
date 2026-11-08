@@ -17,7 +17,6 @@ class ApiListingRepository implements ListingRepository {
 
   @override
   Future<List<String>> uploadImages(List<String> localPaths) async {
-    // TODO(api): API.md does not document product image uploads.
     throw UnsupportedError(
       'Product image uploads are unavailable in API mode.',
     );

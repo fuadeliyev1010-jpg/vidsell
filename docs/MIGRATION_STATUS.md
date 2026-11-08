@@ -17,8 +17,6 @@ The form-only `ListingDraft` and `ListingRepository` retain their names, but the
 | `lib/models/store/call_log_request.dart` | The call-log endpoint is listed, but its request body is not specified; the current request serializes an empty object. |
 | `lib/models/enums/product_subcategory.dart` | The subcategory example is abbreviated (`...`); the complete, evolving code set and category associations are not established. The model preserves unrecognized codes. |
 | `lib/models/enums/payment_method.dart` | The supported payment-method codes are supplied at runtime from `/i18n/enums`; the complete backend value set is not established by the contract examples. |
-| `lib/features/new_listing/repositories/listing_repository.dart` | The contract has no product-image upload endpoint. Image upload is supported only by the mock implementation. |
-| `lib/features/new_listing/repositories/api_listing_repository.dart` | Same image-upload gap at the API implementation: local files cannot be uploaded there; `imageUrls` must already be URLs. |
 
 ## Questions for the backend developer
 

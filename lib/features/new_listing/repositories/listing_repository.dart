@@ -2,7 +2,7 @@ import 'package:vidsell/features/new_listing/models/listing_draft.dart';
 import 'package:vidsell/models/product/product.dart';
 
 abstract interface class ListingRepository {
-  /// TODO(api): API.md has no image-upload endpoint; only mock mode supports it.
+  /// API mode accepts hosted image URLs because OpenAPI has no upload route.
   Future<List<String>> uploadImages(List<String> localPaths);
 
   Future<Product> createListing(ListingDraft draft);
