@@ -1,7 +1,6 @@
 import '../../core/utils/video_url_resolver.dart';
 import '../enums/feed_content_type.dart';
 import '../product/product.dart';
-import '../product/product_summary.dart';
 
 class FeedItem {
   const FeedItem({
@@ -12,10 +11,10 @@ class FeedItem {
     this.durationSeconds,
     this.contentType,
     this.products = const [],
+    this.createdAt,
     this.ownerId,
     this.ownerName,
     this.ownerAvatarUrl,
-    this.product,
   });
 
   final String videoId;
@@ -24,12 +23,13 @@ class FeedItem {
   final String? rawUrl;
   final int? durationSeconds;
   final FeedContentType? contentType;
-  final List<ProductSummary> products;
+  final List<Product> products;
+  final DateTime? createdAt;
   final String? ownerId;
   final String? ownerName;
   final String? ownerAvatarUrl;
-  final Product? product;
 
+  Product? get product => products.isEmpty ? null : products.first;
   String get id => product?.id ?? videoId;
   String? get categoryId => product?.categoryId;
   String? get cityId => product?.cityId;
@@ -48,20 +48,28 @@ class FeedItem {
     contentType: json['contentType'] == null
         ? null
         : FeedContentType.fromCode(json['contentType'] as String?),
-    products: json['products'] is List
-        ? (json['products'] as List)
-              .whereType<Map>()
-              .map(
-                (item) =>
-                    ProductSummary.fromJson(Map<String, dynamic>.from(item)),
-              )
-              .toList(growable: false)
-        : const [],
+    products: _products(json),
+    createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
     ownerId: json['ownerId'] as String?,
     ownerName: json['ownerName'] as String?,
     ownerAvatarUrl: json['ownerAvatarUrl'] as String?,
-    product: json['product'] is Map
-        ? Product.fromJson(Map<String, dynamic>.from(json['product'] as Map))
-        : (json.containsKey('title') ? Product.fromJson(json) : null),
   );
+
+  static List<Product> _products(Map<String, dynamic> json) {
+    final rawProducts = json['products'];
+    if (rawProducts is List) {
+      return rawProducts
+          .whereType<Map>()
+          .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
+          .toList(growable: false);
+    }
+
+    if (json['product'] is Map) {
+      return [
+        Product.fromJson(Map<String, dynamic>.from(json['product'] as Map)),
+      ];
+    }
+    if (json.containsKey('title')) return [Product.fromJson(json)];
+    return const [];
+  }
 }

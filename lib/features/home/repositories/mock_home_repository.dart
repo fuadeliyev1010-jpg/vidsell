@@ -1,13 +1,12 @@
-import 'package:vidsell/core/utils/currency_formatter.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
-import 'package:vidsell/models/enums/feed_tab.dart';
-import 'package:vidsell/models/enums/seller_type.dart';
-import 'package:vidsell/models/common/page_response.dart';
-import 'package:vidsell/models/video/feed_item.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/features/cabinet/repositories/user_listing_repository.dart';
+import 'package:vidsell/models/common/page_response.dart';
+import 'package:vidsell/models/enums/feed_content_type.dart';
+import 'package:vidsell/models/enums/feed_tab.dart';
 import 'package:vidsell/models/enums/product_status.dart';
+import 'package:vidsell/models/enums/seller_type.dart';
+import 'package:vidsell/models/product/product.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 
 class MockHomeRepository implements HomeRepository {
   MockHomeRepository({this.userListingRepository});
@@ -17,344 +16,349 @@ class MockHomeRepository implements HomeRepository {
   static const _videoUrl = 'assets/images/mock_listing.mp4';
   static const _thumbnailUrl = 'assets/images/mock_listing_thumb.jpg';
 
-  static final _listings = [
-    HomeListing(
+  static final _listings = <FeedItem>[
+    _feedItem(
       id: 'listing-1',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Smartfon Apple iPhone 17 Pro 256GB Cosmic Orange MG7L4LL/A',
+      price: 2890.24,
+      currency: 'AZN',
       sellerName: 'TechStore',
       sellerHandle: '@TechStore',
       sellerId: 'techstore-1',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'phones',
-      subcategoryName: 'Telefonlar',
+      subcategoryLabel: 'Telefonlar',
       latitude: 41.0082,
       longitude: 28.9784,
-      price: CurrencyFormatter.formatPrice(2890.24, 'AZN', decimalDigits: 2),
-      priceAmount: 2890.24,
-      currency: 'AZN',
-      title: 'Smartfon Apple iPhone 17 Pro 256GB Cosmic Orange MG7L4LL/A',
-      shareLink: 'https://vidsell.az/listing/1',
+      shareUrl: 'https://vidsell.az/listing/1',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-2',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Samsung Galaxy S24 Ultra 512GB',
+      price: 1749,
+      currency: 'AZN',
       sellerName: 'Mobile House',
       sellerHandle: '@MobileHouse',
       sellerId: 'mobilehouse-2',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'phones',
-      subcategoryName: 'Telefonlar',
+      subcategoryLabel: 'Telefonlar',
       latitude: 41.0240,
       longitude: 29.0374,
-      price: CurrencyFormatter.formatPrice(1749, 'AZN', decimalDigits: 2),
-      priceAmount: 1749,
-      currency: 'AZN',
-      title: 'Samsung Galaxy S24 Ultra 512GB',
-      shareLink: 'https://vidsell.az/listing/2',
+      shareUrl: 'https://vidsell.az/listing/2',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-3',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Sony WH-1000XM5 simsiz qulaqlıq',
+      price: 420,
+      currency: 'AZN',
       sellerName: 'Audio Lab',
       sellerHandle: '@AudioLab',
       sellerId: 'audiolab-3',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'audio',
-      subcategoryName: 'Səs avadanlığı',
+      subcategoryLabel: 'Səs avadanlığı',
       latitude: 41.0166,
       longitude: 28.9630,
-      price: CurrencyFormatter.formatPrice(420, 'AZN', decimalDigits: 2),
-      priceAmount: 420,
-      currency: 'AZN',
-      title: 'Sony WH-1000XM5 simsiz qulaqlıq',
-      shareLink: 'https://vidsell.az/listing/3',
+      shareUrl: 'https://vidsell.az/listing/3',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-4',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Apple MacBook Air M2',
+      price: 899,
+      currency: 'AZN',
       sellerName: 'TechStore',
       sellerHandle: '@TechStore',
       sellerId: 'techstore-1',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'computers',
-      subcategoryName: 'Noutbuklar',
+      subcategoryLabel: 'Noutbuklar',
       latitude: 40.9870,
       longitude: 29.0420,
-      price: CurrencyFormatter.formatPrice(899, 'AZN', decimalDigits: 2),
-      priceAmount: 899,
-      currency: 'AZN',
-      title: 'Apple MacBook Air M2',
-      shareLink: 'https://vidsell.az/listing/4',
+      shareUrl: 'https://vidsell.az/listing/4',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-5',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'PlayStation 5 Slim',
+      price: 1250,
+      currency: 'AZN',
       sellerName: 'Game Zone',
       sellerHandle: '@GameZone',
       sellerId: 'gamezone-5',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'gaming',
-      subcategoryName: 'Oyun konsolları',
+      subcategoryLabel: 'Oyun konsolları',
       latitude: 41.0450,
       longitude: 29.0040,
-      price: CurrencyFormatter.formatPrice(1250, 'AZN', decimalDigits: 2),
-      priceAmount: 1250,
-      currency: 'AZN',
-      title: 'PlayStation 5 Slim',
-      shareLink: 'https://vidsell.az/listing/5',
+      shareUrl: 'https://vidsell.az/listing/5',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-6',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Google Pixel 9 Pro',
+      price: 649,
+      currency: 'AZN',
       sellerName: 'Future Store',
       sellerHandle: '@FutureStore',
       sellerId: 'futurestore-6',
       city: 'İstanbul',
       cityId: 'istanbul',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'phones',
-      subcategoryName: 'Telefonlar',
+      subcategoryLabel: 'Telefonlar',
       latitude: 41.0315,
       longitude: 28.9760,
-      price: CurrencyFormatter.formatPrice(649, 'AZN', decimalDigits: 2),
-      priceAmount: 649,
-      currency: 'AZN',
-      title: 'Google Pixel 9 Pro',
-      shareLink: 'https://vidsell.az/listing/6',
+      shareUrl: 'https://vidsell.az/listing/6',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-7',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: '2022 Volkswagen Golf 1.5 TSI',
+      price: 1250000,
+      currency: 'TRY',
       sellerName: 'Ankara Motors',
       sellerHandle: '@AnkaraMotors',
       sellerId: 'ankara-motors',
       city: 'Ankara',
       cityId: 'ankara',
       categoryId: 'vehicles',
-      categoryName: 'Nəqliyyat',
+      categoryLabel: 'Nəqliyyat',
       subcategoryId: 'cars',
-      subcategoryName: 'Avtomobillər',
+      subcategoryLabel: 'Avtomobillər',
       latitude: 39.9334,
       longitude: 32.8597,
-      price: CurrencyFormatter.formatPrice(1250000, 'TRY'),
-      priceAmount: 1250000,
-      currency: 'TRY',
-      title: '2022 Volkswagen Golf 1.5 TSI',
-      shareLink: 'https://vidsell.az/listing/7',
+      shareUrl: 'https://vidsell.az/listing/7',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-8',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Xiaomi 14T Pro 512GB',
+      price: 42999,
+      currency: 'TRY',
       sellerName: 'Izmir Mobile',
       sellerHandle: '@IzmirMobile',
       sellerId: 'izmir-mobile',
       city: 'İzmir',
       cityId: 'izmir',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'phones',
-      subcategoryName: 'Telefonlar',
+      subcategoryLabel: 'Telefonlar',
       latitude: 38.4237,
       longitude: 27.1428,
-      price: CurrencyFormatter.formatPrice(42999, 'TRY'),
-      priceAmount: 42999,
-      currency: 'TRY',
-      title: 'Xiaomi 14T Pro 512GB',
-      shareLink: 'https://vidsell.az/listing/8',
+      shareUrl: 'https://vidsell.az/listing/8',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-9',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Antalya mərkəzdə 2+1 mənzil',
+      price: 4850000,
+      currency: 'TRY',
       sellerName: 'Antalya Homes',
       sellerHandle: '@AntalyaHomes',
       sellerId: 'antalya-homes',
       city: 'Antalya',
       cityId: 'antalya',
       categoryId: 'real-estate',
-      categoryName: 'Daşınmaz əmlak',
+      categoryLabel: 'Daşınmaz əmlak',
       subcategoryId: 'apartments',
-      subcategoryName: 'Mənzillər',
+      subcategoryLabel: 'Mənzillər',
       latitude: 36.8969,
       longitude: 30.7133,
-      price: CurrencyFormatter.formatPrice(4850000, 'TRY'),
-      priceAmount: 4850000,
-      currency: 'TRY',
-      title: 'Antalya mərkəzdə 2+1 mənzil',
-      shareLink: 'https://vidsell.az/listing/9',
+      shareUrl: 'https://vidsell.az/listing/9',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-10',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Yeni nəsil espresso qəhvə aparatı',
+      price: 18500,
+      currency: 'TRY',
       sellerName: 'Bursa Living',
       sellerHandle: '@BursaLiving',
       sellerId: 'bursa-living',
       city: 'Bursa',
       cityId: 'bursa',
       categoryId: 'home-appliances',
-      categoryName: 'Məişət texnikası',
+      categoryLabel: 'Məişət texnikası',
       subcategoryId: 'kitchen',
-      subcategoryName: 'Mətbəx texnikası',
+      subcategoryLabel: 'Mətbəx texnikası',
       latitude: 40.1885,
       longitude: 29.0610,
-      price: CurrencyFormatter.formatPrice(18500, 'TRY'),
-      priceAmount: 18500,
-      currency: 'TRY',
-      title: 'Yeni nəsil espresso qəhvə aparatı',
-      shareLink: 'https://vidsell.az/listing/10',
+      shareUrl: 'https://vidsell.az/listing/10',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-11',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Əl işi xüsusi gün donu',
+      price: 7250,
+      currency: 'TRY',
       sellerName: 'Konya Style',
       sellerHandle: '@KonyaStyle',
       sellerId: 'konya-style',
       city: 'Konya',
       cityId: 'konya',
       categoryId: 'special-occasion-clothing',
-      categoryName: 'Geyim',
+      categoryLabel: 'Geyim',
       subcategoryId: 'dresses',
-      subcategoryName: 'Xüsusi gün geyimləri',
+      subcategoryLabel: 'Xüsusi gün geyimləri',
       latitude: 37.8746,
       longitude: 32.4932,
-      price: CurrencyFormatter.formatPrice(7250, 'TRY'),
-      priceAmount: 7250,
-      currency: 'TRY',
-      title: 'Əl işi xüsusi gün donu',
-      shareLink: 'https://vidsell.az/listing/11',
+      shareUrl: 'https://vidsell.az/listing/11',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-12',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Lenovo ThinkPad E14 Gen 5',
+      price: 36900,
+      currency: 'TRY',
       sellerName: 'Trabzon Tech',
       sellerHandle: '@TrabzonTech',
       sellerId: 'trabzon-tech',
       city: 'Trabzon',
       cityId: 'trabzon',
       categoryId: 'electronics',
-      categoryName: 'Elektronik',
+      categoryLabel: 'Elektronik',
       subcategoryId: 'computers',
-      subcategoryName: 'Noutbuklar',
+      subcategoryLabel: 'Noutbuklar',
       latitude: 41.0027,
       longitude: 39.7168,
-      price: CurrencyFormatter.formatPrice(36900, 'TRY'),
-      priceAmount: 36900,
-      currency: 'TRY',
-      title: 'Lenovo ThinkPad E14 Gen 5',
-      shareLink: 'https://vidsell.az/listing/12',
+      shareUrl: 'https://vidsell.az/listing/12',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-13',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: '2023 Honda PCX 125',
+      price: 185000,
+      currency: 'TRY',
       sellerName: 'Adana Auto',
       sellerHandle: '@AdanaAuto',
       sellerId: 'adana-auto',
       city: 'Adana',
       cityId: 'adana',
       categoryId: 'vehicles',
-      categoryName: 'Nəqliyyat',
+      categoryLabel: 'Nəqliyyat',
       subcategoryId: 'motorcycles',
-      subcategoryName: 'Motosikletlər',
+      subcategoryLabel: 'Motosikletlər',
       latitude: 36.9914,
       longitude: 35.3308,
-      price: CurrencyFormatter.formatPrice(185000, 'TRY'),
-      priceAmount: 185000,
-      currency: 'TRY',
-      title: '2023 Honda PCX 125',
-      shareLink: 'https://vidsell.az/listing/13',
+      shareUrl: 'https://vidsell.az/listing/13',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-14',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Dəriyə qulluq üçün premium dəst',
+      price: 2450,
+      currency: 'TRY',
       sellerName: 'Samsun Beauty',
       sellerHandle: '@SamsunBeauty',
       sellerId: 'samsun-beauty',
       city: 'Samsun',
       cityId: 'samsun',
       categoryId: 'cosmetics',
-      categoryName: 'Kosmetika',
+      categoryLabel: 'Kosmetika',
       subcategoryId: 'skin-care',
-      subcategoryName: 'Dəriyə qulluq',
+      subcategoryLabel: 'Dəriyə qulluq',
       latitude: 41.2867,
       longitude: 36.3300,
-      price: CurrencyFormatter.formatPrice(2450, 'TRY'),
-      priceAmount: 2450,
-      currency: 'TRY',
-      title: 'Dəriyə qulluq üçün premium dəst',
-      shareLink: 'https://vidsell.az/listing/14',
+      shareUrl: 'https://vidsell.az/listing/14',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-15',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: 'Ağıllı robot tozsoran',
+      price: 12999,
+      currency: 'TRY',
       sellerName: 'Gaziantep Home',
       sellerHandle: '@GaziantepHome',
       sellerId: 'gaziantep-home',
       city: 'Gaziantep',
       cityId: 'gaziantep',
       categoryId: 'home-appliances',
-      categoryName: 'Məişət texnikası',
+      categoryLabel: 'Məişət texnikası',
       subcategoryId: 'cleaning',
-      subcategoryName: 'Təmizlik texnikası',
+      subcategoryLabel: 'Təmizlik texnikası',
       latitude: 37.0662,
       longitude: 37.3833,
-      price: CurrencyFormatter.formatPrice(12999, 'TRY'),
-      priceAmount: 12999,
-      currency: 'TRY',
-      title: 'Ağıllı robot tozsoran',
-      shareLink: 'https://vidsell.az/listing/15',
+      shareUrl: 'https://vidsell.az/listing/15',
     ),
-    HomeListing(
+    _feedItem(
       id: 'listing-16',
-      videoUrl: _videoUrl,
-      imagePath: _thumbnailUrl,
+      title: '2019 Renault Clio 1.0 TCe',
+      price: 890000,
+      currency: 'TRY',
       sellerName: 'Eskisehir Motors',
       sellerHandle: '@EskisehirMotors',
       sellerId: 'eskisehir-motors',
       city: 'Eskişehir',
       cityId: 'eskisehir',
       categoryId: 'vehicles',
-      categoryName: 'Nəqliyyat',
+      categoryLabel: 'Nəqliyyat',
       subcategoryId: 'cars',
-      subcategoryName: 'Avtomobillər',
+      subcategoryLabel: 'Avtomobillər',
       latitude: 39.7667,
       longitude: 30.5256,
-      price: CurrencyFormatter.formatPrice(890000, 'TRY'),
-      priceAmount: 890000,
-      currency: 'TRY',
-      title: '2019 Renault Clio 1.0 TCe',
-      shareLink: 'https://vidsell.az/listing/16',
+      shareUrl: 'https://vidsell.az/listing/16',
     ),
   ];
+
+  static FeedItem _feedItem({
+    required String id,
+    required String title,
+    required double price,
+    required String currency,
+    required String sellerName,
+    required String sellerHandle,
+    required String sellerId,
+    required String city,
+    required String cityId,
+    required String categoryId,
+    required String categoryLabel,
+    required String subcategoryId,
+    required String subcategoryLabel,
+    required double latitude,
+    required double longitude,
+    required String shareUrl,
+  }) {
+    final product = Product(
+      id: id,
+      title: title,
+      price: price,
+      currency: currency,
+      imageUrls: const [_thumbnailUrl],
+      categoryId: categoryId,
+      categoryLabel: categoryLabel,
+      subcategoryId: subcategoryId,
+      subcategoryLabel: subcategoryLabel,
+      city: city,
+      cityId: cityId,
+      sellerId: sellerId,
+      sellerName: sellerName,
+      sellerHandle: sellerHandle,
+      shareUrl: shareUrl,
+      latitude: latitude,
+      longitude: longitude,
+      createdAt: DateTime.utc(2026, 1, 1),
+    );
+    return FeedItem(
+      videoId: 'video-$id',
+      thumbnailUrl: _thumbnailUrl,
+      hlsUrl: _videoUrl,
+      rawUrl: _videoUrl,
+      durationSeconds: 30,
+      contentType: FeedContentType.recent,
+      products: [product],
+      createdAt: product.createdAt,
+      ownerId: sellerId,
+      ownerName: sellerName,
+      ownerAvatarUrl: product.sellerAvatarUrl,
+    );
+  }
 
   @override
   Future<PageResponse<FeedItem>> fetchListings({
@@ -376,41 +380,27 @@ class MockHomeRepository implements HomeRepository {
         ) ??
         const [];
     final allListings = [
-      ...userListings.map(ProductLegacyAdapter.toHomeListing),
+      ...userListings.map(_feedItemFromProduct),
       ..._listings,
     ];
-    final listings = allListings
-        .where((listing) {
-          if (categoryId != null && listing.categoryId != categoryId) {
-            return false;
-          }
-          if (subcategoryId != null && listing.subcategoryId != subcategoryId) {
-            return false;
-          }
-          if (cityId != null && listing.cityId != cityId) {
-            return false;
-          }
-          if (sellerId != null && listing.sellerId != sellerId) {
-            return false;
-          }
-          return true;
-        })
-        .toList(growable: false);
+    final listings = allListings.where((item) {
+      final product = item.product;
+      if (product == null) {
+        return categoryId == null &&
+            subcategoryId == null &&
+            cityId == null &&
+            sellerId == null;
+      }
+      if (categoryId != null && product.categoryId != categoryId) return false;
+      if (subcategoryId != null && product.subcategoryId != subcategoryId) {
+        return false;
+      }
+      if (cityId != null && product.cityId != cityId) return false;
+      if (sellerId != null && product.sellerId != sellerId) return false;
+      return true;
+    }).toList(growable: false);
     final end = (start + limit).clamp(0, listings.length);
-    final items = listings
-        .sublist(start, end)
-        .map(
-          (listing) => FeedItem(
-            videoId: listing.id,
-            thumbnailUrl: listing.imagePath,
-            hlsUrl: listing.videoUrl,
-            ownerId: listing.sellerId,
-            ownerName: listing.sellerName,
-            ownerAvatarUrl: listing.sellerAvatar,
-            product: ProductLegacyAdapter.fromHomeListing(listing),
-          ),
-        )
-        .toList(growable: false);
+    final items = listings.sublist(start, end);
     return PageResponse(
       items: items,
       page: 1,
@@ -421,4 +411,18 @@ class MockHomeRepository implements HomeRepository {
       nextCursor: end < listings.length ? '$end' : null,
     );
   }
+
+  static FeedItem _feedItemFromProduct(Product product) => FeedItem(
+    videoId: 'video-${product.id}',
+    thumbnailUrl: product.imageUrls.isEmpty ? null : product.imageUrls.first,
+    hlsUrl: _videoUrl,
+    rawUrl: _videoUrl,
+    durationSeconds: 30,
+    contentType: FeedContentType.recent,
+    products: [product],
+    createdAt: product.createdAt,
+    ownerId: product.sellerId,
+    ownerName: product.sellerName,
+    ownerAvatarUrl: product.sellerAvatarUrl,
+  );
 }

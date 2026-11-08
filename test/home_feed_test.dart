@@ -28,6 +28,18 @@ void main() {
     );
   });
 
+  test('mock repository builds feed items with canonical products', () async {
+    final page = await MockHomeRepository().fetchListings(limit: 1);
+    final item = page.items.single;
+
+    expect(item.products, hasLength(1));
+    expect(item.product?.id, 'listing-1');
+    expect(item.createdAt, isNotNull);
+    expect(item.hlsUrl, 'assets/images/mock_listing.mp4');
+    expect(item.thumbnailUrl, 'assets/images/mock_listing_thumb.jpg');
+    expect(item.ownerName, 'TechStore');
+  });
+
   test('missing product coordinates remain unavailable for map placement', () {
     const product = Product(id: 'without-coordinates', price: 100, title: '');
     final homeListing = HomeListing.fromJson({
