@@ -134,10 +134,19 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            context.l10n.businessContact,
+            isMock ? context.l10n.businessContact : context.l10n.generalInfo,
             style: AppTextStyle.primaryText.copyWith(fontSize: 16.sp),
           ),
           14.height,
+          if (!isMock) ...[
+            Text(context.l10n.storeNameLabel),
+            4.height,
+            Text(widget.draft.storeName.trim()),
+            14.height,
+            Text(context.l10n.categories),
+            4.height,
+            Text(widget.draft.categoryNames.join(', ')),
+          ],
           if (isMock) ...[
             _FloatingField(
               controller: _emailController,
@@ -147,11 +156,11 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
             ),
             14.height,
           ],
-          Row(
-            children: [
-              Expanded(child: _buildPhoneField(_mainPhone)),
-              8.width,
-              if (isMock)
+          if (isMock) ...[
+            Row(
+              children: [
+                Expanded(child: _buildPhoneField(_mainPhone)),
+                8.width,
                 SizedBox(
                   width: 106.w,
                   height: 45.h,
@@ -163,9 +172,10 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
                     onPressed: _addPhone,
                   ),
                 ),
-            ],
-          ),
-          14.height,
+              ],
+            ),
+            14.height,
+          ],
           if (isMock)
             for (final entry in _additionalPhones)
               Padding(
@@ -215,21 +225,24 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
   }
 
   Widget _buildBottomActions() {
+    final isMock = context.read<AppConfig>().useMockBackend;
     return SafeArea(
       top: false,
       child: Padding(
         padding: EdgeInsets.fromLTRB(18.w, 8.h, 18.w, 8.h),
         child: Row(
           children: [
-            Expanded(
-              child: AppButton(
-                text: context.l10n.clear,
-                color: AppColor.bgElavated,
-                height: 48.h,
-                onPressed: _clearForm,
+            if (isMock) ...[
+              Expanded(
+                child: AppButton(
+                  text: context.l10n.clear,
+                  color: AppColor.bgElavated,
+                  height: 48.h,
+                  onPressed: _clearForm,
+                ),
               ),
-            ),
-            8.width,
+              8.width,
+            ],
             Expanded(
               child: AppButton(
                 text: context.l10n.send,
@@ -280,27 +293,30 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
     }
 
     final isMock = context.read<AppConfig>().useMockBackend;
-    if ((isMock && _emailController.text.trim().isEmpty) ||
-        _mainPhone.controller.text.trim().isEmpty) {
+    if (isMock &&
+        (_emailController.text.trim().isEmpty ||
+            _mainPhone.controller.text.trim().isEmpty)) {
       showMessage(context.l10n.contactEmailAndPhoneRequired);
       return;
     }
 
     // Empty extra numbers are ignored, filled ones must be valid.
     final entries = [_mainPhone, ..._additionalPhones];
-    final hasInvalid = entries.any(
-      (e) => e.controller.text.trim().isNotEmpty && _normalized(e) == null,
-    );
+    final hasInvalid =
+        isMock &&
+        entries.any(
+          (entry) =>
+              entry.controller.text.trim().isNotEmpty &&
+              _normalized(entry) == null,
+        );
     if (hasInvalid) {
       showMessage(context.l10n.invalidContactPhone);
       return;
     }
 
     try {
-      final store = await context
-          .read<BusinessRepository>()
-          .createStoreApplication(
-            widget.draft.copyWith(
+      final requestDraft = isMock
+          ? widget.draft.copyWith(
               email: _emailController.text,
               mainPhone: _normalized(_mainPhone),
               additionalPhones: entries
@@ -309,8 +325,11 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
                   .whereType<String>()
                   .toList(growable: false),
               shortNumber: _shortNumberController.text,
-            ),
-          );
+            )
+          : widget.draft;
+      final store = await context
+          .read<BusinessRepository>()
+          .createStoreApplication(requestDraft);
       if (!mounted) return;
       await showModalBottomSheet<void>(
         context: context,

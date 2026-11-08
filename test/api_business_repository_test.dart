@@ -23,12 +23,12 @@ void main() {
       storeName: 'Test Store',
       slogan: 'Mock-only slogan',
       description: 'Store description',
-      categoryNames: ['Electronics', 'Furniture'],
+      categoryNames: ['Elektronik', 'Furniture'],
       city: 'Mock-only city',
       address: 'Mock-only address',
       logoPath: '/local/logo.png',
       bannerPath: '/local/banner.png',
-      alwaysOpen: true,
+      alwaysOpen: false,
       openDays: ['Monday'],
       openingTime: '09:00',
       closingTime: '18:00',
@@ -45,10 +45,11 @@ void main() {
     expect(application.path, '/storefronts/me/application');
     expect(application.data, {
       'name': 'Test Store',
-      'category': 'Electronics',
-      'description': 'Store description',
-      'phone': '+994501111111',
-      'workingHours': '09:00-18:00',
+      'category': 'ELECTRONICS',
+      'open24Hours': false,
+      'workingHours': [
+        {'day': 'Monday', 'opens': '09:00', 'closes': '18:00'},
+      ],
     });
 
     await repository.updateMyStore(draft);

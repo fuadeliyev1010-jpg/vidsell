@@ -109,6 +109,7 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
   }
 
   Widget _buildInformationSection() {
+    final isMock = context.read<AppConfig>().useMockBackend;
     return _buildCard(
       title: context.l10n.generalInfo,
       children: [
@@ -134,23 +135,25 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
           onTap: _openCategoryPicker,
         ),
         14.height,
-        Text.rich(
-          TextSpan(
-            text: context.l10n.listingDescription,
-            style: AppTextStyle.primaryText.copyWith(
-              color: Colors.white,
-              fontSize: 14.sp,
-            ),
-            children: const [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: Colors.red),
+        if (isMock) ...[
+          Text.rich(
+            TextSpan(
+              text: context.l10n.listingDescription,
+              style: AppTextStyle.primaryText.copyWith(
+                color: Colors.white,
+                fontSize: 14.sp,
               ),
-            ],
+              children: const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
           ),
-        ),
-        14.height,
-        _buildDescriptionField(),
+          14.height,
+          _buildDescriptionField(),
+        ],
       ],
     );
   }
@@ -454,10 +457,10 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
   }
 
   Future<void> _continue() async {
+    final isMock = context.read<AppConfig>().useMockBackend;
     if (_storeNameController.text.trim().isEmpty ||
-        (context.read<AppConfig>().useMockBackend &&
-            _sloganController.text.trim().isEmpty) ||
-        _descriptionController.text.trim().isEmpty ||
+        (isMock && _sloganController.text.trim().isEmpty) ||
+        (isMock && _descriptionController.text.trim().isEmpty) ||
         _selectedCategories.isEmpty) {
       ScaffoldMessenger.of(
         context,

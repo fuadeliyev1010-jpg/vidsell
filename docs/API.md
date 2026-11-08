@@ -483,7 +483,7 @@ Authorization: Bearer <accessToken>
 
 ### POST /api/v1/products/{id}/promote
 
-Promote a product to VIP or PREMIUM. Only the owning seller can promote. Sets `promotionType` and `promotionEndsAt` (= now + `days`).
+Promote a product to BOOST, VIP, or PREMIUM. Only the owning seller can promote. Sets `promotionType` and `promotionEndsAt` (= now + `days`). The OpenAPI schema also lists `NONE`, though this endpoint reference says `NONE` is rejected.
 
 **Headers:**
 ```
@@ -500,8 +500,8 @@ Authorization: Bearer <accessToken>
 
 | Field | Type | Validation |
 |-------|------|------------|
-| `promotionType` | string (enum) | Required: `VIP`, `PREMIUM` (`NONE` rejected) |
-| `days` | number | Required, 1–30 |
+| `promotionType` | string (enum) | Required: `BOOST`, `VIP`, or `PREMIUM` (`NONE` rejected by this reference) |
+| `days` | integer | Required, 1–30 |
 
 **Response 200:** Product object with `promotionType` set.
 

@@ -1,6 +1,7 @@
 import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/network/page_response_parser.dart';
+import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/discover/models/store_draft.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/models/product/product.dart';
@@ -24,12 +25,19 @@ class ApiBusinessRepository implements BusinessRepository {
       '/storefronts/me/application',
       data: StoreApplicationRequest(
         name: draft.storeName.trim(),
-        category: draft.categoryNames.firstOrNull ?? '',
-        description: draft.description.trim(),
-        phone: draft.mainPhone.trim().isEmpty
-            ? draft.phoneNumber.trim()
-            : draft.mainPhone.trim(),
-        workingHours: '${draft.openingTime}-${draft.closingTime}',
+        category: _categoryCode(draft.categoryNames.firstOrNull ?? ''),
+        logoUrl: _remoteUrl(draft.logoPath),
+        open24Hours: draft.alwaysOpen,
+        workingHours: draft.alwaysOpen
+            ? const []
+            : [
+                for (final day in draft.openDays)
+                  StoreWorkingHour(
+                    day: day,
+                    opens: draft.openingTime,
+                    closes: draft.closingTime,
+                  ),
+              ],
       ).toJson(),
     );
     return _myStoreFromMutationResponse(data);
@@ -123,4 +131,29 @@ class ApiBusinessRepository implements BusinessRepository {
     }
     return StoreStatistics.fromJson(data);
   }
+
+  String _categoryCode(String categoryName) {
+    final categoryId = CategoryItem.categories
+        .where(
+          (category) =>
+              category.label == categoryName || category.id == categoryName,
+        )
+        .map((category) => category.id)
+        .firstOrNull;
+    return switch (categoryId ?? categoryName.toUpperCase()) {
+      'electronics' || 'ELECTRONICS' => 'ELECTRONICS',
+      'vehicles' || 'TRANSPORT' => 'TRANSPORT',
+      'real-estate' || 'REAL_ESTATE' => 'REAL_ESTATE',
+      'home-appliances' || 'HOME_APPLIANCES' => 'HOME_APPLIANCES',
+      'special-occasion-clothing' || 'SPECIAL_OCCASION' => 'SPECIAL_OCCASION',
+      'cosmetics' || 'COSMETICS' => 'COSMETICS',
+      _ => throw ArgumentError.value(categoryName, 'categoryName'),
+    };
+  }
+
+  String? _remoteUrl(String? value) =>
+      value?.startsWith('http://') == true ||
+          value?.startsWith('https://') == true
+      ? value
+      : null;
 }

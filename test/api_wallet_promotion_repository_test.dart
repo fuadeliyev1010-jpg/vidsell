@@ -87,12 +87,21 @@ void main() {
           days: 30,
         ),
       );
+      await repository.promoteProduct(
+        productId: 'product-1',
+        request: const PromoteRequest(
+          promotionType: PromotionType.boost,
+          days: 1,
+        ),
+      );
 
       expect(availability.freeDailyQuota, 2);
+      expect(availability.planFor(PromotionType.boost)?.freeTotal, 3);
       expect(availability.prices, {'VIP': 3, 'PREMIUM': 5, 'BOOST': 1.5});
       expect(adapter.requests[0].path, '/promotions/availability');
       expect(adapter.requests[1].path, '/products/product-1/promote');
       expect(adapter.requests[1].data, {'promotionType': 'VIP', 'days': 30});
+      expect(adapter.requests[2].data, {'promotionType': 'BOOST', 'days': 1});
     },
   );
 
@@ -219,8 +228,37 @@ class _WalletPromotionAdapter implements HttpClientAdapter {
       '/wallet/top-up/intent-1' => _intent(status: 'PENDING'),
       '/wallet/top-up/intent-1/confirm' => _intent(status: 'COMPLETED'),
       '/promotions/availability' => {
-        'freeDailyQuota': 2,
-        'prices': {'VIP': 3, 'PREMIUM': 5, 'BOOST': 1.5},
+        'currency': 'TRY',
+        'resetsAt': '2026-09-22T00:00:00Z',
+        'plans': [
+          {
+            'type': 'BOOST',
+            'typeLabel': 'Boost',
+            'freeRemaining': 2,
+            'freeTotal': 3,
+            'price': 1.5,
+            'currency': 'TRY',
+            'periodEnd': '2026-09-22T00:00:00Z',
+          },
+          {
+            'type': 'VIP',
+            'typeLabel': 'VIP',
+            'freeRemaining': 0,
+            'freeTotal': 0,
+            'price': 3,
+            'currency': 'TRY',
+            'periodEnd': '2026-09-22T00:00:00Z',
+          },
+          {
+            'type': 'PREMIUM',
+            'typeLabel': 'Premium',
+            'freeRemaining': 0,
+            'freeTotal': 0,
+            'price': 5,
+            'currency': 'TRY',
+            'periodEnd': '2026-09-22T00:00:00Z',
+          },
+        ],
       },
       '/products/product-1/promote' => {'id': 'product-1'},
       _ => <String, dynamic>{},

@@ -179,6 +179,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
         final availability = snapshot.data!;
         final vipPrice = availability.prices['VIP'];
         final premiumPrice = availability.prices['PREMIUM'];
+        final boostPlan = availability.planFor(PromotionType.boost);
         if (vipPrice == null || premiumPrice == null) {
           return Center(child: Text(context.l10n.genericError));
         }
@@ -219,6 +220,27 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
                 iconColor: const Color(0xFFFFB21A),
                 onTap: () => _selectPromotion(_Promotion.premium),
               ),
+              if (boostPlan != null) ...[
+                12.height,
+                _buildPromotionOption(
+                  promotion: _Promotion.boost,
+                  icon: Icons.trending_up_rounded,
+                  title: context.l10n.boostListing,
+                  detail: boostPlan.freeRemaining > 0
+                      ? context.l10n.quotaRemaining(
+                          boostPlan.freeRemaining,
+                          boostPlan.freeTotal,
+                        )
+                      : CurrencyFormatter.formatPrice(
+                          boostPlan.price ?? 0,
+                          boostPlan.currency,
+                          decimalDigits: 2,
+                        ),
+                  description: context.l10n.listingPromotionBoostDescription,
+                  iconColor: const Color(0xFF26D07C),
+                  onTap: () => _selectPromotion(_Promotion.boost),
+                ),
+              ],
             ],
           ),
         );
@@ -263,21 +285,24 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
     final promotionType = switch (_selectedPromotion) {
       _Promotion.vip => PromotionType.vip,
       _Promotion.premium => PromotionType.premium,
-      _Promotion.boost => null,
+      _Promotion.boost => PromotionType.boost,
     };
-    if (promotionType == null) return;
 
     try {
       await context.read<PromotionRepository>().promoteProduct(
         productId: widget.product.id,
-        request: PromoteRequest(promotionType: promotionType, days: 30),
+        request: PromoteRequest(
+          promotionType: promotionType,
+          days: _selectedPromotion == _Promotion.boost ? 1 : 30,
+        ),
       );
       if (!mounted) return;
-      _finishListingWithService(
-        promotionType == PromotionType.vip
-            ? context.l10n.vip
-            : context.l10n.premium,
-      );
+      _finishListingWithService(switch (promotionType) {
+        PromotionType.vip => context.l10n.vip,
+        PromotionType.premium => context.l10n.premium,
+        PromotionType.boost => context.l10n.boostListing,
+        _ => context.l10n.standardService,
+      });
     } on ApiException catch (error) {
       if (!mounted) return;
       _showApiPromotionError(
