@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vidsell/features/cabinet/repositories/mock_wallet_repository.dart';
+import 'package:vidsell/models/enums/payment_method.dart';
+import 'package:vidsell/models/wallet/top_up_request.dart';
 
 void main() {
   test('mock wallet completes a top-up and updates balance', () async {
@@ -34,4 +36,24 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test(
+    'mock top-up intent confirmation credits the wallet only once',
+    () async {
+      final repository = MockWalletRepository.instance;
+      final before = await repository.fetchWallet();
+      final intent = await repository.createTopUpIntent(
+        request: TopUpRequest(
+          amount: 15,
+          method: PaymentMethod.fromCode('CARD'),
+        ),
+      );
+
+      await repository.confirmTopUp(intent.id);
+      await repository.confirmTopUp(intent.id);
+
+      final after = await repository.fetchWallet();
+      expect(after.balance, before.balance + 15);
+    },
+  );
 }

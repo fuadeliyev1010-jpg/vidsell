@@ -789,4 +789,11 @@
   ,"districtSahil": "Sahil"
   ,"districtYasamal": "Yasamal"
   ,"districtGanjlik": "Gənclik"
+  ,"paymentMethod": "Ödeme yöntemi"
+  ,"topUpInvoiceNumber": "Fatura: {number}"
+  ,"@topUpInvoiceNumber": {"placeholders": {"number": {"type": "String"}}}
+  ,"checkPaymentStatus": "Ödeme durumunu kontrol et"
+  ,"walletInsufficientBalance": "Cüzdan bakiyeniz yetersiz. Devam etmek için bakiye yükleyin."
+  ,"freeDailyPromotions": "Bugün {count} ücretsiz tanıtım hakkı"
+  ,"@freeDailyPromotions": {"placeholders": {"count": {"type": "int"}}}
 }

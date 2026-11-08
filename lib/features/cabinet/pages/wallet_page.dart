@@ -10,6 +10,7 @@ import 'package:vidsell/features/cabinet/pages/top_up_payment_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
+import 'package:vidsell/models/wallet/wallet_transaction.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -26,11 +27,13 @@ class _WalletPageState extends State<WalletPage> {
   final List<int> _quickAmounts = [10, 20, 50, 100];
   int? _selectedQuickAmount;
   late Future<WalletBalance> _walletFuture;
+  late Future<List<WalletTransaction>> _transactionsFuture;
 
   @override
   void initState() {
     super.initState();
     _walletFuture = context.read<WalletRepository>().fetchWallet();
+    _transactionsFuture = context.read<WalletRepository>().fetchTransactions();
   }
 
   @override
@@ -86,6 +89,8 @@ class _WalletPageState extends State<WalletPage> {
               ),
               16.height,
               _buildTopUpCard(context),
+              16.height,
+              _buildTransactionsSection(),
             ],
           ),
         ),
@@ -178,7 +183,7 @@ class _WalletPageState extends State<WalletPage> {
               }
             },
             decoration: InputDecoration(
-              hintText: context.l10n.amountAzn,
+              hintText: context.l10n.amountToPay,
               hintStyle: TextStyle(
                 color: Colors.grey.shade500,
                 fontSize: 14.sp,
@@ -260,11 +265,16 @@ class _WalletPageState extends State<WalletPage> {
                   );
                   return;
                 }
-                await context.goTo(
+                final confirmed = await context.goTo<bool>(
                   TopUpPaymentPage(amount: amount, currency: wallet.currency),
                 );
                 if (!mounted) return;
-                setState(() => _walletFuture = walletRepository.fetchWallet());
+                if (confirmed == true) {
+                  setState(() {
+                    _walletFuture = walletRepository.fetchWallet();
+                    _transactionsFuture = walletRepository.fetchTransactions();
+                  });
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.activeColor,
@@ -285,6 +295,63 @@ class _WalletPageState extends State<WalletPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTransactionsSection() {
+    return FutureBuilder<List<WalletTransaction>>(
+      future: _transactionsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text(context.l10n.genericError);
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColor.activeColor),
+          );
+        }
+        final transactions = snapshot.data ?? const <WalletTransaction>[];
+        if (transactions.isEmpty) return const SizedBox.shrink();
+        return Column(
+          children: [
+            for (final transaction in transactions)
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(bottom: 8.h),
+                padding: EdgeInsets.all(14.r),
+                decoration: BoxDecoration(
+                  color: AppColor.bgSurfaceColor,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        transaction.description,
+                        style: AppTextStyle.primaryText.copyWith(
+                          color: Colors.white,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                    ),
+                    12.width,
+                    Text(
+                      CurrencyFormatter.formatPrice(
+                        transaction.amount,
+                        transaction.currency,
+                        decimalDigits: 2,
+                      ),
+                      style: AppTextStyle.primaryText.copyWith(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

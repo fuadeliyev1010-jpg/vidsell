@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vidsell/core/constants/app_color.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/app_router.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -44,11 +46,14 @@ void main() {
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(375, 812),
-        builder: (_, _) => MaterialApp.router(
-          routerConfig: router,
-          locale: const Locale('tr'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+        builder: (_, _) => RepositoryProvider<AppConfig>.value(
+          value: AppConfig.development,
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('tr'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
         ),
       ),
     );

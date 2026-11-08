@@ -1,5 +1,7 @@
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/models/wallet/top_up_intent.dart';
+import 'package:vidsell/models/wallet/top_up_request.dart';
+import 'package:vidsell/models/enums/payment_method.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
 import 'package:vidsell/models/wallet/wallet_transaction.dart';
 import 'package:vidsell/models/enums/transaction_type.dart';
@@ -11,6 +13,7 @@ class MockWalletRepository implements WalletRepository {
 
   double _balance = 0.70;
   final List<WalletTransaction> _transactions = [];
+  final Map<String, TopUpIntent> _topUpIntents = {};
 
   @override
   Future<WalletBalance> fetchWallet() async {
@@ -25,6 +28,12 @@ class MockWalletRepository implements WalletRepository {
   Future<List<WalletTransaction>> fetchTransactions() async {
     return List.unmodifiable(_transactions);
   }
+
+  @override
+  Future<List<PaymentMethodOption>> fetchPaymentMethods() async =>
+      throw UnsupportedError(
+        'Mock top-up uses the local card form, not API payment methods.',
+      );
 
   @override
   Future<WalletTransaction> topUp({
@@ -89,20 +98,55 @@ class MockWalletRepository implements WalletRepository {
   }
 
   @override
-  Future<TopUpIntent> createTopUpIntent({
-    required double amount,
-    required String paymentToken,
-  }) async {
-    if (paymentToken.isEmpty) {
-      throw ArgumentError('Ödəniş metodu tapılmadı');
+  Future<TopUpIntent> createTopUpIntent({required TopUpRequest request}) async {
+    if (request.amount < 1 || request.amount > 5000) {
+      throw ArgumentError('Məbləğ 1 və 5000 AZN arasında olmalıdır');
     }
-    return TopUpIntent(
-      id: 'top-up-${_transactions.length + 1}',
-      amount: amount,
-      method: 'PAYMENT_TOKEN',
+    final id = 'top-up-${_topUpIntents.length + 1}';
+    final intent = TopUpIntent(
+      id: id,
+      amount: request.amount,
+      method: request.method.code,
       status: 'PENDING',
-      invoiceNumber: 'INV-${_transactions.length + 1}',
+      invoiceNumber: 'INV-${_topUpIntents.length + 1}',
     );
+    _topUpIntents[id] = intent;
+    return intent;
+  }
+
+  @override
+  Future<TopUpIntent> fetchTopUpIntent(String id) async {
+    final intent = _topUpIntents[id];
+    if (intent == null) throw StateError('Top-up intent was not found.');
+    return intent;
+  }
+
+  @override
+  Future<TopUpIntent> confirmTopUp(String id) async {
+    final intent = await fetchTopUpIntent(id);
+    if (intent.status == 'COMPLETED') return intent;
+    _balance += intent.amount;
+    _transactions.insert(
+      0,
+      WalletTransaction(
+        id: id,
+        amount: intent.amount,
+        currency: 'AZN',
+        type: TransactionType.topUp,
+        status: WalletTransactionStatus.completed,
+        description: 'Wallet top up',
+        createdAt: DateTime.now(),
+      ),
+    );
+    final confirmed = TopUpIntent(
+      id: intent.id,
+      amount: intent.amount,
+      method: intent.method,
+      status: 'COMPLETED',
+      invoiceNumber: intent.invoiceNumber,
+    );
+    _topUpIntents[id] = confirmed;
+    return confirmed;
   }
 
   @override

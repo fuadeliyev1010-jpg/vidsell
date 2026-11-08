@@ -4609,6 +4609,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ganjlik'**
   String get districtGanjlik;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get paymentMethod;
+
+  /// No description provided for @topUpInvoiceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice: {number}'**
+  String topUpInvoiceNumber(String number);
+
+  /// No description provided for @checkPaymentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Check payment status'**
+  String get checkPaymentStatus;
+
+  /// No description provided for @walletInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Your wallet balance is insufficient. Top up your wallet to continue.'**
+  String get walletInsufficientBalance;
+
+  /// No description provided for @freeDailyPromotions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} free promotions available today'**
+  String freeDailyPromotions(int count);
 }
 
 class _AppLocalizationsDelegate

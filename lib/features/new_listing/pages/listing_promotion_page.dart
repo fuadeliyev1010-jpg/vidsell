@@ -1,11 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/pager/context_go.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
+import 'package:vidsell/features/cabinet/pages/wallet_page.dart';
+import 'package:vidsell/features/new_listing/repositories/promotion_repository.dart';
 import 'package:vidsell/features/home/widgets/subscription_shared_widgets.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
 import 'package:vidsell/features/new_listing/pages/boost_subscription_page.dart';
@@ -13,6 +19,9 @@ import 'package:vidsell/features/new_listing/models/listing_submission_details.d
 import 'package:vidsell/features/new_listing/pages/premium_subscription_page.dart';
 import 'package:vidsell/features/new_listing/pages/listing_submission_success_page.dart';
 import 'package:vidsell/features/new_listing/pages/vip_subscription_page.dart';
+import 'package:vidsell/models/enums/promotion_type.dart';
+import 'package:vidsell/models/product/promote_request.dart';
+import 'package:vidsell/models/promotion/promotion_availability.dart';
 
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
@@ -47,8 +56,21 @@ class ListingPromotionPage extends StatefulWidget {
 
 class _ListingPromotionPageState extends State<ListingPromotionPage> {
   _Promotion _selectedPromotion = _Promotion.vip;
+  late final bool _isApiMode;
+  Future<PromotionAvailability>? _availabilityFuture;
 
   bool get _hasSubscription => _selectedPromotion != _Promotion.boost;
+
+  @override
+  void initState() {
+    super.initState();
+    _isApiMode = !context.read<AppConfig>().useMockBackend;
+    if (_isApiMode) {
+      _availabilityFuture = context
+          .read<PromotionRepository>()
+          .fetchAvailability();
+    }
+  }
 
   ListingSubmissionDetails get _listingDetails => ListingSubmissionDetails(
     title: widget.title,
@@ -61,11 +83,12 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
   );
 
   void _finishListing() {
+    _finishListingWithService(context.l10n.standardService);
+  }
+
+  void _finishListingWithService(String service) {
     context.goAndClear(
-      ListingSubmissionSuccessPage(
-        listing: _listingDetails,
-        service: context.l10n.standardService,
-      ),
+      ListingSubmissionSuccessPage(listing: _listingDetails, service: service),
     );
   }
 
@@ -84,59 +107,62 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
             Divider(height: 1.h, color: AppColor.bgSecondary),
             14.height,
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildListingPreview(),
-                    16.height,
-                    _buildFreeLimit(),
-                    16.height,
-                    Center(
-                      child: Text(
-                        context.l10n.freeServicesMonthly,
-                        style: AppTextStyle.mutedText.copyWith(
-                          color: const Color(0xFF9CA3AF),
-                          fontSize: 14.sp,
-                        ),
+              child: _isApiMode
+                  ? _buildApiPromotions()
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildListingPreview(),
+                          16.height,
+                          _buildFreeLimit(),
+                          16.height,
+                          Center(
+                            child: Text(
+                              context.l10n.freeServicesMonthly,
+                              style: AppTextStyle.mutedText.copyWith(
+                                color: const Color(0xFF9CA3AF),
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ),
+                          16.height,
+                          _buildPromotionOption(
+                            promotion: _Promotion.vip,
+                            icon: Icons.king_bed_rounded,
+                            title: context.l10n.vip,
+                            detail: context.l10n.quotaRemaining(1, 1),
+                            description:
+                                context.l10n.listingPromotionVipDescription,
+                            iconColor: const Color(0xFFB779FF),
+                            onTap: () => _selectPromotion(_Promotion.vip),
+                          ),
+                          12.height,
+                          _buildPromotionOption(
+                            promotion: _Promotion.premium,
+                            icon: Icons.star_rounded,
+                            title: context.l10n.premium,
+                            detail: context.l10n.quotaRemaining(1, 1),
+                            description:
+                                context.l10n.listingPromotionPremiumDescription,
+                            iconColor: const Color(0xFFFFB21A),
+                            onTap: () => _selectPromotion(_Promotion.premium),
+                          ),
+                          12.height,
+                          _buildPromotionOption(
+                            promotion: _Promotion.boost,
+                            icon: Icons.trending_up_rounded,
+                            title: context.l10n.boostListing,
+                            detail: context.l10n.quotaRemaining(3, 3),
+                            description:
+                                context.l10n.listingPromotionBoostDescription,
+                            iconColor: const Color(0xFF26D07C),
+                            onTap: () => _selectPromotion(_Promotion.boost),
+                          ),
+                        ],
                       ),
                     ),
-                    16.height,
-                    _buildPromotionOption(
-                      promotion: _Promotion.vip,
-                      icon: Icons.king_bed_rounded,
-                      title: context.l10n.vip,
-                      quota: context.l10n.quotaRemaining(1, 1),
-                      description: context.l10n.listingPromotionVipDescription,
-                      iconColor: const Color(0xFFB779FF),
-                      onTap: () => _selectPromotion(_Promotion.vip),
-                    ),
-                    12.height,
-                    _buildPromotionOption(
-                      promotion: _Promotion.premium,
-                      icon: Icons.star_rounded,
-                      title: context.l10n.premium,
-                      quota: context.l10n.quotaRemaining(1, 1),
-                      description:
-                          context.l10n.listingPromotionPremiumDescription,
-                      iconColor: const Color(0xFFFFB21A),
-                      onTap: () => _selectPromotion(_Promotion.premium),
-                    ),
-                    12.height,
-                    _buildPromotionOption(
-                      promotion: _Promotion.boost,
-                      icon: Icons.trending_up_rounded,
-                      title: context.l10n.boostListing,
-                      quota: context.l10n.quotaRemaining(3, 3),
-                      description:
-                          context.l10n.listingPromotionBoostDescription,
-                      iconColor: const Color(0xFF26D07C),
-                      onTap: () => _selectPromotion(_Promotion.boost),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -149,7 +175,175 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
     setState(() => _selectedPromotion = promotion);
   }
 
+  Widget _buildApiPromotions() {
+    return FutureBuilder<PromotionAvailability>(
+      future: _availabilityFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(context.l10n.genericError),
+                8.height,
+                TextButton(
+                  onPressed: () => setState(
+                    () => _availabilityFuture = context
+                        .read<PromotionRepository>()
+                        .fetchAvailability(),
+                  ),
+                  child: Text(context.l10n.retry),
+                ),
+              ],
+            ),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColor.activeColor),
+          );
+        }
+
+        final availability = snapshot.data!;
+        final vipPrice = availability.prices['VIP'];
+        final premiumPrice = availability.prices['PREMIUM'];
+        if (vipPrice == null || premiumPrice == null) {
+          return Center(child: Text(context.l10n.genericError));
+        }
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildListingPreview(),
+              16.height,
+              _buildFreeDailyQuota(availability.freeDailyQuota),
+              16.height,
+              _buildPromotionOption(
+                promotion: _Promotion.vip,
+                icon: Icons.king_bed_rounded,
+                title: context.l10n.vip,
+                detail: CurrencyFormatter.formatPrice(
+                  vipPrice,
+                  'TRY',
+                  decimalDigits: 2,
+                ),
+                description: context.l10n.listingPromotionVipDescription,
+                iconColor: const Color(0xFFB779FF),
+                onTap: () => _selectPromotion(_Promotion.vip),
+              ),
+              12.height,
+              _buildPromotionOption(
+                promotion: _Promotion.premium,
+                icon: Icons.star_rounded,
+                title: context.l10n.premium,
+                detail: CurrencyFormatter.formatPrice(
+                  premiumPrice,
+                  'TRY',
+                  decimalDigits: 2,
+                ),
+                description: context.l10n.listingPromotionPremiumDescription,
+                iconColor: const Color(0xFFFFB21A),
+                onTap: () => _selectPromotion(_Promotion.premium),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFreeDailyQuota(int quota) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColor.bgSecondary,
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.freeListingLimit,
+              style: AppTextStyle.mutedText.copyWith(fontSize: 14.sp),
+            ),
+          ),
+          Text(
+            context.l10n.freeDailyPromotions(quota),
+            style: AppTextStyle.primaryText.copyWith(
+              color: AppColor.successLight,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _purchaseApiPromotion() async {
+    final productId = widget.listingId;
+    if (productId == null || productId.isEmpty) {
+      _showApiPromotionError();
+      return;
+    }
+
+    final promotionType = switch (_selectedPromotion) {
+      _Promotion.vip => PromotionType.vip,
+      _Promotion.premium => PromotionType.premium,
+      _Promotion.boost => null,
+    };
+    if (promotionType == null) return;
+
+    try {
+      await context.read<PromotionRepository>().promoteProduct(
+        productId: productId,
+        request: PromoteRequest(promotionType: promotionType, days: 30),
+      );
+      if (!mounted) return;
+      _finishListingWithService(
+        promotionType == PromotionType.vip
+            ? context.l10n.vip
+            : context.l10n.premium,
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showApiPromotionError(
+        insufficientBalance: error.code == 'ERROR_WALLET_INSUFFICIENT_BALANCE',
+      );
+    } on Exception {
+      if (!mounted) return;
+      _showApiPromotionError();
+    }
+  }
+
+  void _showApiPromotionError({bool insufficientBalance = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            insufficientBalance
+                ? context.l10n.walletInsufficientBalance
+                : context.l10n.genericError,
+          ),
+          action: insufficientBalance
+              ? SnackBarAction(
+                  label: context.l10n.topUpBalance,
+                  onPressed: () => context.goTo(const WalletPage()),
+                )
+              : null,
+        ),
+      );
+  }
+
   Future<void> _continuePromotion() async {
+    if (_isApiMode) {
+      await _purchaseApiPromotion();
+      return;
+    }
     if (_selectedPromotion == _Promotion.vip) {
       await context.goTo(VipSubscriptionPage(listing: _listingDetails));
     } else if (_selectedPromotion == _Promotion.premium) {
@@ -261,7 +455,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
     required _Promotion promotion,
     required IconData icon,
     required String title,
-    required String quota,
+    required String detail,
     required String description,
     required Color iconColor,
     required VoidCallback onTap,
@@ -325,7 +519,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
-                          quota,
+                          detail,
                           style: AppTextStyle.primaryText.copyWith(
                             color: AppColor.successLight,
                             fontSize: 10.sp,

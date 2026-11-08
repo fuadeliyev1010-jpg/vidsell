@@ -1,3 +1,5 @@
+import 'package:vidsell/models/wallet/top_up_request.dart';
+import 'package:vidsell/models/enums/payment_method.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
 import 'package:vidsell/models/wallet/wallet_transaction.dart';
 import 'package:vidsell/models/wallet/top_up_intent.dart';
@@ -6,6 +8,8 @@ abstract interface class WalletRepository {
   Future<WalletBalance> fetchWallet();
 
   Future<List<WalletTransaction>> fetchTransactions();
+
+  Future<List<PaymentMethodOption>> fetchPaymentMethods();
 
   /// Direct top-up with raw card credentials.
   ///
@@ -26,10 +30,11 @@ abstract interface class WalletRepository {
     required String paymentToken,
   });
 
-  Future<TopUpIntent> createTopUpIntent({
-    required double amount,
-    required String paymentToken,
-  });
+  Future<TopUpIntent> createTopUpIntent({required TopUpRequest request});
+
+  Future<TopUpIntent> fetchTopUpIntent(String id);
+
+  Future<TopUpIntent> confirmTopUp(String id);
 
   Future<WalletTransaction> refund(RefundRequest request);
 }

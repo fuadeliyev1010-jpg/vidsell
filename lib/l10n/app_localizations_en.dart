@@ -2475,4 +2475,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get districtGanjlik => 'Ganjlik';
+
+  @override
+  String get paymentMethod => 'Payment method';
+
+  @override
+  String topUpInvoiceNumber(String number) {
+    return 'Invoice: $number';
+  }
+
+  @override
+  String get checkPaymentStatus => 'Check payment status';
+
+  @override
+  String get walletInsufficientBalance =>
+      'Your wallet balance is insufficient. Top up your wallet to continue.';
+
+  @override
+  String freeDailyPromotions(int count) {
+    return '$count free promotions available today';
+  }
 }

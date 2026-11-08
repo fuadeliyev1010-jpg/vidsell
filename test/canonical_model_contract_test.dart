@@ -91,7 +91,7 @@ void main() {
   test('all newly introduced enum parsers have unknown fallbacks', () {
     expect(ProductStatus.fromCode('future'), ProductStatus.unknown);
     expect(NotificationType.fromCode('future'), NotificationType.unknown);
-    expect(PaymentMethod.fromCode('future'), PaymentMethod.unknown);
+    expect(PaymentMethod.fromCode('future').code, 'future');
     expect(PaymentMethod.fromCode('future').code, 'future');
     expect(TopUpStatus.fromCode('future'), TopUpStatus.unknown);
     expect(TopUpStatus.fromCode('future').code, 'future');

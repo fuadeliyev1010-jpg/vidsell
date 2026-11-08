@@ -1,5 +1,6 @@
 import 'package:vidsell/models/promotion/promotion_availability.dart';
 import 'package:vidsell/features/new_listing/repositories/promotion_repository.dart';
+import 'package:vidsell/models/product/promote_request.dart';
 
 class MockPromotionRepository implements PromotionRepository {
   @override
@@ -8,4 +9,14 @@ class MockPromotionRepository implements PromotionRepository {
         freeDailyQuota: 3,
         prices: {'BOOST': 1, 'VIP': 5, 'PREMIUM': 10},
       );
+
+  @override
+  Future<void> promoteProduct({
+    required String productId,
+    required PromoteRequest request,
+  }) async {
+    if (productId.trim().isEmpty || request.days < 1 || request.days > 30) {
+      throw ArgumentError('Invalid product promotion request.');
+    }
+  }
 }

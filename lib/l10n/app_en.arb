@@ -789,4 +789,11 @@
   ,"districtSahil": "Sahil"
   ,"districtYasamal": "Yasamal"
   ,"districtGanjlik": "Ganjlik"
+  ,"paymentMethod": "Payment method"
+  ,"topUpInvoiceNumber": "Invoice: {number}"
+  ,"@topUpInvoiceNumber": {"placeholders": {"number": {"type": "String"}}}
+  ,"checkPaymentStatus": "Check payment status"
+  ,"walletInsufficientBalance": "Your wallet balance is insufficient. Top up your wallet to continue."
+  ,"freeDailyPromotions": "{count} free promotions available today"
+  ,"@freeDailyPromotions": {"placeholders": {"count": {"type": "int"}}}
 }

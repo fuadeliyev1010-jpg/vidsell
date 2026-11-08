@@ -1,5 +1,6 @@
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/models/promotion/promotion_availability.dart';
+import 'package:vidsell/models/product/promote_request.dart';
 import 'package:vidsell/features/new_listing/repositories/promotion_repository.dart';
 
 class ApiPromotionRepository implements PromotionRepository {
@@ -14,5 +15,19 @@ class ApiPromotionRepository implements PromotionRepository {
       throw StateError('Invalid promotion availability response.');
     }
     return PromotionAvailability.fromJson(data);
+  }
+
+  @override
+  Future<void> promoteProduct({
+    required String productId,
+    required PromoteRequest request,
+  }) async {
+    final data = await _client.post(
+      '/products/$productId/promote',
+      data: request.toJson(),
+    );
+    if (data is! Map<String, dynamic>) {
+      throw StateError('Invalid product promotion response.');
+    }
   }
 }

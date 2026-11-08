@@ -16,6 +16,7 @@ import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
 import 'package:vidsell/features/home/repositories/listing_detail_repository.dart';
 import 'package:vidsell/features/new_listing/repositories/listing_repository.dart';
+import 'package:vidsell/features/new_listing/repositories/promotion_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/profile_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/payment_provider.dart';
@@ -132,6 +133,9 @@ class MyApp extends StatelessWidget {
                 ),
                 RepositoryProvider<ListingRepository>.value(
                   value: dependencies.listingRepository,
+                ),
+                RepositoryProvider<PromotionRepository>.value(
+                  value: dependencies.promotionRepository,
                 ),
                 RepositoryProvider<ListingDetailRepository>.value(
                   value: dependencies.listingDetailRepository,

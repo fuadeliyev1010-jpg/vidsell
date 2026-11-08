@@ -2455,4 +2455,24 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get districtGanjlik => 'Gənclik';
+
+  @override
+  String get paymentMethod => 'Ödeme yöntemi';
+
+  @override
+  String topUpInvoiceNumber(String number) {
+    return 'Fatura: $number';
+  }
+
+  @override
+  String get checkPaymentStatus => 'Ödeme durumunu kontrol et';
+
+  @override
+  String get walletInsufficientBalance =>
+      'Cüzdan bakiyeniz yetersiz. Devam etmek için bakiye yükleyin.';
+
+  @override
+  String freeDailyPromotions(int count) {
+    return 'Bugün $count ücretsiz tanıtım hakkı';
+  }
 }
