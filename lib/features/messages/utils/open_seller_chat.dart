@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/messages/pages/chat_detail_page.dart';
 import 'package:vidsell/features/messages/repositories/messaging_repository.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
@@ -72,13 +70,3 @@ Future<void> openSellerChat(
     ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
 }
-
-Future<void> openLegacySellerChat(
-  BuildContext context,
-  HomeListing listing, {
-  String? initialMessage,
-}) => openSellerChat(
-  context,
-  ProductLegacyAdapter.fromHomeListing(listing),
-  initialMessage: initialMessage,
-);

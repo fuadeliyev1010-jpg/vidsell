@@ -6,7 +6,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/services/location_permission_service.dart';
 import 'package:vidsell/core/utils/call_seller.dart';
@@ -262,9 +261,9 @@ class _ListingMapViewState extends State<ListingMapView> {
               listing: item,
               onMessage: (message) {
                 Navigator.of(context).pop();
-                openLegacySellerChat(
+                openSellerChat(
                   context,
-                  ProductLegacyAdapter.toHomeListing(item),
+                  item,
                   initialMessage: message.isEmpty ? null : message,
                 );
               },
@@ -879,9 +878,9 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
         listing: item,
         onMessage: (message) {
           Navigator.of(context).pop();
-          openLegacySellerChat(
+          openSellerChat(
             context,
-            ProductLegacyAdapter.toHomeListing(item),
+            item,
             initialMessage: message.isEmpty ? null : message,
           );
         },
