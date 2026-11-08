@@ -9,11 +9,9 @@ import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
-import 'package:vidsell/features/discover/models/product_listing.dart';
 import 'package:vidsell/features/discover/utils/video_slot_pool.dart';
-import 'package:vidsell/features/discover/utils/product_listing_localization.dart';
+import 'package:vidsell/features/discover/utils/product_localization.dart';
 import 'package:vidsell/features/discover/bloc/favorites_cubit.dart';
 import 'package:vidsell/features/discover/models/engagement_item.dart';
 import 'package:vidsell/features/home/widgets/product_details_sheet.dart';
@@ -22,8 +20,7 @@ import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/models/product/product.dart';
 
 class ProductCard extends StatefulWidget {
-  final Product? product;
-  final ProductListing? listing;
+  final Product product;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteToggle;
   final Object? playbackGroup;
@@ -31,44 +28,37 @@ class ProductCard extends StatefulWidget {
 
   const ProductCard({
     super.key,
-    this.product,
-    this.listing,
+    required this.product,
     this.onTap,
     this.onFavoriteToggle,
     this.playbackGroup,
     this.videoUrl,
-  }) : assert(product != null || listing != null);
+  });
 
   @override
   State<ProductCard> createState() => _ProductCardState();
 }
 
 class _ProductCardState extends State<ProductCard> {
-  late bool _isFavorite =
-      widget.product?.isFavorite ?? widget.listing?.isFavorite ?? false;
+  late bool _isFavorite = widget.product.isFavorite;
   VideoPlayerController? _controller;
   bool _videoFailed = false;
   double _visibleFraction = 0;
 
-  Product get _product =>
-      widget.product ??
-      ProductLegacyAdapter.fromProductListing(widget.listing!);
+  Product get _product => widget.product;
 
-  String? get _videoUrl => widget.videoUrl ?? widget.listing?.videoUrl;
+  String? get _videoUrl => widget.videoUrl;
 
   String get _imagePath =>
-      widget.listing?.imagePath ??
-      (_product.imageUrls.isEmpty ? '' : _product.imageUrls.first);
+      _product.imageUrls.isEmpty ? '' : _product.imageUrls.first;
 
-  String get _price => widget.listing?.price ?? _formattedPrice(_product);
+  String get _price => _formattedPrice(_product);
 
   @override
   void didUpdateWidget(covariant ProductCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final oldIsFavorite =
-        oldWidget.product?.isFavorite ?? oldWidget.listing?.isFavorite ?? false;
-    final newIsFavorite =
-        widget.product?.isFavorite ?? widget.listing?.isFavorite ?? false;
+    final oldIsFavorite = oldWidget.product.isFavorite;
+    final newIsFavorite = widget.product.isFavorite;
     if (oldIsFavorite != newIsFavorite) {
       _isFavorite = newIsFavorite;
     }
@@ -83,8 +73,7 @@ class _ProductCardState extends State<ProductCard> {
     }
   }
 
-  static String? _videoUrlFor(ProductCard card) =>
-      card.videoUrl ?? card.listing?.videoUrl;
+  static String? _videoUrlFor(ProductCard card) => card.videoUrl;
 
   @override
   void dispose() {
@@ -203,7 +192,7 @@ class _ProductCardState extends State<ProductCard> {
         listing: product,
         price: _price,
         title: product.title,
-        city: product.city ?? widget.listing?.location ?? 'İstanbul',
+        city: product.city ?? 'İstanbul',
         subCategory: product.subcategoryDisplay.isNotEmpty
             ? product.subcategoryDisplay
             : product.brand,
@@ -247,16 +236,12 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final favoriteStore = context.watch<FavoritesCubit>();
     final product = _product;
-    final listingId = widget.product == null ? widget.listing?.id : product.id;
-    final isFavorite = listingId == null
+    final listingId = product.id;
+    final isFavorite = listingId.isEmpty
         ? _isFavorite
         : favoriteStore.isFavorite(listingId);
-    final location =
-        widget.listing?.localizedLocation(context.l10n) ??
-        _localizedLocation(product.city ?? '', context.l10n);
-    final timeAgo =
-        widget.listing?.localizedTimeAgo(context.l10n) ??
-        _localizedTimeAgo(product, context.l10n);
+    final location = product.localizedLocation(context.l10n);
+    final timeAgo = _localizedTimeAgo(product, context.l10n);
 
     return GestureDetector(
       onTap: () => _openDetails(context),
@@ -315,7 +300,7 @@ class _ProductCardState extends State<ProductCard> {
                 child: InkWell(
                   onTap: () {
                     final nextValue = !isFavorite;
-                    if (listingId == null) {
+                    if (listingId.isEmpty) {
                       setState(() => _isFavorite = nextValue);
                       widget.onFavoriteToggle?.call();
                       return;
@@ -466,17 +451,6 @@ class _ProductCardState extends State<ProductCard> {
   String _formattedPrice(Product product) =>
       '${product.price % 1 == 0 ? product.price.toInt() : product.price} '
       '${product.currency}';
-
-  String _localizedLocation(String location, AppLocalizations l10n) =>
-      switch (location) {
-        'Bakı' => l10n.cityBaku,
-        'İstambul' || 'İstanbul' => l10n.cityIstanbul,
-        'Nərimanov' => l10n.districtNarimanov,
-        'Sahil' => l10n.districtSahil,
-        'Yasamal' => l10n.districtYasamal,
-        'Gənclik' => l10n.districtGanjlik,
-        _ => location,
-      };
 
   String _localizedTimeAgo(Product product, AppLocalizations l10n) {
     final updatedAt = product.updatedAt;

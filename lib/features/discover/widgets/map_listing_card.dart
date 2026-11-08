@@ -5,7 +5,7 @@ import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
-import 'package:vidsell/features/discover/utils/product_listing_localization.dart';
+import 'package:vidsell/features/discover/utils/product_localization.dart';
 import 'package:vidsell/features/home/widgets/product_details_sheet.dart';
 import 'package:vidsell/features/messages/utils/open_seller_chat.dart';
 import 'package:vidsell/l10n/app_localizations.dart';

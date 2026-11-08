@@ -14,7 +14,7 @@ import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/search_text_field.dart';
 import 'package:vidsell/features/discover/models/listing_filter.dart';
 import 'package:vidsell/features/discover/pages/filter_page.dart';
-import 'package:vidsell/features/discover/utils/product_listing_localization.dart';
+import 'package:vidsell/features/discover/utils/product_localization.dart';
 import 'package:vidsell/features/discover/widgets/map_listing_card.dart';
 import 'package:vidsell/features/home/widgets/product_details_sheet.dart';
 import 'package:vidsell/features/messages/utils/open_seller_chat.dart';

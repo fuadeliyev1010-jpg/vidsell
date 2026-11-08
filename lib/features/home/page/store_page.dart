@@ -18,7 +18,6 @@ import 'package:vidsell/features/discover/bloc/following_cubit.dart';
 import 'package:vidsell/features/discover/models/engagement_item.dart';
 import 'package:vidsell/features/discover/repositories/engagement_repository.dart';
 import 'package:vidsell/features/messages/pages/chat_detail_page.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -96,7 +95,9 @@ class _StorePageState extends State<StorePage> {
           limit: 50,
           sellerId: sellerId,
         );
-        listings.addAll(page.items.map((item) => item.product).whereType<Product>());
+        listings.addAll(
+          page.items.map((item) => item.product).whereType<Product>(),
+        );
         if (page.nextCursor == cursor && page.nextCursor != null) {
           throw StateError('Seller listings returned a repeated cursor.');
         }
@@ -848,9 +849,7 @@ class _StorePageState extends State<StorePage> {
         childAspectRatio: 0.62,
       ),
       itemCount: _listings.length,
-      itemBuilder: (context, index) => ProductCard(
-        listing: ProductLegacyAdapter.toProductListing(_listings[index]),
-      ),
+      itemBuilder: (context, index) => ProductCard(product: _listings[index]),
     );
   }
 }

@@ -4,8 +4,8 @@ import 'package:vidsell/features/home/bloc/home_bloc.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/mock_home_repository.dart';
 import 'package:vidsell/features/home/widgets/home_listing_media.dart';
-import 'package:vidsell/features/discover/models/product_listing.dart';
-import 'package:vidsell/features/discover/utils/product_listing_home_adapter.dart';
+import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
+import 'package:vidsell/models/product/product.dart';
 
 void main() {
   test('mock home repository returns cursor-paginated listings', () async {
@@ -27,13 +27,8 @@ void main() {
     );
   });
 
-  test('missing listing coordinates remain unavailable for map placement', () {
-    const listing = ProductListing(
-      imagePath: '',
-      price: '',
-      title: '',
-      timeAgo: '',
-    );
+  test('missing product coordinates remain unavailable for map placement', () {
+    const product = Product(id: 'without-coordinates', price: 100, title: '');
     final homeListing = HomeListing.fromJson({
       'id': 'listing-default-city',
       'price': 100,
@@ -50,9 +45,9 @@ void main() {
       'shareUrl': 'https://vidsell.example/listing/1',
     });
 
-    expect(listing.location, 'İstanbul');
-    expect(listing.latitude, isNull);
-    expect(listing.longitude, isNull);
+    expect(product.city, isNull);
+    expect(product.latitude, isNull);
+    expect(product.longitude, isNull);
     expect(homeListing.city, 'İstanbul');
   });
 
@@ -196,31 +191,30 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  test('Discover products convert into the shared details model', () {
-    final listing = toHomeListing(
-      const ProductListing(
+  test('Product converts into the shared home listing model', () {
+    final listing = ProductLegacyAdapter.toHomeListing(
+      const Product(
         id: 'discover-1',
-        imagePath: 'poster.jpg',
-        videoUrl: 'https://cdn.example.com/discover.mp4',
-        price: '100 AZN',
+        imageUrls: ['poster.jpg'],
+        price: 100,
+        currency: 'AZN',
         title: 'Product',
-        timeAgo: '1 hour',
         brand: 'Brand',
-        location: 'Bakı',
-        phoneNumber: '+994501234567',
+        city: 'Bakı',
+        sellerPhone: '+994501234567',
         sellerName: 'Seller',
         sellerId: 'seller-1',
-        sellerAvatar: 'https://cdn.example.com/seller.jpg',
+        sellerAvatarUrl: 'https://cdn.example.com/seller.jpg',
       ),
     );
 
     expect(listing.id, 'discover-1');
-    expect(listing.videoUrl, 'https://cdn.example.com/discover.mp4');
     expect(listing.phoneNumber, '+994501234567');
     expect(listing.city, 'Bakı');
     expect(listing.sellerName, 'Seller');
     expect(listing.sellerId, 'seller-1');
     expect(listing.sellerAvatar, 'https://cdn.example.com/seller.jpg');
+    expect(listing.imagePath, 'poster.jpg');
   });
 
   test('home bloc loads and appends the next page', () async {

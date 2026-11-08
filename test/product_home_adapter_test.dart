@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vidsell/features/discover/utils/product_listing_home_adapter.dart';
+import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
 
 void main() {
   test(
-    'projects real listing IDs and leaves unavailable map coordinates unset',
+    'converts home listing IDs and preserves unavailable map coordinates',
     () {
-      final product = toProductListing(
+      final product = ProductLegacyAdapter.fromHomeListing(
         const HomeListing(
           id: 'listing-42',
           sellerName: 'Seller',

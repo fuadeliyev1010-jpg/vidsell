@@ -1,4 +1,3 @@
-import 'package:vidsell/features/discover/models/product_listing.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/models/video/feed_item.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
@@ -48,31 +47,6 @@ class ProductLegacyAdapter {
     simCard: listing.simCard,
     createdAt: listing.createdAt,
     updatedAt: DateTime.tryParse(listing.updatedAt),
-  );
-
-  static Product fromProductListing(ProductListing listing) => Product(
-    id: listing.id ?? '',
-    title: listing.title,
-    price: listing.priceValue ?? _priceValue(listing.price),
-    currency: _currencyFrom(listing.price),
-    imageUrls: [if (listing.imagePath.isNotEmpty) listing.imagePath],
-    city: listing.location,
-    status: _productStatus(listing.status),
-    categoryId: listing.categoryId,
-    subcategoryId: listing.subcategoryId,
-    cityId: listing.cityId,
-    sellerId: listing.sellerId,
-    sellerName: listing.sellerName,
-    sellerAvatarUrl: listing.sellerAvatar,
-    sellerPhone: listing.phoneNumber,
-    businessId: listing.businessId,
-    isFavorite: listing.isFavorite,
-    isVip: listing.isVip,
-    latitude: listing.latitude,
-    longitude: listing.longitude,
-    brand: listing.brand,
-    createdAt: listing.createdAt,
-    updatedAt: listing.updatedAt,
   );
 
   static HomeListing toHomeListingFromFeedItem(FeedItem item) {
@@ -135,34 +109,6 @@ class ProductLegacyAdapter {
     currency: product.currency,
     status: _listingStatus(product.status),
     createdAt: product.createdAt,
-  );
-
-  static ProductListing toProductListing(Product product) => ProductListing(
-    id: product.id,
-    imagePath: product.imageUrls.isEmpty ? '' : product.imageUrls.first,
-    price:
-        '${product.price % 1 == 0 ? product.price.toInt() : product.price} '
-        '${product.currency}',
-    title: product.title,
-    timeAgo: '',
-    location: product.city ?? '',
-    brand: product.brand,
-    latitude: product.latitude,
-    longitude: product.longitude,
-    priceValue: product.price,
-    isVip: product.isVip,
-    isFavorite: product.isFavorite,
-    phoneNumber: product.sellerPhone,
-    sellerName: product.sellerName ?? '',
-    sellerId: product.sellerId,
-    sellerAvatar: product.sellerAvatarUrl,
-    businessId: product.businessId,
-    categoryId: product.categoryId,
-    subcategoryId: product.subcategoryId,
-    cityId: product.cityId,
-    status: _listingStatus(product.status),
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
   );
 
   static Listing toListing(Product product) => Listing(

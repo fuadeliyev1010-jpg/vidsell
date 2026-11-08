@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vidsell/features/discover/models/product_listing.dart';
-import 'package:vidsell/features/discover/utils/product_listing_home_adapter.dart';
+import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/models/listing_detail.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
+import 'package:vidsell/models/product/product.dart';
 
 void main() {
   const listingResponse = {
@@ -87,26 +87,21 @@ void main() {
       expect(detail.storage, listing.storage);
       expect(detail.simCard, listing.simCard);
       expect(detail.mediaUrls, listing.media.map((item) => item.url).toList());
-      final mapListing = toProductListing(homeListing);
-      expect(mapListing.id, listing.id);
-      expect(mapListing.latitude, listing.latitude);
-      expect(mapListing.longitude, listing.longitude);
     },
   );
 
   test('discover display listing does not mislabel brand as subcategory', () {
-    final homeListing = toHomeListing(
-      const ProductListing(
+    final homeListing = ProductLegacyAdapter.toHomeListing(
+      const Product(
         id: 'listing-42',
-        imagePath: 'photo.jpg',
-        price: '1250 AZN',
+        imageUrls: ['photo.jpg'],
+        price: 1250,
+        currency: 'AZN',
         title: 'Phone',
-        timeAgo: '1 hour',
         brand: 'Brand',
         subcategoryId: 'phones',
         cityId: 'baku',
         categoryId: 'electronics',
-        priceValue: 1250,
       ),
     );
 
