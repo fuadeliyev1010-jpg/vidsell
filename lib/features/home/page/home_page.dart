@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/call_seller.dart';
 import 'package:vidsell/core/utils/currency_formatter.dart';
@@ -639,7 +638,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ]);
     }
-    if (sellerId?.isNotEmpty == true) {
+    if (product != null && sellerId?.isNotEmpty == true) {
       actions.addAll([
         18.height,
         HomeCircleAction(
@@ -673,10 +672,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openSellerChat(FeedItem listing, {String? initialMessage}) {
+    final product = listing.product;
+    if (product == null) return Future<void>.value();
     return _navigateWithPlaybackPaused(
-      () => openLegacySellerChat(
+      () => openSellerChat(
         context,
-        ProductLegacyAdapter.toHomeListingFromFeedItem(listing),
+        product,
+        sellerId: listing.ownerId?.isNotEmpty == true ? listing.ownerId : null,
+        sellerName: listing.ownerName?.isNotEmpty == true
+            ? listing.ownerName
+            : null,
+        sellerAvatarUrl: listing.ownerAvatarUrl,
         initialMessage: initialMessage,
       ),
     );
