@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:vidsell/core/utils/video_url_resolver.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
+import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class HomeListingMedia extends StatefulWidget {
   const HomeListingMedia({
@@ -34,7 +36,7 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    if (widget.playing) _initializeVideo();
   }
 
   @override
@@ -43,14 +45,18 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
     if (oldWidget.listing.videoUrl != widget.listing.videoUrl) {
       _disposeController();
       _videoFailed = false;
-      _initializeVideo();
+      if (widget.playing) _initializeVideo();
     } else if (oldWidget.playing != widget.playing ||
         oldWidget.playbackSession != widget.playbackSession) {
-      _setPlaybackState(
-        restart:
-            widget.playing &&
-            oldWidget.playbackSession != widget.playbackSession,
-      );
+      if (widget.playing && _controller == null && !_videoFailed) {
+        _initializeVideo();
+      } else {
+        _setPlaybackState(
+          restart:
+              widget.playing &&
+              oldWidget.playbackSession != widget.playbackSession,
+        );
+      }
     }
     if (oldWidget.muted != widget.muted) {
       _setMuted();
@@ -66,30 +72,35 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
   void _initializeVideo() {
     final videoUrl = widget.listing.videoUrl?.trim();
     if (videoUrl == null || videoUrl.isEmpty) return;
-    final uri = Uri.tryParse(videoUrl);
-    if (uri == null) {
-      _videoFailed = true;
-      return;
-    }
 
     late final VideoPlayerController controller;
-    if (uri.hasScheme) {
-      if (uri.scheme == 'http' || uri.scheme == 'https') {
-        controller = VideoPlayerController.networkUrl(uri);
-      } else if (uri.scheme == 'file') {
-        controller = VideoPlayerController.file(File.fromUri(uri));
-      } else {
-        _videoFailed = true;
-        return;
-      }
+    if (videoUrl.startsWith('assets/')) {
+      controller = VideoPlayerController.asset(videoUrl);
+    } else if (videoUrl.startsWith('/')) {
+      controller = VideoPlayerController.file(File(videoUrl));
     } else {
-      controller = videoUrl.startsWith('/')
-          ? VideoPlayerController.file(File(videoUrl))
-          : VideoPlayerController.asset(videoUrl);
+      final uri = Uri.tryParse(videoUrl);
+      if (uri?.scheme == 'file') {
+        controller = VideoPlayerController.file(File.fromUri(uri!));
+      } else {
+        final networkUri = VideoUrlResolver.resolveNetworkUrl(videoUrl);
+        if (networkUri == null) {
+          _videoFailed = true;
+          return;
+        }
+        controller = VideoPlayerController.networkUrl(networkUri);
+      }
     }
 
     _controller = controller;
+    controller.addListener(_onControllerChanged);
     unawaited(_loadVideo(controller));
+  }
+
+  void _onControllerChanged() {
+    final controller = _controller;
+    if (controller == null || !controller.value.hasError) return;
+    _showVideoError(controller);
   }
 
   Future<void> _loadVideo(VideoPlayerController controller) async {
@@ -101,15 +112,19 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
       await _setPlaybackState(restart: widget.playing);
       if (mounted) setState(() {});
     } catch (error) {
-      if (!mounted || controller != _controller) return;
-      if (kDebugMode) {
-        debugPrint(
-          'HomeListingMedia video error: '
-          '${controller.value.errorDescription}; caught: $error',
-        );
-      }
-      setState(() => _videoFailed = true);
+      _showVideoError(controller, error: error);
     }
+  }
+
+  void _showVideoError(VideoPlayerController controller, {Object? error}) {
+    if (!mounted || controller != _controller || _videoFailed) return;
+    if (kDebugMode) {
+      debugPrint(
+        'HomeListingMedia video error: '
+        '${controller.value.errorDescription}; caught: $error',
+      );
+    }
+    setState(() => _videoFailed = true);
   }
 
   Future<void> _setMuted() async {
@@ -118,14 +133,7 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
     try {
       await controller.setVolume(widget.muted ? 0 : 1);
     } catch (error) {
-      if (!mounted || controller != _controller) return;
-      if (kDebugMode) {
-        debugPrint(
-          'HomeListingMedia video error: '
-          '${controller.value.errorDescription}; caught: $error',
-        );
-      }
-      setState(() => _videoFailed = true);
+      _showVideoError(controller, error: error);
     }
   }
 
@@ -133,40 +141,56 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
     final request = ++_playbackRequest;
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) return;
-    if (widget.playing) {
-      if (restart) {
-        await controller.seekTo(Duration.zero);
-        if (!mounted ||
-            controller != _controller ||
-            request != _playbackRequest ||
-            !widget.playing) {
-          return;
+    try {
+      if (widget.playing) {
+        if (restart) {
+          await controller.seekTo(Duration.zero);
+          if (!mounted ||
+              controller != _controller ||
+              request != _playbackRequest ||
+              !widget.playing) {
+            return;
+          }
         }
+        await controller.play();
+      } else {
+        await controller.pause();
       }
-      await controller.play();
-    } else {
-      await controller.pause();
+    } catch (error) {
+      _showVideoError(controller, error: error);
     }
   }
 
   void _disposeController() {
     final controller = _controller;
     _controller = null;
-    if (controller != null) unawaited(controller.dispose());
+    if (controller != null) {
+      controller.removeListener(_onControllerChanged);
+      unawaited(controller.dispose());
+    }
+  }
+
+  void _retryVideo() {
+    if (!_videoFailed) return;
+    _disposeController();
+    setState(() => _videoFailed = false);
+    _initializeVideo();
   }
 
   ImageProvider? _posterProvider() {
-    final path = widget.listing.imagePath;
+    final path = widget.listing.imagePath.trim();
     if (path.isEmpty) return null;
-    if (widget.listing.isNetworkMedia) return NetworkImage(path);
     if (path.startsWith('assets/')) return AssetImage(path);
-    final file = File(path);
-    return file.existsSync() ? FileImage(file) : AssetImage(path);
+    if (path.startsWith('/')) return FileImage(File(path));
+    final uri = Uri.tryParse(path);
+    if (uri?.scheme == 'file') return FileImage(File.fromUri(uri!));
+    final networkUri = VideoUrlResolver.resolveNetworkUrl(path);
+    return networkUri == null ? null : NetworkImage(networkUri.toString());
   }
 
   @override
   Widget build(BuildContext context) {
-    final poster = widget.listing.hasVideo ? null : _posterProvider();
+    final poster = _posterProvider();
     final controller = _controller;
 
     return Stack(
@@ -201,13 +225,13 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
             ),
           )
         else if (controller != null && !_videoFailed)
-          const Center(child: CircularProgressIndicator(color: Colors.white70))
-        else if (_videoFailed)
-          const Center(
-            child: Icon(
-              Icons.error_outline_rounded,
-              color: Colors.white70,
-              size: 30,
+          const Center(child: CircularProgressIndicator(color: Colors.white70)),
+        if (_videoFailed)
+          Center(
+            child: TextButton.icon(
+              onPressed: _retryVideo,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(context.l10n.retry),
             ),
           ),
       ],

@@ -11,6 +11,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/utils/currency_formatter.dart';
+import 'package:vidsell/core/utils/video_url_resolver.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/utils/video_slot_pool.dart';
 import 'package:vidsell/features/discover/utils/product_localization.dart';
@@ -27,6 +28,8 @@ class ProductCard extends StatefulWidget {
   final VoidCallback? onFavoriteToggle;
   final Object? playbackGroup;
   final String? videoUrl;
+  final String? hlsUrl;
+  final String? rawUrl;
 
   const ProductCard({
     super.key,
@@ -35,6 +38,8 @@ class ProductCard extends StatefulWidget {
     this.onFavoriteToggle,
     this.playbackGroup,
     this.videoUrl,
+    this.hlsUrl,
+    this.rawUrl,
   });
 
   @override
@@ -49,7 +54,12 @@ class _ProductCardState extends State<ProductCard> {
 
   Product get _product => widget.product;
 
-  String? get _videoUrl => widget.videoUrl;
+  String? get _videoUrl =>
+      VideoUrlResolver.selectPlaybackUrl(
+        hlsUrl: widget.hlsUrl,
+        rawUrl: widget.rawUrl,
+      ) ??
+      widget.videoUrl;
 
   String get _imagePath =>
       _product.imageUrls.isEmpty ? '' : _product.imageUrls.first;
@@ -75,7 +85,12 @@ class _ProductCardState extends State<ProductCard> {
     }
   }
 
-  static String? _videoUrlFor(ProductCard card) => card.videoUrl;
+  static String? _videoUrlFor(ProductCard card) =>
+      VideoUrlResolver.selectPlaybackUrl(
+        hlsUrl: card.hlsUrl,
+        rawUrl: card.rawUrl,
+      ) ??
+      card.videoUrl;
 
   @override
   void dispose() {
@@ -134,27 +149,32 @@ class _ProductCardState extends State<ProductCard> {
     if (videoUrl == null || videoUrl.isEmpty) return;
 
     final uri = Uri.tryParse(videoUrl);
-    if (uri == null) {
-      _videoFailed = true;
-      return;
-    }
     late final VideoPlayerController controller;
-    if (uri.hasScheme) {
-      if (uri.scheme == 'http' || uri.scheme == 'https') {
-        controller = VideoPlayerController.networkUrl(uri);
-      } else if (uri.scheme == 'file') {
-        controller = VideoPlayerController.file(File.fromUri(uri));
-      } else {
-        _videoFailed = true;
-        return;
-      }
+    if (videoUrl.startsWith('assets/')) {
+      controller = VideoPlayerController.asset(videoUrl);
+    } else if (videoUrl.startsWith('/')) {
+      controller = VideoPlayerController.file(File(videoUrl));
     } else {
-      controller = videoUrl.startsWith('/')
-          ? VideoPlayerController.file(File(videoUrl))
-          : VideoPlayerController.asset(videoUrl);
+      if (uri?.scheme == 'file') {
+        controller = VideoPlayerController.file(File.fromUri(uri!));
+      } else {
+        final networkUri = VideoUrlResolver.resolveNetworkUrl(videoUrl);
+        if (networkUri == null) {
+          _videoFailed = true;
+          return;
+        }
+        controller = VideoPlayerController.networkUrl(networkUri);
+      }
     }
     _controller = controller;
+    controller.addListener(_onControllerChanged);
     unawaited(_loadVideo(controller));
+  }
+
+  void _onControllerChanged() {
+    final controller = _controller;
+    if (controller == null || !controller.value.hasError) return;
+    _showVideoError(controller);
   }
 
   Future<void> _loadVideo(VideoPlayerController controller) async {
@@ -166,21 +186,35 @@ class _ProductCardState extends State<ProductCard> {
       await controller.play();
       if (mounted) setState(() {});
     } catch (error) {
-      if (!mounted || controller != _controller) return;
-      if (kDebugMode) {
-        debugPrint(
-          'ProductCard video error: '
-          '${controller.value.errorDescription}; caught: $error',
-        );
-      }
-      setState(() => _videoFailed = true);
+      _showVideoError(controller, error: error);
     }
+  }
+
+  void _showVideoError(VideoPlayerController controller, {Object? error}) {
+    if (!mounted || controller != _controller || _videoFailed) return;
+    if (kDebugMode) {
+      debugPrint(
+        'ProductCard video error: '
+        '${controller.value.errorDescription}; caught: $error',
+      );
+    }
+    setState(() => _videoFailed = true);
   }
 
   void _disposeController() {
     final controller = _controller;
     _controller = null;
-    if (controller != null) unawaited(controller.dispose());
+    if (controller != null) {
+      controller.removeListener(_onControllerChanged);
+      unawaited(controller.dispose());
+    }
+  }
+
+  void _retryVideo() {
+    if (!_videoFailed) return;
+    _disposeController();
+    setState(() => _videoFailed = false);
+    _initializeVideo();
   }
 
   // ── Favourite helpers ──────────────────────────────────────────────────────
@@ -414,14 +448,29 @@ class _ProductCardState extends State<ProductCard> {
       );
     }
     if (controller != null && !_videoFailed) {
-      return const Stack(
+      return Stack(
         fit: StackFit.expand,
         children: [
-          ColoredBox(color: Color(0xFF161A22)),
-          Center(
+          _buildPoster(),
+          const Center(
             child: CircularProgressIndicator(
               color: Colors.white70,
               strokeWidth: 2,
+            ),
+          ),
+        ],
+      );
+    }
+    if (_videoFailed) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildPoster(),
+          Center(
+            child: TextButton.icon(
+              onPressed: _retryVideo,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(context.l10n.retry),
             ),
           ),
         ],
@@ -435,8 +484,8 @@ class _ProductCardState extends State<ProductCard> {
     final path = _imagePath.trim();
     if (path.isEmpty) return fallback;
     final uri = Uri.tryParse(path);
-    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-      return Image.network(
+    if (path.startsWith('assets/')) {
+      return Image.asset(
         path,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) => fallback,
@@ -449,11 +498,22 @@ class _ProductCardState extends State<ProductCard> {
         errorBuilder: (_, _, _) => fallback,
       );
     }
-    return Image.asset(
-      path,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => fallback,
-    );
+    if (uri?.scheme == 'file') {
+      return Image.file(
+        File.fromUri(uri!),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    }
+    final networkUri = VideoUrlResolver.resolveNetworkUrl(path);
+    if (networkUri != null) {
+      return Image.network(
+        networkUri.toString(),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    }
+    return fallback;
   }
 
   String _formattedPrice(Product product) =>

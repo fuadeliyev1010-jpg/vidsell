@@ -61,12 +61,12 @@ class ProductLegacyAdapter {
         price: '',
         shareLink: '',
         imagePath: item.thumbnailUrl ?? '',
-        videoUrl: item.hlsUrl,
+        videoUrl: item.videoUrl,
       );
     }
     return toHomeListing(product).copyWith(
       imagePath: item.thumbnailUrl ?? '',
-      videoUrl: item.hlsUrl,
+      videoUrl: item.videoUrl,
       sellerAvatar: item.ownerAvatarUrl ?? product.sellerAvatarUrl,
     );
   }

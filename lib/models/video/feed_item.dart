@@ -1,3 +1,4 @@
+import '../../core/utils/video_url_resolver.dart';
 import '../enums/feed_content_type.dart';
 import '../product/product.dart';
 import '../product/product_summary.dart';
@@ -7,6 +8,7 @@ class FeedItem {
     required this.videoId,
     this.thumbnailUrl,
     this.hlsUrl,
+    this.rawUrl,
     this.durationSeconds,
     this.contentType,
     this.products = const [],
@@ -19,6 +21,7 @@ class FeedItem {
   final String videoId;
   final String? thumbnailUrl;
   final String? hlsUrl;
+  final String? rawUrl;
   final int? durationSeconds;
   final FeedContentType? contentType;
   final List<ProductSummary> products;
@@ -33,12 +36,14 @@ class FeedItem {
   String? get subcategoryId => product?.subcategoryId;
   double? get latitude => product?.latitude;
   double? get longitude => product?.longitude;
-  String? get videoUrl => hlsUrl;
+  String? get videoUrl =>
+      VideoUrlResolver.selectPlaybackUrl(hlsUrl: hlsUrl, rawUrl: rawUrl);
 
   factory FeedItem.fromJson(Map<String, dynamic> json) => FeedItem(
     videoId: '${json['videoId'] ?? json['id'] ?? ''}',
     thumbnailUrl: json['thumbnailUrl'] as String?,
     hlsUrl: json['hlsUrl'] as String?,
+    rawUrl: json['rawUrl'] as String? ?? json['url'] as String?,
     durationSeconds: json['durationSeconds'] as int?,
     contentType: json['contentType'] == null
         ? null

@@ -5,6 +5,7 @@ import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/mock_home_repository.dart';
 import 'package:vidsell/features/home/widgets/home_listing_media.dart';
 import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
+import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/models/product/product.dart';
 
 void main() {
@@ -150,7 +151,7 @@ void main() {
     expect(listing.videoUrl, 'https://cdn.example.com/video-only.mp4');
   });
 
-  testWidgets('home listing media does not show image when video URL exists', (
+  testWidgets('inactive home video shows its poster without initializing', (
     tester,
   ) async {
     const listing = HomeListing(
@@ -172,8 +173,8 @@ void main() {
       ),
     );
 
-    expect(find.byType(Image), findsNothing);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -187,17 +188,27 @@ void main() {
       title: 'Video listing',
       shareLink: '',
       videoUrl: 'assets/images/mock_listing.mp4',
+      imagePath: 'assets/images/mock_listing_thumb.jpg',
     );
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: HomeListingMedia(listing: listing, playing: false),
-        ),
+    Widget media({required bool playing}) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: HomeListingMedia(listing: listing, playing: playing),
       ),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.pumpWidget(media(playing: false));
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    await tester.pumpWidget(media(playing: true));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
