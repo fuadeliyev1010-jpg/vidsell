@@ -1,10 +1,10 @@
-// TODO(api): verify against /i18n/enums or openapi.json
 final class TopUpStatus {
   const TopUpStatus._(this.code, this._kind);
 
   static const pending = TopUpStatus._('PENDING', 'pending');
   static const completed = TopUpStatus._('COMPLETED', 'completed');
   static const failed = TopUpStatus._('FAILED', 'failed');
+  static const expired = TopUpStatus._('EXPIRED', 'expired');
   static const unknown = TopUpStatus._('UNKNOWN', 'unknown');
 
   final String code;
@@ -18,6 +18,7 @@ final class TopUpStatus {
       'PENDING' => pending,
       'COMPLETED' => completed,
       'FAILED' => failed,
+      'EXPIRED' => expired,
       'UNKNOWN' || null || '' => unknown,
       _ => TopUpStatus._(rawCode.toString(), 'unknown'),
     };

@@ -4,6 +4,8 @@ final class PaymentMethod {
   const PaymentMethod._(this.code);
 
   static const unknown = PaymentMethod._('UNKNOWN');
+  static const card = PaymentMethod._('CARD');
+  static const bankTransfer = PaymentMethod._('BANK_TRANSFER');
 
   final String code;
 
@@ -11,10 +13,14 @@ final class PaymentMethod {
 
   static PaymentMethod fromCode(Object? rawCode) {
     final code = rawCode?.toString().trim();
-    return code == null || code.isEmpty ? unknown : PaymentMethod._(code);
+    return switch (code?.toUpperCase()) {
+      'CARD' => card,
+      'BANK_TRANSFER' => bankTransfer,
+      null || '' => unknown,
+      _ => PaymentMethod._(code!),
+    };
   }
 
-  // TODO(api): Load supported method codes from /i18n/enums at runtime.
   static List<PaymentMethodOption> optionsFromI18nResponse(
     Map<String, dynamic> response,
   ) {

@@ -112,10 +112,34 @@ void main() {
   test('all newly introduced enum parsers have unknown fallbacks', () {
     expect(ProductStatus.fromCode('future'), ProductStatus.unknown);
     expect(NotificationType.fromCode('future'), NotificationType.unknown);
-    expect(PaymentMethod.fromCode('future').code, 'future');
+    expect(PaymentMethod.fromCode('CARD'), PaymentMethod.card);
+    expect(PaymentMethod.fromCode('BANK_TRANSFER'), PaymentMethod.bankTransfer);
     expect(PaymentMethod.fromCode('future').code, 'future');
     expect(TopUpStatus.fromCode('future'), TopUpStatus.unknown);
     expect(TopUpStatus.fromCode('future').code, 'future');
+    expect(TopUpStatus.fromCode('EXPIRED'), TopUpStatus.expired);
+    for (final code in [
+      'MOTORCYCLES',
+      'BICYCLES',
+      'SPARE_PARTS',
+      'APARTMENTS',
+      'HOUSES',
+      'LANDS',
+      'COMMERCIAL',
+      'REFRIGERATORS',
+      'WASHING_MACHINES',
+      'AIR_CONDITIONERS',
+      'KITCHEN_APPLIANCES',
+      'WEDDING',
+      'CEREMONY',
+      'NATIONAL_CLOTHING',
+      'PERFUME',
+      'SKINCARE',
+      'MAKEUP',
+      'HAIRCARE',
+    ]) {
+      expect(ProductSubcategory.fromCode(code).isUnknown, isFalse);
+    }
     expect(ProductSubcategory.fromCode('future'), ProductSubcategory.unknown);
     expect(ProductSubcategory.fromCode('future').code, 'future');
     final product = Product.fromJson({
@@ -130,14 +154,31 @@ void main() {
     expect(FeedSection.fromCode('future').code, 'UNKNOWN');
   });
 
-  test('StoreStatistics tolerates missing and unrecognized fields', () {
+  test('StoreStatistics parses the contract and tolerates unknown fields', () {
     final statistics = StoreStatistics.fromJson({
       'views': '12',
+      'calls': 3,
+      'messages': 4,
+      'listings': 5,
+      'followers': 6,
+      'range': '7d',
+      'series': [
+        {'date': '2026-01-02', 'calls': 1, 'messages': 2},
+      ],
       'unexpected': {'nested': true},
     });
 
     expect(statistics.views, 12);
-    expect(statistics.listings, isNull);
-    expect(statistics.followers, isNull);
+    expect(statistics.calls, 3);
+    expect(statistics.messages, 4);
+    expect(statistics.listings, 5);
+    expect(statistics.followers, 6);
+    expect(statistics.range, '7d');
+    expect(statistics.series.single.calls, 1);
+    expect(statistics.series.single.messages, 2);
+    expect(
+      statistics.series.single.date?.toIso8601String(),
+      '2026-01-02T00:00:00.000',
+    );
   });
 }
