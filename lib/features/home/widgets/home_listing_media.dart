@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:vidsell/core/utils/video_url_resolver.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
-class HomeListingMedia extends StatefulWidget {
-  const HomeListingMedia({
+class HomeFeedMedia extends StatefulWidget {
+  const HomeFeedMedia({
     super.key,
     required this.listing,
     required this.playing,
@@ -18,17 +18,17 @@ class HomeListingMedia extends StatefulWidget {
     this.fit = BoxFit.cover,
   });
 
-  final HomeListing listing;
+  final FeedItem listing;
   final bool playing;
   final bool muted;
   final int playbackSession;
   final BoxFit fit;
 
   @override
-  State<HomeListingMedia> createState() => _HomeListingMediaState();
+  State<HomeFeedMedia> createState() => _HomeFeedMediaState();
 }
 
-class _HomeListingMediaState extends State<HomeListingMedia> {
+class _HomeFeedMediaState extends State<HomeFeedMedia> {
   VideoPlayerController? _controller;
   bool _videoFailed = false;
   int _playbackRequest = 0;
@@ -40,7 +40,7 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
   }
 
   @override
-  void didUpdateWidget(covariant HomeListingMedia oldWidget) {
+  void didUpdateWidget(covariant HomeFeedMedia oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.listing.videoUrl != widget.listing.videoUrl) {
       _disposeController();
@@ -178,7 +178,12 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
   }
 
   ImageProvider? _posterProvider() {
-    final path = widget.listing.imagePath.trim();
+    final path =
+        (widget.listing.thumbnailUrl ??
+                (widget.listing.product?.imageUrls.isNotEmpty == true
+                    ? widget.listing.product!.imageUrls.first
+                    : ''))
+            .trim();
     if (path.isEmpty) return null;
     if (path.startsWith('assets/')) return AssetImage(path);
     if (path.startsWith('/')) return FileImage(File(path));

@@ -169,21 +169,16 @@ void main() {
   testWidgets('inactive home video shows its poster without initializing', (
     tester,
   ) async {
-    const listing = HomeListing(
-      id: 'video-only',
-      sellerName: 'Seller',
-      sellerHandle: '@seller',
-      price: '100 AZN',
-      title: 'Video listing',
-      shareLink: '',
-      videoUrl: 'https://cdn.example.com/video.mp4',
-      imagePath: 'assets/images/vidsell_logo.png',
+    const listing = FeedItem(
+      videoId: 'video-only',
+      hlsUrl: 'https://cdn.example.com/video.mp4',
+      thumbnailUrl: 'assets/images/vidsell_logo.png',
     );
 
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: HomeListingMedia(listing: listing, playing: false),
+          body: HomeFeedMedia(listing: listing, playing: false),
         ),
       ),
     );
@@ -195,22 +190,17 @@ void main() {
   });
 
   testWidgets('home listing media loads bundled video assets', (tester) async {
-    const listing = HomeListing(
-      id: 'bundled-video',
-      sellerName: 'Seller',
-      sellerHandle: '@seller',
-      price: '100 AZN',
-      title: 'Video listing',
-      shareLink: '',
-      videoUrl: 'assets/images/mock_listing.mp4',
-      imagePath: 'assets/images/mock_listing_thumb.jpg',
+    const listing = FeedItem(
+      videoId: 'bundled-video',
+      hlsUrl: 'assets/images/mock_listing.mp4',
+      thumbnailUrl: 'assets/images/mock_listing_thumb.jpg',
     );
 
     Widget media({required bool playing}) => MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: HomeListingMedia(listing: listing, playing: playing),
+        body: HomeFeedMedia(listing: listing, playing: playing),
       ),
     );
 

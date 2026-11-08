@@ -6,6 +6,7 @@ import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/call_seller.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_icon_button.dart';
 import 'package:vidsell/core/widgets/bottom_navigation.dart';
@@ -18,7 +19,6 @@ import 'package:vidsell/features/home/widgets/home_badge.dart';
 import 'package:vidsell/features/home/widgets/home_circle_action.dart';
 import 'package:vidsell/features/messages/utils/open_seller_chat.dart';
 import 'package:vidsell/features/home/bloc/home_bloc.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
 import 'package:vidsell/features/home/page/report_listing_page.dart';
 import 'package:vidsell/features/discover/bloc/favorites_cubit.dart';
@@ -27,6 +27,8 @@ import 'package:vidsell/features/discover/models/city.dart';
 import 'package:vidsell/features/discover/models/engagement_item.dart';
 import 'package:vidsell/features/discover/pages/city_picker_page.dart';
 import 'package:vidsell/models/enums/feed_tab.dart';
+import 'package:vidsell/models/product/product.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 import 'package:vidsell/features/discover/repositories/engagement_repository.dart';
 import 'package:vidsell/features/discover/pages/search_page.dart';
 import 'package:vidsell/core/services/location_permission_service.dart';
@@ -35,10 +37,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.repository, this.listing});
+  const HomePage({super.key, this.repository});
 
   final HomeRepository? repository;
-  final HomeListing? listing;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -60,34 +61,34 @@ class _HomePageState extends State<HomePage> {
   _HomeFeedTab _selectedFeedTab = _HomeFeedTab.forYou;
   HomeFeedQuery _currentFeedQuery = const HomeFeedQuery();
 
-  Future<void> _setFavorite(HomeListing listing) async {
-    final nextValue = !context.read<FavoritesCubit>().isFavorite(listing.id);
-    if (widget.listing == null) {
-      _homeBloc.add(
-        HomeListingFavoriteChanged(
-          listingId: listing.id,
-          isFavorite: nextValue,
-        ),
-      );
-    }
+  Future<void> _setFavorite(FeedItem item) async {
+    final product = item.product;
+    if (product == null) return;
+    final nextValue = !context.read<FavoritesCubit>().isFavorite(product.id);
+    _homeBloc.add(
+      HomeListingFavoriteChanged(
+        listingId: product.id,
+        isFavorite: nextValue,
+      ),
+    );
     try {
       await context.read<FavoritesCubit>().toggle(
-        listingId: listing.id,
+        listingId: product.id,
         enabled: nextValue,
         item: EngagementItem(
-          id: listing.id,
-          title: listing.title,
-          imageUrl: listing.imagePath,
-          subtitle: listing.price,
-          videoUrl: listing.videoUrl,
-          categoryId: listing.categoryId,
+          id: product.id,
+          title: product.title,
+          imageUrl: item.thumbnailUrl ?? _imageUrl(product),
+          subtitle: _formattedPrice(product),
+          videoUrl: item.videoUrl,
+          categoryId: product.categoryId,
         ),
       );
     } catch (_) {
-      if (mounted && widget.listing == null) {
+      if (mounted) {
         _homeBloc.add(
           HomeListingFavoriteChanged(
-            listingId: listing.id,
+            listingId: product.id,
             isFavorite: !nextValue,
           ),
         );
@@ -95,28 +96,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildBackButton() {
-    return Material(
-      color: AppColor.primaryColor.withValues(alpha: 0.4),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: context.goBack,
-        child: SizedBox(
-          width: 40.w,
-          height: 40.h,
-          child: Icon(
-            Icons.arrow_back_rounded,
-            color: Colors.white,
-            size: 23.sp,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _setFollowing(HomeListing listing) async {
-    final sellerId = listing.sellerId;
+  Future<void> _setFollowing(FeedItem item) async {
+    final product = item.product;
+    final sellerId = item.ownerId ?? product?.sellerId;
     if (sellerId == null || sellerId.isEmpty) return;
     final following = context.read<FollowingCubit>();
     final nextValue = !following.isFollowing(sellerId);
@@ -126,9 +108,9 @@ class _HomePageState extends State<HomePage> {
         enabled: nextValue,
         item: EngagementItem(
           id: sellerId,
-          title: listing.sellerName,
+          title: item.ownerName ?? product?.sellerName ?? '',
           imageUrl: null,
-          subtitle: listing.sellerHandle,
+          subtitle: '',
         ),
       );
     } catch (_) {
@@ -142,9 +124,7 @@ class _HomePageState extends State<HomePage> {
     _homeBloc = HomeBloc(
       repository: widget.repository ?? context.read<HomeRepository>(),
     );
-    if (widget.listing == null) {
-      _homeBloc.add(const HomeListingsRequested());
-    }
+    _homeBloc.add(const HomeListingsRequested());
   }
 
   @override
@@ -163,11 +143,6 @@ class _HomePageState extends State<HomePage> {
         extendBody: true,
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            final listing = widget.listing;
-            if (listing != null) {
-              return _buildListingPage(listing, 0);
-            }
-
             if (state.status == HomeStatus.loading ||
                 state.status == HomeStatus.initial) {
               return const Center(
@@ -209,18 +184,11 @@ class _HomePageState extends State<HomePage> {
                 }
               },
               itemBuilder: (context, index) =>
-                  _buildListingPage(
-                    ProductLegacyAdapter.toHomeListingFromFeedItem(
-                      state.listings[index],
-                    ),
-                    index,
-                  ),
+                  _buildListingPage(state.listings[index], index),
             );
           },
         ),
-        bottomNavigationBar: widget.listing == null
-            ? const BottomNavigation(currentNavIndex: 0)
-            : null,
+        bottomNavigationBar: const BottomNavigation(currentNavIndex: 0),
       ),
     );
   }
@@ -278,13 +246,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildListingPage(HomeListing listing, int index) {
+  Widget _buildListingPage(FeedItem listing, int index) {
     return TickerMode(
       enabled: index == _currentListingIndex && _isPlaying,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          HomeListingMedia(
+          HomeFeedMedia(
             listing: listing,
             playing: _isPlaying && index == _currentListingIndex,
             muted: _isMuted,
@@ -352,97 +320,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTopBar(HomeListing listing) {
+  Widget _buildTopBar(FeedItem listing) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-      child: widget.listing == null
-          ? _hasSelectedFeed
-                ? _buildHomeFeedTopBar(listing)
-                : _buildDefaultHomeTopBar(listing)
-          : _isPlaying
-          ? Row(
-              children: [
-                if (widget.listing != null) ...[_buildBackButton(), 8.width],
-                HomeBadge(
-                  label: context.l10n.vip,
-                  imagePath: 'assets/icons/solar_crown-line-bold.svg',
-                  color: const Color(0xFF7C3AED),
-                ),
-                8.width,
-                HomeBadge(
-                  label: context.l10n.premium,
-                  icon: Icons.star,
-                  color: const Color(0xFFD4A017),
-                ),
-                8.width,
-                const HomeBadge(
-                  imagePath: 'assets/icons/material-symbols_store.svg',
-                  color: Color(0xFF38BDF8),
-                ),
-                const Spacer(),
-
-                AppIconButton(
-                  width: 40.w,
-                  height: 40.h,
-                  iconPath: 'assets/icons/search.svg',
-                  radius: 100.r,
-                  backgroundColor: AppColor.primaryColor.withValues(alpha: 0.4),
-                  onPressed: _openSearchPage,
-                ),
-              ],
-            )
-          : Column(
-              children: [
-                Row(
-                  children: [
-                    if (widget.listing != null) ...[_buildBackButton()],
-                    const Spacer(),
-                    AppIconButton(
-                      width: 40.w,
-                      height: 40.h,
-                      icon: _isMuted ? Icons.volume_off : Icons.volume_up,
-                      radius: 100.r,
-                      backgroundColor: AppColor.primaryColor.withValues(
-                        alpha: 0.4,
-                      ),
-                      onPressed: () => setState(() => _isMuted = !_isMuted),
-                    ),
-                    8.width,
-                    AppIconButton(
-                      width: 40.w,
-                      height: 40.h,
-                      iconPath: 'assets/icons/Vector2.svg',
-                      radius: 100.r,
-                      backgroundColor: AppColor.primaryColor.withValues(
-                        alpha: 0.4,
-                      ),
-                      onPressed: () {
-                        showShareBottomSheet(
-                          context,
-                          sellerName: listing.sellerName,
-                          link: listing.shareLink,
-                        );
-                      },
-                    ),
-                    8.width,
-                    AppIconButton(
-                      width: 40.w,
-                      height: 40.h,
-                      iconPath: 'assets/icons/search.svg',
-                      radius: 100.r,
-                      backgroundColor: AppColor.primaryColor.withValues(
-                        alpha: 0.4,
-                      ),
-                      onPressed: _openSearchPage,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      child: _hasSelectedFeed
+          ? _buildHomeFeedTopBar(listing)
+          : _buildDefaultHomeTopBar(listing),
     );
   }
 
-  Widget _buildDefaultHomeTopBar(HomeListing listing) {
+  Widget _buildDefaultHomeTopBar(FeedItem listing) {
     if (_isPlaying) {
       return Row(
         children: [
@@ -484,7 +371,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHomeFeedTopBar(HomeListing listing) {
+  Widget _buildHomeFeedTopBar(FeedItem listing) {
     return Column(
       children: [
         Row(
@@ -512,10 +399,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPlaybackActions(HomeListing listing) =>
+  Widget _buildPlaybackActions(FeedItem listing) =>
       Row(children: [const Spacer(), ..._playbackActionWidgets(listing)]);
 
-  List<Widget> _playbackActionWidgets(HomeListing listing) => [
+  List<Widget> _playbackActionWidgets(FeedItem listing) => [
     AppIconButton(
       width: 40.w,
       height: 40.h,
@@ -524,21 +411,21 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColor.primaryColor.withValues(alpha: 0.4),
       onPressed: () => setState(() => _isMuted = !_isMuted),
     ),
-    8.width,
-    AppIconButton(
-      width: 40.w,
-      height: 40.h,
-      iconPath: 'assets/icons/Vector2.svg',
-      radius: 100.r,
-      backgroundColor: AppColor.primaryColor.withValues(alpha: 0.4),
-      onPressed: () {
-        showShareBottomSheet(
+    if (listing.product?.shareUrl?.isNotEmpty == true) ...[
+      8.width,
+      AppIconButton(
+        width: 40.w,
+        height: 40.h,
+        iconPath: 'assets/icons/Vector2.svg',
+        radius: 100.r,
+        backgroundColor: AppColor.primaryColor.withValues(alpha: 0.4),
+        onPressed: () => showShareBottomSheet(
           context,
-          sellerName: listing.sellerName,
-          link: listing.shareLink,
-        );
-      },
-    ),
+          sellerName: _sellerName(listing),
+          link: listing.product!.shareUrl!,
+        ),
+      ),
+    ],
     8.width,
     AppIconButton(
       width: 40.w,
@@ -656,9 +543,8 @@ class _HomePageState extends State<HomePage> {
             item.categoryId!,
         for (final listing in _homeBloc.state.listings)
           if (favoriteIds.contains(listing.id) &&
-              listing.categoryId != null &&
-              listing.categoryId!.isNotEmpty)
-            listing.categoryId!,
+              listing.product?.categoryId?.isNotEmpty == true)
+            listing.product!.categoryId!,
       };
       _activateFeed(
         _HomeFeedTab.forYou,
@@ -728,29 +614,42 @@ class _HomePageState extends State<HomePage> {
     ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
 
-  Widget _buildRightActions(HomeListing listing) {
-    final isFavorite = context.watch<FavoritesCubit>().isFavorite(listing.id);
-    return Column(
-      children: [
+  Widget _buildRightActions(FeedItem listing) {
+    final product = listing.product;
+    final sellerId = listing.ownerId ?? product?.sellerId;
+    final isFavorite = product != null &&
+        context.watch<FavoritesCubit>().isFavorite(product.id);
+    final actions = <Widget>[];
+    if (product != null) {
+      actions.add(
         HomeCircleAction(
           iconPath: isFavorite
               ? 'assets/icons/red_like_icon.dart.svg'
               : 'assets/icons/like_icon.svg',
           onTap: () => _setFavorite(listing),
         ),
+      );
+    }
+    if (product?.sellerPhone?.isNotEmpty == true) {
+      actions.addAll([
         18.height,
         HomeCircleAction(
           iconPath: 'assets/icons/phone_icon.svg',
-          onTap: () {
-            callSeller(context, listing.phoneNumber);
-          },
+          onTap: () => callSeller(context, product!.sellerPhone),
         ),
+      ]);
+    }
+    if (sellerId?.isNotEmpty == true) {
+      actions.addAll([
         18.height,
         HomeCircleAction(
           iconPath: 'assets/icons/icon3.svg',
           onTap: () => _openSellerChat(listing),
         ),
-      ],
+      ]);
+    }
+    return Column(
+      children: actions,
     );
   }
 
@@ -758,22 +657,28 @@ class _HomePageState extends State<HomePage> {
     context.goTo(const SearchPage());
   }
 
-  Future<void> _openStorePage(HomeListing listing) {
+  Future<void> _openStorePage(FeedItem listing) {
+    final sellerId = listing.ownerId ?? listing.product?.sellerId;
+    if (sellerId == null || sellerId.isEmpty) return Future<void>.value();
     return _navigateWithPlaybackPaused(
       () => context.goTo<void>(
         StorePage(
-          storeName: listing.sellerName,
-          sellerId: listing.sellerId,
-          sellerAvatar: listing.sellerAvatar,
+          storeName: _sellerName(listing),
+          sellerId: sellerId,
+          sellerAvatar: listing.ownerAvatarUrl ?? listing.product?.sellerAvatarUrl,
           category: context.l10n.categoryElectronics,
         ),
       ),
     );
   }
 
-  Future<void> _openSellerChat(HomeListing listing, {String? initialMessage}) {
+  Future<void> _openSellerChat(FeedItem listing, {String? initialMessage}) {
     return _navigateWithPlaybackPaused(
-      () => openSellerChat(context, listing, initialMessage: initialMessage),
+      () => openSellerChat(
+        context,
+        ProductLegacyAdapter.toHomeListingFromFeedItem(listing),
+        initialMessage: initialMessage,
+      ),
     );
   }
 
@@ -789,12 +694,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _openProductDetails(HomeListing listing) async {
+  Future<void> _openProductDetails(FeedItem listing) async {
+    final product = listing.product;
+    if (product == null) return;
     final wasPlaying = _isPlaying;
     setState(() => _isPlaying = false);
     await showProductDetailsSheet(
       context,
-      listing: ProductLegacyAdapter.fromHomeListing(listing),
+      listing: product,
       onMessage: (message) {
         Navigator.of(context).pop();
         _openSellerChat(
@@ -803,13 +710,13 @@ class _HomePageState extends State<HomePage> {
         );
       },
       onReport: () {
-        context.goTo(ReportListingPage(listingId: listing.id));
+        context.goTo(ReportListingPage(listingId: product.id));
       },
-      onBlock: listing.sellerId == null
+      onBlock: product.sellerId == null
           ? null
           : () async {
               await context.read<EngagementRepository>().blockUser(
-                listing.sellerId!,
+                product.sellerId!,
               );
               if (mounted) Navigator.of(context).pop();
             },
@@ -822,10 +729,11 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isPlaying = true);
   }
 
-  Widget _buildBottomContent(HomeListing listing) {
-    final isFollowing =
-        listing.sellerId != null &&
-        context.watch<FollowingCubit>().isFollowing(listing.sellerId!);
+  Widget _buildBottomContent(FeedItem listing) {
+    final product = listing.product;
+    final sellerId = listing.ownerId ?? product?.sellerId;
+    final isFollowing = sellerId != null &&
+        context.watch<FollowingCubit>().isFollowing(sellerId);
     return Padding(
       padding: EdgeInsets.only(
         left: 14.w,
@@ -846,25 +754,11 @@ class _HomePageState extends State<HomePage> {
                   behavior: HitTestBehavior.opaque,
                   child: Row(
                     children: [
-                      widget.listing != null
-                          ? _buildSellerAvatar(listing)
-                          : CircleAvatar(
-                              radius: 16.r,
-                              backgroundColor: Colors.white24,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 32.sp,
-                              ),
-                            ),
+                      _buildSellerAvatar(listing),
                       8.width,
                       Expanded(
                         child: Text(
-                          widget.listing != null
-                              ? (listing.sellerName.isNotEmpty
-                                    ? listing.sellerName
-                                    : listing.sellerHandle)
-                              : listing.sellerHandle,
+                          _sellerName(listing),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyle.primaryText.copyWith(
@@ -878,73 +772,69 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              10.width,
-              GestureDetector(
-                onTap: () => _setFollowing(listing),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.h,
-                    vertical: 5.w,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(100.r),
-                  ),
-                  child: Text(
-                    isFollowing
-                        ? context.l10n.followingStatus
-                        : context.l10n.follow,
-                    style: AppTextStyle.primaryText.copyWith(
-                      color: Colors.black,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
+              if (sellerId != null && sellerId.isNotEmpty) ...[
+                10.width,
+                GestureDetector(
+                  onTap: () => _setFollowing(listing),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.h,
+                      vertical: 5.w,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(100.r),
+                    ),
+                    child: Text(
+                      isFollowing
+                          ? context.l10n.followingStatus
+                          : context.l10n.follow,
+                      style: AppTextStyle.primaryText.copyWith(
+                        color: Colors.black,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
-
-          10.height,
-
-          // Price.
-          Text(
-            listing.price,
-            style: AppTextStyle.primaryText.copyWith(
-              color: AppColor.activeColor,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w700,
+          if (product != null) ...[
+            10.height,
+            Text(
+              _formattedPrice(product),
+              style: AppTextStyle.primaryText.copyWith(
+                color: AppColor.activeColor,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-
-          6.height,
-
-          // Product title.
-          Text(
-            listing.title,
-            maxLines: _detailsExpanded ? null : 2,
-            overflow: _detailsExpanded ? null : TextOverflow.ellipsis,
-            style: AppTextStyle.primaryText.copyWith(
-              color: Colors.white,
-              fontSize: 14.sp,
+            6.height,
+            Text(
+              product.title,
+              maxLines: _detailsExpanded ? null : 2,
+              overflow: _detailsExpanded ? null : TextOverflow.ellipsis,
+              style: AppTextStyle.primaryText.copyWith(
+                color: Colors.white,
+                fontSize: 14.sp,
+              ),
             ),
-          ),
-
-          10.height,
-
-          // Product details expandable chip.
-          TransparentTextButton(
-            text: context.l10n.productDetails,
-            onPressed: () => _openProductDetails(listing),
-            isExpanded: true,
-          ),
+            10.height,
+            TransparentTextButton(
+              text: context.l10n.productDetails,
+              onPressed: () => _openProductDetails(listing),
+              isExpanded: true,
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildSellerAvatar(HomeListing listing) {
-    final avatar = listing.sellerAvatar?.trim();
+  Widget _buildSellerAvatar(FeedItem listing) {
+    final avatar = (listing.ownerAvatarUrl ?? listing.product?.sellerAvatarUrl)
+        ?.trim();
     final avatarUri = avatar == null ? null : Uri.tryParse(avatar);
     final isNetworkAvatar =
         avatarUri != null &&
@@ -959,6 +849,15 @@ class _HomePageState extends State<HomePage> {
           : Icon(Icons.person, color: Colors.white, size: 32.sp),
     );
   }
+
+  String _sellerName(FeedItem item) =>
+      item.ownerName ?? item.product?.sellerName ?? '';
+
+  String _formattedPrice(Product product) =>
+      CurrencyFormatter.formatPrice(product.price, product.currency);
+
+  String? _imageUrl(Product product) =>
+      product.imageUrls.isEmpty ? null : product.imageUrls.first;
 }
 
 class _SinglePageScrollPhysics extends PageScrollPhysics {
