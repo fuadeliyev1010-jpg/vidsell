@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/utils/product_localization.dart';
 import 'package:vidsell/features/home/widgets/product_details_sheet.dart';
@@ -39,9 +38,9 @@ class MapListingCard extends StatelessWidget {
         listing: listing,
         onMessage: (message) {
           Navigator.of(context).pop();
-          openLegacySellerChat(
+          openSellerChat(
             context,
-            ProductLegacyAdapter.toHomeListing(listing),
+            listing,
             initialMessage: message.isEmpty ? null : message,
           );
         },
