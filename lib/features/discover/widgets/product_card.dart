@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -163,8 +164,14 @@ class _ProductCardState extends State<ProductCard> {
       await controller.setVolume(0);
       await controller.play();
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (error) {
       if (!mounted || controller != _controller) return;
+      if (kDebugMode) {
+        debugPrint(
+          'ProductCard video error: '
+          '${controller.value.errorDescription}; caught: $error',
+        );
+      }
       setState(() => _videoFailed = true);
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
@@ -99,8 +100,14 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
       await controller.setVolume(widget.muted ? 0 : 1);
       await _setPlaybackState(restart: widget.playing);
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (error) {
       if (!mounted || controller != _controller) return;
+      if (kDebugMode) {
+        debugPrint(
+          'HomeListingMedia video error: '
+          '${controller.value.errorDescription}; caught: $error',
+        );
+      }
       setState(() => _videoFailed = true);
     }
   }
@@ -110,8 +117,14 @@ class _HomeListingMediaState extends State<HomeListingMedia> {
     if (controller == null || !controller.value.isInitialized) return;
     try {
       await controller.setVolume(widget.muted ? 0 : 1);
-    } catch (_) {
+    } catch (error) {
       if (!mounted || controller != _controller) return;
+      if (kDebugMode) {
+        debugPrint(
+          'HomeListingMedia video error: '
+          '${controller.value.errorDescription}; caught: $error',
+        );
+      }
       setState(() => _videoFailed = true);
     }
   }
