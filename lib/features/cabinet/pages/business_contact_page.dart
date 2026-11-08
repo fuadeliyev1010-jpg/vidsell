@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/utils/phone_validator.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/features/discover/models/store_draft.dart';
+import 'package:vidsell/models/store/my_store.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -24,7 +26,7 @@ class _PhoneEntry {
 class BusinessContactPage extends StatefulWidget {
   const BusinessContactPage({super.key, required this.draft});
 
-  final BusinessAccountDraft draft;
+  final StoreDraft draft;
 
   @override
   State<BusinessContactPage> createState() => _BusinessContactPageState();
@@ -121,6 +123,7 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
   }
 
   Widget _buildContactCard() {
+    final isMock = context.read<AppConfig>().useMockBackend;
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
@@ -135,60 +138,65 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
             style: AppTextStyle.primaryText.copyWith(fontSize: 16.sp),
           ),
           14.height,
-          _FloatingField(
-            controller: _emailController,
-            label: context.l10n.email,
-            isRequired: true,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          14.height,
+          if (isMock) ...[
+            _FloatingField(
+              controller: _emailController,
+              label: context.l10n.email,
+              isRequired: true,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            14.height,
+          ],
           Row(
             children: [
               Expanded(child: _buildPhoneField(_mainPhone)),
               8.width,
-              SizedBox(
-                width: 106.w,
-                height: 45.h,
-                child: AppButton(
-                  text: context.l10n.addContact,
+              if (isMock)
+                SizedBox(
+                  width: 106.w,
                   height: 45.h,
-                  color: AppColor.bgElavated,
-                  textColor: Colors.white,
-                  onPressed: _addPhone,
+                  child: AppButton(
+                    text: context.l10n.addContact,
+                    height: 45.h,
+                    color: AppColor.bgElavated,
+                    textColor: Colors.white,
+                    onPressed: _addPhone,
+                  ),
                 ),
-              ),
             ],
           ),
           14.height,
-          for (final entry in _additionalPhones)
-            Padding(
-              key: ObjectKey(entry),
-              padding: EdgeInsets.only(bottom: 14.h),
-              child: Row(
-                children: [
-                  Expanded(child: _buildPhoneField(entry)),
-                  8.width,
-                  SizedBox(
-                    width: 106.w,
-                    height: 45.h,
-                    child: AppButton(
-                      text: context.l10n.delete,
+          if (isMock)
+            for (final entry in _additionalPhones)
+              Padding(
+                key: ObjectKey(entry),
+                padding: EdgeInsets.only(bottom: 14.h),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildPhoneField(entry)),
+                    8.width,
+                    SizedBox(
+                      width: 106.w,
                       height: 45.h,
-                      color: const Color(0xff32161B),
-                      textColor: Colors.redAccent,
-                      side: const BorderSide(color: Colors.redAccent),
-                      onPressed: () => _removePhone(entry),
+                      child: AppButton(
+                        text: context.l10n.delete,
+                        height: 45.h,
+                        color: const Color(0xff32161B),
+                        textColor: Colors.redAccent,
+                        side: const BorderSide(color: Colors.redAccent),
+                        onPressed: () => _removePhone(entry),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+          if (isMock)
+            _FloatingField(
+              controller: _shortNumberController,
+              label: context.l10n.shortNumber,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
-          _FloatingField(
-            controller: _shortNumberController,
-            label: context.l10n.shortNumber,
-            keyboardType: TextInputType.phone,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
         ],
       ),
     );
@@ -271,7 +279,8 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
     }
 
-    if (_emailController.text.trim().isEmpty ||
+    final isMock = context.read<AppConfig>().useMockBackend;
+    if ((isMock && _emailController.text.trim().isEmpty) ||
         _mainPhone.controller.text.trim().isEmpty) {
       showMessage(context.l10n.contactEmailAndPhoneRequired);
       return;
@@ -288,29 +297,33 @@ class _BusinessContactPageState extends State<BusinessContactPage> {
     }
 
     try {
-      final account = await context.read<BusinessRepository>().createBusiness(
-        widget.draft.copyWith(
-          email: _emailController.text,
-          mainPhone: _normalized(_mainPhone),
-          additionalPhones: entries
-              .skip(1)
-              .map(_normalized)
-              .whereType<String>()
-              .toList(growable: false),
-          shortNumber: _shortNumberController.text,
-        ),
-      );
+      final store = await context
+          .read<BusinessRepository>()
+          .createStoreApplication(
+            widget.draft.copyWith(
+              email: _emailController.text,
+              mainPhone: _normalized(_mainPhone),
+              additionalPhones: entries
+                  .skip(1)
+                  .map(_normalized)
+                  .whereType<String>()
+                  .toList(growable: false),
+              shortNumber: _shortNumberController.text,
+            ),
+          );
       if (!mounted) return;
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         barrierColor: Colors.black.withValues(alpha: 0.55),
-        builder: (context) => _ApplicationAcceptedSheet(account: account),
+        builder: (context) => _ApplicationAcceptedSheet(store: store),
       );
-      if (mounted) context.goBack(account);
+      if (mounted) context.goBack(store);
     } on ArgumentError {
       if (mounted) showMessage(context.l10n.fillRequiredFields);
+    } on Exception {
+      if (mounted) showMessage(context.l10n.genericError);
     }
   }
 }
@@ -521,9 +534,9 @@ class _FloatingFieldState extends State<_FloatingField> {
 }
 
 class _ApplicationAcceptedSheet extends StatelessWidget {
-  const _ApplicationAcceptedSheet({required this.account});
+  const _ApplicationAcceptedSheet({required this.store});
 
-  final BusinessAccount account;
+  final MyStore store;
 
   @override
   Widget build(BuildContext context) {
@@ -571,7 +584,7 @@ class _ApplicationAcceptedSheet extends StatelessWidget {
             ),
             8.height,
             Text(
-              AppLocalizations.of(context)!.applicationIdLabel(account.id),
+              AppLocalizations.of(context)!.applicationIdLabel(store.id),
               style: AppTextStyle.mutedText.copyWith(fontSize: 11.sp),
             ),
             18.height,

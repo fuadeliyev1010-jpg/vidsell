@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
@@ -12,19 +13,21 @@ import 'package:vidsell/features/cabinet/pages/media_picker_bottom_sheet.dart';
 import 'package:vidsell/features/cabinet/widgets/cabin_appbar.dart';
 import 'package:vidsell/features/cabinet/widgets/business_schedule_widgets.dart';
 import 'package:vidsell/features/cabinet/widgets/circle_crop_overlay_painter.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/features/discover/models/store_draft.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/discover/models/city.dart';
 import 'package:vidsell/features/discover/pages/city_picker_page.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vidsell/models/store/my_store.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class BusinessEditProfilePage extends StatefulWidget {
-  const BusinessEditProfilePage({super.key, required this.account});
+  const BusinessEditProfilePage({super.key, required this.store, this.draft});
 
-  final BusinessAccount account;
+  final MyStore store;
+  final StoreDraft? draft;
 
   @override
   State<BusinessEditProfilePage> createState() =>
@@ -53,31 +56,44 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
   File? _newBanner;
   bool _isSaving = false;
   bool _obscurePassword = true;
+  late StoreDraft _draft;
 
   @override
   void initState() {
     super.initState();
-    final account = widget.account;
-    _nameController = TextEditingController(text: account.storeName);
-    _sloganController = TextEditingController(text: account.slogan);
-    _descriptionController = TextEditingController(text: account.description);
-    _addressController = TextEditingController(text: account.address);
+    final store = widget.store;
+    _draft =
+        widget.draft ??
+        StoreDraft(
+          phoneNumber: store.phone,
+          storeName: store.name,
+          description: store.description,
+          categoryNames: [store.category],
+          mainPhone: store.phone,
+          openingTime: store.workingHours.split('-').firstOrNull ?? '00:00',
+          closingTime: store.workingHours.split('-').lastOrNull ?? '00:00',
+          logoPath: store.logoUrl,
+        );
+    _nameController = TextEditingController(text: _draft.storeName);
+    _sloganController = TextEditingController(text: _draft.slogan);
+    _descriptionController = TextEditingController(text: _draft.description);
+    _addressController = TextEditingController(text: _draft.address);
     _phoneController = TextEditingController(
-      text: account.mainPhone.isEmpty ? account.phoneNumber : account.mainPhone,
+      text: _draft.mainPhone.isEmpty ? _draft.phoneNumber : _draft.mainPhone,
     );
-    _emailController = TextEditingController(text: account.email);
-    _shortNumberController = TextEditingController(text: account.shortNumber);
-    _city = account.city;
-    _categories = List.of(account.categoryNames);
-    _selectedDays = Set.of(account.openDays);
+    _emailController = TextEditingController(text: _draft.email);
+    _shortNumberController = TextEditingController(text: _draft.shortNumber);
+    _city = _draft.city;
+    _categories = List.of(_draft.categoryNames);
+    _selectedDays = Set.of(_draft.openDays);
     if (_selectedDays.isEmpty) {
       _selectedDays.add(businessScheduleDays.first);
     }
-    _alwaysOpen = account.alwaysOpen;
-    _openingTime = _parseTime(account.openingTime);
-    _closingTime = _parseTime(account.closingTime);
-    _logoPath = account.logoPath;
-    _bannerPath = account.bannerPath;
+    _alwaysOpen = _draft.alwaysOpen;
+    _openingTime = _parseTime(_draft.openingTime);
+    _closingTime = _parseTime(_draft.closingTime);
+    _logoPath = _draft.logoPath;
+    _bannerPath = _draft.bannerPath;
     _isGeneralSchedule = true;
   }
 
@@ -109,8 +125,10 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildMediaSection(),
-                    12.height,
+                    if (context.read<AppConfig>().useMockBackend) ...[
+                      _buildMediaSection(),
+                      12.height,
+                    ],
                     _buildStoreDetails(),
                     14.height,
                     _buildScheduleSection(),
@@ -223,53 +241,60 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
   }
 
   Widget _buildStoreDetails() {
+    final isMock = context.read<AppConfig>().useMockBackend;
     return Column(
       children: [
         _buildField(context.l10n.storeNameLabel, _nameController),
-        8.height,
-        _buildField(context.l10n.slogan, _sloganController),
+        if (isMock) ...[
+          8.height,
+          _buildField(context.l10n.slogan, _sloganController),
+        ],
         8.height,
         _buildCategoryField(),
         8.height,
         _buildDescriptionField(),
-        8.height,
-        _buildSelectionField(
-          label: context.l10n.searchCity,
-          value: _city,
-          onTap: _selectCity,
-        ),
-        8.height,
-        _buildField(context.l10n.businessEditAddress, _addressController),
+        if (isMock) ...[
+          8.height,
+          _buildSelectionField(
+            label: context.l10n.searchCity,
+            value: _city,
+            onTap: _selectCity,
+          ),
+          8.height,
+          _buildField(context.l10n.businessEditAddress, _addressController),
+        ],
         8.height,
         _buildField(
           context.l10n.businessContactNumber,
           _phoneController,
           keyboardType: TextInputType.phone,
         ),
-        8.height,
-        _buildField(
-          context.l10n.email,
-          _emailController,
-          keyboardType: TextInputType.emailAddress,
-        ),
-        8.height,
-        _buildField(
-          context.l10n.password,
-          _passwordController,
-          hint: context.l10n.passwordUnchangedHint,
-          obscureText: _obscurePassword,
-          trailing: IconButton(
-            onPressed: () =>
-                setState(() => _obscurePassword = !_obscurePassword),
-            icon: Icon(
-              _obscurePassword
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              color: AppColor.tertiaryTextColor,
-              size: 16.sp,
+        if (isMock) ...[
+          8.height,
+          _buildField(
+            context.l10n.email,
+            _emailController,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          8.height,
+          _buildField(
+            context.l10n.password,
+            _passwordController,
+            hint: context.l10n.passwordUnchangedHint,
+            obscureText: _obscurePassword,
+            trailing: IconButton(
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: AppColor.tertiaryTextColor,
+                size: 16.sp,
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -424,6 +449,7 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
       onDayToggled: _toggleScheduleDay,
       onOpeningChanged: (time) => setState(() => _openingTime = time),
       onClosingChanged: (time) => setState(() => _closingTime = time),
+      showLegacyControls: context.read<AppConfig>().useMockBackend,
       title: context.l10n.workHours,
       summaryTitle: context.l10n.scheduleSummary,
     );
@@ -522,6 +548,9 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
                           activeColor: AppColor.activeColor,
                           onChanged: (selected) => setSheetState(() {
                             if (selected == true) {
+                              if (!context.read<AppConfig>().useMockBackend) {
+                                values.clear();
+                              }
                               values.add(item.label);
                             } else {
                               values.remove(item.label);
@@ -548,15 +577,17 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
 
   Future<void> _save() async {
     if (_isSaving) return;
+    final isMock = context.read<AppConfig>().useMockBackend;
     if (_nameController.text.trim().isEmpty ||
         _descriptionController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
+        (isMock && _emailController.text.trim().isEmpty) ||
         _categories.isEmpty) {
       _showMessage(context.l10n.fillRequiredFields);
       return;
     }
-    if (_passwordController.text.isNotEmpty &&
+    if (isMock &&
+        _passwordController.text.isNotEmpty &&
         _passwordController.text.length < 8) {
       _showMessage(context.l10n.passwordMinLength(8));
       return;
@@ -564,10 +595,8 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
 
     setState(() => _isSaving = true);
     try {
-      final updated = await context.read<BusinessRepository>().updateBusiness(
-        widget.account.id,
-        BusinessAccountDraft(
-          phoneNumber: widget.account.phoneNumber,
+      final updated = await context.read<BusinessRepository>().updateMyStore(
+        _draft.copyWith(
           storeName: _nameController.text.trim(),
           slogan: _sloganController.text.trim(),
           description: _descriptionController.text.trim(),
@@ -582,13 +611,17 @@ class _BusinessEditProfilePageState extends State<BusinessEditProfilePage> {
           closingTime: formatBusinessScheduleTime(_closingTime),
           email: _emailController.text.trim(),
           mainPhone: _phoneController.text.trim(),
-          additionalPhones: widget.account.additionalPhones,
+          additionalPhones: _draft.additionalPhones,
           shortNumber: _shortNumberController.text.trim(),
-          isActive: widget.account.isActive,
         ),
-        password: _passwordController.text.isEmpty
-            ? null
-            : _passwordController.text,
+      );
+      _draft = _draft.copyWith(
+        storeName: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        categoryNames: List.unmodifiable(_categories),
+        mainPhone: _phoneController.text.trim(),
+        openingTime: formatBusinessScheduleTime(_openingTime),
+        closingTime: formatBusinessScheduleTime(_closingTime),
       );
       if (mounted) context.goBack(updated);
     } on Exception catch (error) {

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/bottom_navigation.dart';
@@ -23,7 +24,7 @@ import 'package:vidsell/features/cabinet/repositories/profile_repository.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/features/cabinet/pages/business_dashboard_page.dart';
 import 'package:vidsell/features/cabinet/pages/business_login_page.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/features/cabinet/pages/business_create_page.dart';
 import 'package:vidsell/features/cabinet/repositories/user_listing_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/status_count_repository.dart';
 import 'package:vidsell/models/enums/product_status.dart';
@@ -65,8 +66,9 @@ class _CabinetPageState extends State<CabinetPage>
   String? _listingsError;
   late Future<User> _profileFuture;
   User? _profile;
-  BusinessAccount? _businessAccount;
   MyStore? _myStore;
+  bool _isLoadingMyStore = true;
+  Object? _myStoreError;
 
   @override
   void initState() {
@@ -81,13 +83,7 @@ class _CabinetPageState extends State<CabinetPage>
     _profileFuture = _profileRepository.fetchProfile();
     _loadMyListings();
     _loadStatusCounts();
-    _businessAccount = _businessRepository.currentBusiness;
-    final account = _businessAccount;
-    if (account != null) {
-      _myStore = MyStore.fromJson(account.toJson());
-      _loadMyStore();
-    }
-    if (_businessAccount != null) {}
+    _loadMyStore();
   }
 
   Future<void> _loadStatusCounts() async {
@@ -291,34 +287,39 @@ class _CabinetPageState extends State<CabinetPage>
     });
   }
 
-  Future<void> _openBusinessLoginPage() async {
-    final account = await context.goTo<BusinessAccount>(
-      const BusinessLoginPage(),
-    );
-    if (!mounted || account == null) return;
-    setState(() {
-      _businessAccount = account;
-      _myStore = MyStore.fromJson(account.toJson());
-    });
+  Future<void> _openStoreApplication() async {
+    final isMock = context.read<AppConfig>().useMockBackend;
+    final store = isMock
+        ? await context.goTo<MyStore>(const BusinessLoginPage())
+        : await context.goTo<MyStore>(
+            BusinessCreatePage(phoneNumber: _profile?.phoneNumber ?? ''),
+          );
+    if (!mounted || store == null) return;
+    setState(() => _myStore = store);
     _loadMyStore();
   }
 
-  void _openBusinessDashboard() {
-    final account = _businessAccount;
+  Future<void> _openBusinessDashboard() async {
     final store = _myStore;
-    if (account == null || store == null) return;
-    context.goTo(BusinessDashboardPage(store: store, legacyAccount: account));
+    if (store == null) return;
+    await context.goTo(BusinessDashboardPage(store: store));
+    if (mounted) _loadMyStore();
   }
 
   Future<void> _loadMyStore() async {
+    setState(() {
+      _isLoadingMyStore = true;
+      _myStoreError = null;
+    });
     try {
       final store = await _businessRepository.fetchMyStore();
-      if (!mounted || store == null) return;
-      final withStats = await _businessRepository.fetchMyStoreStatistics(store);
       if (!mounted) return;
-      setState(() => _myStore = withStats);
-    } catch (_) {
-      // The legacy account remains available for the excluded business flow.
+      setState(() => _myStore = store);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _myStoreError = error);
+    } finally {
+      if (mounted) setState(() => _isLoadingMyStore = false);
     }
   }
 
@@ -398,6 +399,19 @@ class _CabinetPageState extends State<CabinetPage>
   }
 
   Widget _buildMarketCard() {
+    if (_isLoadingMyStore) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColor.activeColor),
+      );
+    }
+    if (_myStoreError != null) {
+      return Center(
+        child: TextButton(
+          onPressed: _loadMyStore,
+          child: Text(context.l10n.genericError),
+        ),
+      );
+    }
     final store = _myStore;
     final hasMarket = store != null;
     final approved = store?.status == 'ACTIVE';
@@ -436,9 +450,7 @@ class _CabinetPageState extends State<CabinetPage>
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
-                        approved
-                            ? context.l10n.storeApproved
-                            : context.l10n.storePendingApproval,
+                        _storeStatusLabel(store),
                         style: TextStyle(color: statusColor, fontSize: 11.sp),
                       ),
                     ),
@@ -446,9 +458,7 @@ class _CabinetPageState extends State<CabinetPage>
                 ),
                 12.height,
                 Text(
-                  approved
-                      ? context.l10n.storePanelActive
-                      : context.l10n.storeUnderReview,
+                  _storeStatusDescription(store),
                   style: AppTextStyle.mutedText.copyWith(
                     color: Colors.grey.shade400,
                     fontSize: 12.sp,
@@ -494,12 +504,36 @@ class _CabinetPageState extends State<CabinetPage>
                     height: 44.h,
                     text: context.l10n.createStore,
                     icon: Icons.storefront_outlined,
-                    onPressed: _openBusinessLoginPage,
+                    onPressed: _openStoreApplication,
                   ),
                 ),
               ],
       ),
     );
+  }
+
+  String _storeStatusLabel(MyStore store) => switch (store.status) {
+    'APPLICATION' => context.l10n.storeStatusApplication,
+    'ACTIVE' => context.l10n.storeApproved,
+    'INACTIVE' => context.l10n.storeStatusInactive,
+    'SUSPENDED' => context.l10n.storeStatusSuspended,
+    'REJECTED' => context.l10n.storeStatusRejected,
+    _ => context.l10n.storePendingApproval,
+  };
+
+  String _storeStatusDescription(MyStore store) {
+    if (store.status == 'REJECTED' &&
+        store.rejectionReason?.trim().isNotEmpty == true) {
+      return '${context.l10n.storeStatusRejected}: ${store.rejectionReason}';
+    }
+    return switch (store.status) {
+      'APPLICATION' => context.l10n.storeUnderReview,
+      'ACTIVE' => context.l10n.storePanelActive,
+      'INACTIVE' => context.l10n.storeStatusInactive,
+      'SUSPENDED' => context.l10n.storeStatusSuspended,
+      'REJECTED' => context.l10n.storeStatusRejected,
+      _ => context.l10n.storeUnderReview,
+    };
   }
 
   Widget _buildHeaderSection(User? profile) {

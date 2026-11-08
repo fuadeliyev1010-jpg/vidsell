@@ -353,6 +353,7 @@ class BusinessScheduleEditor extends StatelessWidget {
     required this.onClosingChanged,
     this.title,
     this.summaryTitle,
+    this.showLegacyControls = true,
   });
 
   final bool isAlwaysOpen;
@@ -367,6 +368,7 @@ class BusinessScheduleEditor extends StatelessWidget {
   final ValueChanged<TimeOfDay> onClosingChanged;
   final String? title;
   final String? summaryTitle;
+  final bool showLegacyControls;
 
   @override
   Widget build(BuildContext context) {
@@ -375,17 +377,18 @@ class BusinessScheduleEditor extends StatelessWidget {
       children: [
         _buildScheduleCard(context),
         8.height,
-        if (isGeneralSchedule)
+        if (!showLegacyControls || isGeneralSchedule)
           _buildGeneralSchedule(context)
         else
           _buildIndividualSchedule(context),
-        BusinessScheduleSummary(
-          isAlwaysOpen: isAlwaysOpen,
-          selectedDays: selectedDays,
-          openingTime: openingTime,
-          closingTime: closingTime,
-          title: summaryTitle,
-        ),
+        if (showLegacyControls)
+          BusinessScheduleSummary(
+            isAlwaysOpen: isAlwaysOpen,
+            selectedDays: selectedDays,
+            openingTime: openingTime,
+            closingTime: closingTime,
+            title: summaryTitle,
+          ),
       ],
     );
   }
@@ -405,10 +408,11 @@ class BusinessScheduleEditor extends StatelessWidget {
             style: AppTextStyle.primaryText.copyWith(fontSize: 16.sp),
           ),
           14.height,
-          BusinessScheduleTypeSelector(
-            isGeneralSchedule: isGeneralSchedule,
-            onChanged: onScheduleTypeChanged,
-          ),
+          if (showLegacyControls)
+            BusinessScheduleTypeSelector(
+              isGeneralSchedule: isGeneralSchedule,
+              onChanged: onScheduleTypeChanged,
+            ),
         ],
       ),
     );
@@ -424,56 +428,58 @@ class BusinessScheduleEditor extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  context.l10n.open247,
-                  style: AppTextStyle.primaryText.copyWith(fontSize: 14.sp),
+          if (showLegacyControls) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.open247,
+                    style: AppTextStyle.primaryText.copyWith(fontSize: 14.sp),
+                  ),
                 ),
-              ),
-              Switch(
-                value: isAlwaysOpen,
-                activeThumbColor: Colors.white,
-                activeTrackColor: AppColor.activeColor,
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: AppColor.tertiaryTextColor,
-                onChanged: onAlwaysOpenChanged,
-              ),
-            ],
-          ),
-          Text(
-            context.l10n.open247Description,
-            style: AppTextStyle.mutedText.copyWith(fontSize: 12.sp),
-          ),
-          24.height,
-          Text(
-            context.l10n.selectWorkDays,
-            style: AppTextStyle.primaryText.copyWith(fontSize: 14.sp),
-          ),
-          14.height,
-          Wrap(
-            spacing: 12.w,
-            runSpacing: 12.h,
-            children: businessScheduleDays
-                .map((day) {
-                  final selected = selectedDays.contains(day);
-                  return BusinessScheduleDayChip(
-                    day: day,
-                    selected: selected,
-                    enabled: !isAlwaysOpen,
-                    onTap: () => onDayToggled(day),
-                  );
-                })
-                .toList(growable: false),
-          ),
-          24.height,
+                Switch(
+                  value: isAlwaysOpen,
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: AppColor.activeColor,
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor: AppColor.tertiaryTextColor,
+                  onChanged: onAlwaysOpenChanged,
+                ),
+              ],
+            ),
+            Text(
+              context.l10n.open247Description,
+              style: AppTextStyle.mutedText.copyWith(fontSize: 12.sp),
+            ),
+            24.height,
+            Text(
+              context.l10n.selectWorkDays,
+              style: AppTextStyle.primaryText.copyWith(fontSize: 14.sp),
+            ),
+            14.height,
+            Wrap(
+              spacing: 12.w,
+              runSpacing: 12.h,
+              children: businessScheduleDays
+                  .map((day) {
+                    final selected = selectedDays.contains(day);
+                    return BusinessScheduleDayChip(
+                      day: day,
+                      selected: selected,
+                      enabled: !isAlwaysOpen,
+                      onTap: () => onDayToggled(day),
+                    );
+                  })
+                  .toList(growable: false),
+            ),
+            24.height,
+          ],
           BusinessScheduleTimeRange(
             openingTime: openingTime,
             closingTime: closingTime,
             onOpeningChanged: onOpeningChanged,
             onClosingChanged: onClosingChanged,
-            enabled: !isAlwaysOpen,
+            enabled: !showLegacyControls || !isAlwaysOpen,
           ),
         ],
       ),

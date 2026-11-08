@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
@@ -11,7 +13,8 @@ import 'package:vidsell/features/cabinet/pages/media_picker_bottom_sheet.dart';
 import 'package:vidsell/features/cabinet/widgets/circle_crop_overlay_painter.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/cabinet/pages/business_schedule_page.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/features/discover/models/store_draft.dart';
+import 'package:vidsell/models/store/my_store.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -43,6 +46,7 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMock = context.read<AppConfig>().useMockBackend;
     return Scaffold(
       backgroundColor: AppColor.primaryColor,
       resizeToAvoidBottomInset: true,
@@ -95,7 +99,7 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
             children: [
               _buildInformationSection(),
               8.height,
-              _buildMediaSection(),
+              if (isMock) _buildMediaSection(),
             ],
           ),
         ),
@@ -114,12 +118,14 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
           isRequired: true,
         ),
         14.height,
-        _FloatingTextField(
-          controller: _sloganController,
-          label: context.l10n.storeSloganLabel,
-          isRequired: true,
-        ),
-        14.height,
+        if (context.read<AppConfig>().useMockBackend) ...[
+          _FloatingTextField(
+            controller: _sloganController,
+            label: context.l10n.storeSloganLabel,
+            isRequired: true,
+          ),
+          14.height,
+        ],
         _buildSelectionField(
           title: context.l10n.categories,
           value: _selectedCategories.join(', '),
@@ -312,8 +318,10 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          _BusinessCategoryPicker(initialSelection: _selectedCategories),
+      builder: (_) => _BusinessCategoryPicker(
+        initialSelection: _selectedCategories,
+        allowMultiple: context.read<AppConfig>().useMockBackend,
+      ),
     );
 
     if (selected != null && mounted) {
@@ -423,7 +431,7 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
             8.width,
             Expanded(
               child: AppButton(
-                text: 'Davam edin',
+                text: context.l10n.continueAction,
                 height: 48.h,
                 onPressed: _continue,
               ),
@@ -447,7 +455,8 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
 
   Future<void> _continue() async {
     if (_storeNameController.text.trim().isEmpty ||
-        _sloganController.text.trim().isEmpty ||
+        (context.read<AppConfig>().useMockBackend &&
+            _sloganController.text.trim().isEmpty) ||
         _descriptionController.text.trim().isEmpty ||
         _selectedCategories.isEmpty) {
       ScaffoldMessenger.of(
@@ -455,9 +464,9 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
       ).showSnackBar(SnackBar(content: Text(context.l10n.fillRequiredFields)));
       return;
     }
-    final account = await context.goTo<BusinessAccount>(
+    final store = await context.goTo<MyStore>(
       BusinessSchedulePage(
-        draft: BusinessAccountDraft(
+        draft: StoreDraft(
           phoneNumber: widget.phoneNumber,
           storeName: _storeNameController.text,
           slogan: _sloganController.text,
@@ -468,7 +477,7 @@ class _BusinessCreatePageState extends State<BusinessCreatePage> {
         ),
       ),
     );
-    if (mounted && account != null) context.goBack(account);
+    if (mounted && store != null) context.goBack(store);
   }
 }
 
@@ -590,9 +599,13 @@ class _FloatingTextFieldState extends State<_FloatingTextField> {
 }
 
 class _BusinessCategoryPicker extends StatefulWidget {
-  const _BusinessCategoryPicker({required this.initialSelection});
+  const _BusinessCategoryPicker({
+    required this.initialSelection,
+    required this.allowMultiple,
+  });
 
   final List<String> initialSelection;
+  final bool allowMultiple;
 
   @override
   State<_BusinessCategoryPicker> createState() =>
@@ -674,6 +687,7 @@ class _BusinessCategoryPickerState extends State<_BusinessCategoryPicker> {
                         if (selected) {
                           _selected.remove(category.label);
                         } else {
+                          if (!widget.allowMultiple) _selected.clear();
                           _selected.add(category.label);
                         }
                       });

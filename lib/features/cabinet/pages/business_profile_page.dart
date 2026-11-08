@@ -33,9 +33,10 @@ class BusinessProfilePage extends StatelessWidget {
   String get _description =>
       _ownerStore?.description ?? _publicStore!.description;
   String get _phone => _ownerStore?.phoneDisplay ?? _publicStore!.phoneDisplay;
+  String? get _openUntil => _ownerStore?.openUntil ?? _publicStore!.openUntil;
   String get _workingHours =>
       _ownerStore?.workingHoursDisplay ?? _publicStore!.workingHoursDisplay;
-  bool get _isOpen => _ownerStore?.isOpen ?? _publicStore!.isOpen;
+  bool? get _isOpen => _ownerStore?.isOpen ?? _publicStore!.isOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -168,12 +169,17 @@ class BusinessProfilePage extends StatelessWidget {
               context.l10n.workHours,
               _workingHours,
             ),
-          _buildInfoRow(
-            context,
-            Icons.storefront_outlined,
-            context.l10n.storeProfile,
-            _isOpen ? context.l10n.openNow : context.l10n.storeClosed,
-          ),
+          if (_isOpen != null)
+            _buildInfoRow(
+              context,
+              Icons.storefront_outlined,
+              context.l10n.storeProfile,
+              _isOpen!
+                  ? (_openUntil?.trim().isNotEmpty == true
+                        ? context.l10n.openUntil(_openUntil!)
+                        : context.l10n.openNow)
+                  : context.l10n.storeClosed,
+            ),
         ],
       ),
     );

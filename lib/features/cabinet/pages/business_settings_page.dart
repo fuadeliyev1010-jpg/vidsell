@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/bottom_navigation.dart';
@@ -18,36 +19,36 @@ import 'package:vidsell/features/cabinet/pages/support_page.dart';
 import 'package:vidsell/features/cabinet/pages/user_agreement_page.dart';
 import 'package:vidsell/features/cabinet/widgets/cabin_appbar.dart';
 import 'package:vidsell/features/cabinet/widgets/log_out_dialog.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/features/login/page/login_page.dart';
+import 'package:vidsell/models/store/my_store.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class BusinessSettingsResult {
-  const BusinessSettingsResult({this.account, this.deleted = false});
+  const BusinessSettingsResult({this.store, this.deleted = false});
 
-  final BusinessAccount? account;
+  final MyStore? store;
   final bool deleted;
 }
 
 class BusinessSettingsPage extends StatefulWidget {
-  const BusinessSettingsPage({super.key, required this.account});
+  const BusinessSettingsPage({super.key, required this.store});
 
-  final BusinessAccount account;
+  final MyStore store;
 
   @override
   State<BusinessSettingsPage> createState() => _BusinessSettingsPageState();
 }
 
 class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
-  late BusinessAccount _account;
+  late MyStore _store;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _account = widget.account;
+    _store = widget.store;
   }
 
   @override
@@ -63,22 +64,23 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
               child: ListView(
                 padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 16.h),
                 children: [
-                  _buildActionCard(
-                    title: _account.isActive
-                        ? context.l10n.storeDisableTemporarily
-                        : context.l10n.storeEnableAgain,
-                    description: _account.isActive
-                        ? context.l10n.storeHiddenDescription
-                        : context.l10n.storeVisibleDescription,
-                    buttonText: _account.isActive
-                        ? context.l10n.storeDisableAction
-                        : context.l10n.storeEnableAction,
-                    icon: _account.isActive
-                        ? Icons.power_settings_new
-                        : Icons.power,
-                    destructive: _account.isActive,
-                    onPressed: _toggleStoreStatus,
-                  ),
+                  if (_store.status == 'ACTIVE' || _store.status == 'INACTIVE')
+                    _buildActionCard(
+                      title: _store.status == 'ACTIVE'
+                          ? context.l10n.storeDisableTemporarily
+                          : context.l10n.storeEnableAgain,
+                      description: _store.status == 'ACTIVE'
+                          ? context.l10n.storeHiddenDescription
+                          : context.l10n.storeVisibleDescription,
+                      buttonText: _store.status == 'ACTIVE'
+                          ? context.l10n.storeDisableAction
+                          : context.l10n.storeEnableAction,
+                      icon: _store.status == 'ACTIVE'
+                          ? Icons.power_settings_new
+                          : Icons.power,
+                      destructive: _store.status == 'ACTIVE',
+                      onPressed: _toggleStoreStatus,
+                    ),
                   12.height,
                   _buildActionCard(
                     title: context.l10n.storeProfile,
@@ -86,7 +88,7 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
                     buttonText: context.l10n.viewMyStore,
                     icon: Icons.visibility_outlined,
                     onPressed: () =>
-                        context.goTo(BusinessProfilePage(account: _account)),
+                        context.goTo(BusinessProfilePage.owner(store: _store)),
                   ),
                   12.height,
                   _buildSettingsGroup([
@@ -131,12 +133,13 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
                       destructive: true,
                       onTap: _logout,
                     ),
-                    _SettingsItem(
-                      icon: 'assets/icons/delete_icon.svg',
-                      title: context.l10n.accountDelete,
-                      destructive: true,
-                      onTap: _deleteStore,
-                    ),
+                    if (context.read<AppConfig>().useMockBackend)
+                      _SettingsItem(
+                        icon: 'assets/icons/delete_icon.svg',
+                        title: context.l10n.accountDelete,
+                        destructive: true,
+                        onTap: _deleteStore,
+                      ),
                   ]),
                 ],
               ),
@@ -270,7 +273,7 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
   }
 
   Future<void> _toggleStoreStatus() async {
-    final nextActive = !_account.isActive;
+    final nextActive = _store.status == 'INACTIVE';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -313,12 +316,11 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
 
     setState(() => _isSaving = true);
     try {
-      final draft = _draftFromAccount(_account).copyWith(isActive: nextActive);
-      final updated = await context.read<BusinessRepository>().updateBusiness(
-        _account.id,
-        draft,
-      );
-      if (mounted) setState(() => _account = updated);
+      final repository = context.read<BusinessRepository>();
+      final updated = nextActive
+          ? await repository.reactivateMyStore()
+          : await repository.deactivateMyStore();
+      if (mounted) setState(() => _store = updated);
     } on Exception catch (error) {
       if (mounted) {
         _showMessage(context.l10n.storeStatusUpdateFailed('$error'));
@@ -375,7 +377,7 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
 
     setState(() => _isSaving = true);
     try {
-      await context.read<BusinessRepository>().deleteBusiness(_account.id);
+      await context.read<BusinessRepository>().deleteMyStore();
       if (mounted) {
         context.goBack(const BusinessSettingsResult(deleted: true));
       }
@@ -387,28 +389,6 @@ class _BusinessSettingsPageState extends State<BusinessSettingsPage> {
       if (mounted) setState(() => _isSaving = false);
     }
   }
-
-  BusinessAccountDraft _draftFromAccount(BusinessAccount account) =>
-      BusinessAccountDraft(
-        phoneNumber: account.phoneNumber,
-        storeName: account.storeName,
-        slogan: account.slogan,
-        description: account.description,
-        categoryNames: account.categoryNames,
-        logoPath: account.logoPath,
-        bannerPath: account.bannerPath,
-        city: account.city,
-        address: account.address,
-        alwaysOpen: account.alwaysOpen,
-        openDays: account.openDays,
-        openingTime: account.openingTime,
-        closingTime: account.closingTime,
-        email: account.email,
-        mainPhone: account.mainPhone,
-        additionalPhones: account.additionalPhones,
-        shortNumber: account.shortNumber,
-        isActive: account.isActive,
-      );
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(

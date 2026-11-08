@@ -48,4 +48,21 @@ void main() {
     expect(myStore.statusDisplay, 'APPLICATION');
     expect(myStore.isOpen, isFalse);
   });
+
+  test('parses the documented public storefront seller profile shape', () {
+    final store = Store.fromJson({
+      'id': 'seller-2',
+      'fullName': 'Həsən Məmmədov',
+      'avatarUrl': 'https://example.com/avatar.png',
+      'createdAt': '2026-01-15T10:00:00Z',
+      'stats': {'products': 48, 'views': 24561, 'followers': 71},
+    });
+
+    expect(store.id, 'seller-2');
+    expect(store.displayName, 'Həsən Məmmədov');
+    expect(store.logoUrl, 'https://example.com/avatar.png');
+    expect(store.isOpen, isNull);
+    expect(store.phoneDisplay, isEmpty);
+    expect(store.stats?.products, 48);
+  });
 }

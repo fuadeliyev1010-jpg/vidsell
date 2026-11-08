@@ -15,7 +15,7 @@ class Store {
     this.reviewedAt,
     this.createdAt,
     this.stats,
-    this.isOpen = false,
+    this.isOpen,
     this.openUntil,
   });
 
@@ -31,7 +31,7 @@ class Store {
   final DateTime? reviewedAt;
   final DateTime? createdAt;
   final StoreStats? stats;
-  final bool isOpen;
+  final bool? isOpen;
   final String? openUntil;
 
   String get fullName => name;
@@ -40,9 +40,12 @@ class Store {
 
   factory Store.fromJson(Map<String, dynamic> json) => Store(
     id: '${json['id'] ?? json['sellerId'] ?? json['storeId'] ?? ''}',
-    name: '${json['name'] ?? json['storeName'] ?? ''}',
+    name: '${json['name'] ?? json['storeName'] ?? json['fullName'] ?? ''}',
     category: '${json['category'] ?? json['categoryName'] ?? ''}',
-    logoUrl: json['logoUrl'] as String? ?? json['logoPath'] as String?,
+    logoUrl:
+        json['logoUrl'] as String? ??
+        json['avatarUrl'] as String? ??
+        json['logoPath'] as String?,
     description: '${json['description'] ?? ''}',
     phone: '${json['phone'] ?? json['phoneNumber'] ?? ''}',
     workingHours: '${json['workingHours'] ?? ''}',
@@ -53,7 +56,7 @@ class Store {
     stats: json['stats'] is Map
         ? StoreStats.fromJson(Map<String, dynamic>.from(json['stats'] as Map))
         : null,
-    isOpen: json['isOpen'] as bool? ?? false,
+    isOpen: json['isOpen'] as bool?,
     openUntil: json['openUntil']?.toString(),
   );
 
@@ -70,7 +73,7 @@ class Store {
     if (reviewedAt != null) 'reviewedAt': reviewedAt!.toIso8601String(),
     if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     if (stats != null) 'stats': stats!.toJson(),
-    'isOpen': isOpen,
+    if (isOpen != null) 'isOpen': isOpen,
     if (openUntil != null) 'openUntil': openUntil,
   };
 }

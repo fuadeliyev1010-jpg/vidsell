@@ -118,6 +118,5 @@ void main() {
     expect(statistics.views, 12);
     expect(statistics.listings, isNull);
     expect(statistics.followers, isNull);
-    expect(statistics.callsReceived, isNull);
   });
 }

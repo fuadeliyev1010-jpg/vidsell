@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,20 +14,14 @@ import 'package:vidsell/features/cabinet/pages/business_statistics_page.dart';
 import 'package:vidsell/features/cabinet/pages/business_settings_page.dart';
 import 'package:vidsell/features/cabinet/pages/cabinet_page.dart';
 import 'package:vidsell/features/cabinet/pages/wallet_page.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/models/store/my_store.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 
 class BusinessDashboardPage extends StatefulWidget {
-  const BusinessDashboardPage({
-    super.key,
-    required this.store,
-    required this.legacyAccount,
-  });
+  const BusinessDashboardPage({super.key, required this.store});
 
   final MyStore store;
-  final BusinessAccount legacyAccount;
 
   @override
   State<BusinessDashboardPage> createState() => _BusinessDashboardPageState();
@@ -37,42 +29,39 @@ class BusinessDashboardPage extends StatefulWidget {
 
 class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
   late MyStore _store;
-  late BusinessAccount _legacyAccount;
 
   @override
   void initState() {
     super.initState();
     _store = widget.store;
-    _legacyAccount = widget.legacyAccount;
     _loadStore();
   }
 
   Future<void> _editProfile() async {
-    final updated = await context.goTo<BusinessAccount>(
-      BusinessEditProfilePage(account: _legacyAccount),
+    final updated = await context.goTo<MyStore>(
+      BusinessEditProfilePage(
+        store: _store,
+        draft: context.read<BusinessRepository>().currentDraft,
+      ),
     );
     if (!mounted || updated == null) return;
-    setState(() {
-      _legacyAccount = updated;
-      _store = MyStore.fromJson(updated.toJson());
-    });
+    setState(() => _store = updated);
   }
 
   Future<void> _openSettings() async {
     final result = await context.goTo<BusinessSettingsResult>(
-      BusinessSettingsPage(account: _legacyAccount),
+      BusinessSettingsPage(store: _store),
     );
-    if (!mounted || result == null) return;
+    if (!mounted) return;
+    final latestStore = await context.read<BusinessRepository>().fetchMyStore();
+    if (!mounted) return;
+    if (latestStore != null) setState(() => _store = latestStore);
+    if (result == null) return;
     if (result.deleted) {
       context.goAndClear(const CabinetPage());
       return;
     }
-    if (result.account != null) {
-      setState(() {
-        _legacyAccount = result.account!;
-        _store = MyStore.fromJson(result.account!.toJson());
-      });
-    }
+    if (result.store != null) setState(() => _store = result.store!);
   }
 
   Future<void> _loadStore() async {
@@ -80,9 +69,7 @@ class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
       final repository = context.read<BusinessRepository>();
       final store = await repository.fetchMyStore();
       if (!mounted || store == null) return;
-      final withStats = await repository.fetchMyStoreStatistics(store);
-      if (!mounted) return;
-      setState(() => _store = withStats);
+      setState(() => _store = store);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -153,11 +140,7 @@ class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
             left: 0,
             right: 0,
             height: 94.h,
-            child: _buildStoreImage(
-              null,
-              fit: BoxFit.cover,
-              fallback: const ColoredBox(color: Color(0xFF252D3A)),
-            ),
+            child: const ColoredBox(color: Color(0xFF252D3A)),
           ),
           Positioned(
             left: 12.w,
@@ -169,11 +152,14 @@ class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
                 color: AppColor.bgSurfaceColor,
                 border: Border.all(color: AppColor.primaryColor, width: 3.r),
               ),
-              child: _buildStoreImage(
-                _store.logoUrl,
-                fit: BoxFit.cover,
-                fallback: const ColoredBox(color: Color(0xFF252D3A)),
-              ),
+              child: _store.logoUrl == null || _store.logoUrl!.isEmpty
+                  ? const ColoredBox(color: Color(0xFF252D3A))
+                  : Image.network(
+                      _store.logoUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const ColoredBox(color: Color(0xFF252D3A)),
+                    ),
             ),
           ),
         ],
@@ -212,8 +198,7 @@ class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
           _buildMenuItem(
             Icons.bar_chart,
             context.l10n.statistics,
-            onTap: () =>
-                context.goTo(BusinessStatisticsPage(businessId: _store.id)),
+            onTap: () => context.goTo(const BusinessStatisticsPage()),
           ),
           _buildMenuItem(
             Icons.edit_outlined,
@@ -260,28 +245,5 @@ class _BusinessDashboardPageState extends State<BusinessDashboardPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildStoreImage(
-    String? path, {
-    required BoxFit fit,
-    required Widget fallback,
-  }) {
-    if (path == null || path.trim().isEmpty) return fallback;
-
-    final uri = Uri.tryParse(path);
-    final isNetworkImage =
-        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
-    return isNetworkImage
-        ? Image.network(
-            path,
-            fit: fit,
-            errorBuilder: (context, error, stackTrace) => fallback,
-          )
-        : Image.file(
-            File(path),
-            fit: fit,
-            errorBuilder: (context, error, stackTrace) => fallback,
-          );
   }
 }

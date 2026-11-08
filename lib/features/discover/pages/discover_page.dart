@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/bottom_navigation.dart';
@@ -243,13 +244,15 @@ class _DiscoverPageState extends State<DiscoverPage>
                   title: context.l10n.contactUs,
                   onTap: _closeDrawerMenu,
                 ),
-                _buildDrawerDivider(),
-                _buildDrawerButton(
-                  iconPath: 'assets/icons/akar-icons_briefcase.svg',
-                  title: context.l10n.businesses,
-                  onTap: _openBusinessLoginPage,
-                  color: AppColor.activeColor,
-                ),
+                if (context.read<AppConfig>().useMockBackend) ...[
+                  _buildDrawerDivider(),
+                  _buildDrawerButton(
+                    iconPath: 'assets/icons/akar-icons_briefcase.svg',
+                    title: context.l10n.businesses,
+                    onTap: _openBusinessLoginPage,
+                    color: AppColor.activeColor,
+                  ),
+                ],
                 const Spacer(),
               ],
             ),

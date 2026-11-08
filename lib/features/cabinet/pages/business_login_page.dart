@@ -6,7 +6,7 @@ import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/features/cabinet/pages/business_create_page.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/models/store/my_store.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -79,10 +79,10 @@ class _BusinessLoginPageState extends State<BusinessLoginPage> {
       return;
     }
 
-    final account = await context.goTo<BusinessAccount>(
+    final store = await context.goTo<MyStore>(
       BusinessCreatePage(phoneNumber: _normalizePhoneNumber(phoneNumber)),
     );
-    if (mounted && account != null) context.goBack(account);
+    if (mounted && store != null) context.goBack(store);
   }
 
   @override

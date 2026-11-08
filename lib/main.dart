@@ -9,6 +9,7 @@ import 'package:vidsell/core/state/app_locale_cubit.dart';
 import 'package:vidsell/core/state/app_runtime_cubit.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_theme.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/di/app_dependencies.dart';
 import 'package:vidsell/core/widgets/app_runtime_overlay.dart';
 import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
@@ -125,6 +126,7 @@ class MyApp extends StatelessWidget {
             },
             child: MultiRepositoryProvider(
               providers: [
+                RepositoryProvider<AppConfig>.value(value: dependencies.config),
                 RepositoryProvider<HomeRepository>.value(
                   value: dependencies.homeRepository,
                 ),

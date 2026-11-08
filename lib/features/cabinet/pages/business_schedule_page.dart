@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/features/cabinet/pages/business_contact_page.dart';
 import 'package:vidsell/features/cabinet/widgets/business_schedule_widgets.dart';
-import 'package:vidsell/features/discover/models/business_account.dart';
+import 'package:vidsell/features/discover/models/store_draft.dart';
+import 'package:vidsell/models/store/my_store.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class BusinessSchedulePage extends StatefulWidget {
   const BusinessSchedulePage({super.key, required this.draft});
 
-  final BusinessAccountDraft draft;
+  final StoreDraft draft;
 
   @override
   State<BusinessSchedulePage> createState() => _BusinessSchedulePageState();
@@ -86,6 +89,7 @@ class _BusinessSchedulePageState extends State<BusinessSchedulePage> {
                 onDayToggled: _toggleDay,
                 onOpeningChanged: (time) => setState(() => _openingTime = time),
                 onClosingChanged: (time) => setState(() => _closingTime = time),
+                showLegacyControls: context.read<AppConfig>().useMockBackend,
               ),
             ],
           ),
@@ -135,7 +139,7 @@ class _BusinessSchedulePageState extends State<BusinessSchedulePage> {
   }
 
   Future<void> _continue() async {
-    final account = await context.goTo<BusinessAccount>(
+    final store = await context.goTo<MyStore>(
       BusinessContactPage(
         draft: widget.draft.copyWith(
           alwaysOpen: _isAlwaysOpen,
@@ -145,7 +149,7 @@ class _BusinessSchedulePageState extends State<BusinessSchedulePage> {
         ),
       ),
     );
-    if (mounted && account != null) context.goBack(account);
+    if (mounted && store != null) context.goBack(store);
   }
 
   void _clearSchedule() {
