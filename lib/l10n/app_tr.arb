@@ -796,4 +796,10 @@
   ,"walletInsufficientBalance": "Cüzdan bakiyeniz yetersiz. Devam etmek için bakiye yükleyin."
   ,"freeDailyPromotions": "Bugün {count} ücretsiz tanıtım hakkı"
   ,"@freeDailyPromotions": {"placeholders": {"count": {"type": "int"}}}
+  ,"sellerType": "Satıcı türü"
+  ,"individual": "Bireysel"
+  ,"store": "Mağaza"
+  ,"listingCreatedActive": "İlanınız yayında"
+  ,"listingCreatedActiveDescription": "Ürününüz artık müşterilere gösteriliyor."
+  ,"listingCreatedVideoFailed": "İlanınız oluşturuldu ancak videosu eklenemedi."
 }

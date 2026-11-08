@@ -2495,4 +2495,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String freeDailyPromotions(int count) {
     return '$count free promotions available today';
   }
+
+  @override
+  String get sellerType => 'Seller type';
+
+  @override
+  String get individual => 'Individual';
+
+  @override
+  String get store => 'Store';
+
+  @override
+  String get listingCreatedActive => 'Your listing is active';
+
+  @override
+  String get listingCreatedActiveDescription =>
+      'Your product is now available to customers.';
+
+  @override
+  String get listingCreatedVideoFailed =>
+      'Your listing was created, but its video could not be attached.';
 }

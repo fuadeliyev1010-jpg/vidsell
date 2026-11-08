@@ -49,9 +49,10 @@ void main() {
         ),
       );
 
-      final pending = await ownerListings.fetchMyListings();
-      expect(pending.single.id, created.id);
-      expect(pending.single.status, ProductStatus.underReview);
+      final owned = await ownerListings.fetchMyListings();
+      expect(owned.single.id, created.id);
+      expect(created.status, ProductStatus.active);
+      expect(owned.single.status, ProductStatus.active);
 
       await ownerListings.updateListingStatus(created.id, ProductStatus.active);
       final discovered = await homeRepository.fetchListings(size: 50);

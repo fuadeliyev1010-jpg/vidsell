@@ -8,6 +8,7 @@ export 'auth/reset_token_response.dart';
 export 'auth/send_otp_request.dart';
 export 'auth/verify_otp_request.dart';
 export 'common/api_error.dart';
+export 'common/localized_enum_values.dart';
 export 'common/page_response.dart';
 export 'enums/app_language.dart';
 export 'enums/delivery_type.dart';

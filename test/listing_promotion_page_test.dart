@@ -8,6 +8,10 @@ import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/app_router.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
+import 'package:vidsell/models/enums/product_category.dart';
+import 'package:vidsell/models/enums/product_status.dart';
+import 'package:vidsell/models/enums/product_subcategory.dart';
+import 'package:vidsell/models/product/product.dart';
 
 void main() {
   testWidgets('promotion page shows listing details and selectable services', (
@@ -26,12 +30,19 @@ void main() {
           builder: (context, state) => Scaffold(
             body: TextButton(
               onPressed: () => context.goToListingPromotion(
-                title: 'Test iPhone',
-                price: '2890.24 ₼',
-                city: 'İstanbul',
-                category: 'Elektronik',
-                subcategory: 'Telefonlar',
-                image: 'missing-image.jpg',
+                product: const Product(
+                  id: 'product-1',
+                  title: 'Test iPhone',
+                  price: 2890.24,
+                  currency: 'TRY',
+                  city: 'İstanbul',
+                  category: ProductCategory.electronics,
+                  categoryLabel: 'Elektronik',
+                  subcategory: ProductSubcategory.phones,
+                  subcategoryLabel: 'Telefonlar',
+                  status: ProductStatus.active,
+                  imageUrls: ['missing-image.jpg'],
+                ),
               ),
               child: const Text('Open'),
             ),

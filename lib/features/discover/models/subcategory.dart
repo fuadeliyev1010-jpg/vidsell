@@ -1,4 +1,5 @@
 import 'package:vidsell/l10n/app_localizations.dart';
+import 'package:vidsell/models/common/localized_enum_values.dart';
 
 class Subcategory {
   const Subcategory({
@@ -10,6 +11,35 @@ class Subcategory {
   final String id;
   final String label;
   final String categoryId;
+
+  static List<Subcategory> fromApiResponse(
+    dynamic response,
+    dynamic enumResponse, {
+    required String categoryId,
+  }) {
+    if (response is! List) {
+      throw StateError('Invalid product subcategories response.');
+    }
+    final labels = LocalizedEnumValues.fromResponse(
+      enumResponse,
+      group: 'productSubcategory',
+    );
+    return List.unmodifiable([
+      for (final value in response)
+        if (value is String && value.trim().isNotEmpty)
+          Subcategory(
+            id: value.trim().toUpperCase(),
+            label:
+                labels[value.trim().toUpperCase()] ??
+                (throw StateError(
+                  'Missing localized label for subcategory ${value.trim()}.',
+                )),
+            categoryId: categoryId,
+          )
+        else
+          throw StateError('Invalid product subcategory value.'),
+    ]);
+  }
 }
 
 extension SubcategoryLocalization on Subcategory {

@@ -2475,4 +2475,24 @@ class AppLocalizationsTr extends AppLocalizations {
   String freeDailyPromotions(int count) {
     return 'Bugün $count ücretsiz tanıtım hakkı';
   }
+
+  @override
+  String get sellerType => 'Satıcı türü';
+
+  @override
+  String get individual => 'Bireysel';
+
+  @override
+  String get store => 'Mağaza';
+
+  @override
+  String get listingCreatedActive => 'İlanınız yayında';
+
+  @override
+  String get listingCreatedActiveDescription =>
+      'Ürününüz artık müşterilere gösteriliyor.';
+
+  @override
+  String get listingCreatedVideoFailed =>
+      'İlanınız oluşturuldu ancak videosu eklenemedi.';
 }

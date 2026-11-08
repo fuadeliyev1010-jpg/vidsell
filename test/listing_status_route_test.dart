@@ -6,9 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/app_router.dart';
 import 'package:vidsell/core/pager/context_go.dart';
-import 'package:vidsell/features/new_listing/models/listing.dart';
 import 'package:vidsell/features/new_listing/pages/listing_promotion_page.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
+import 'package:vidsell/models/enums/product_status.dart';
+import 'package:vidsell/models/product/product.dart';
 
 void main() {
   testWidgets('creation ID and server status survive promotion navigation', (
@@ -26,14 +27,13 @@ void main() {
           builder: (context, state) => Scaffold(
             body: TextButton(
               onPressed: () => context.goToListingPromotion(
-                title: 'Phone',
-                price: '1250 AZN',
-                city: 'Baku',
-                category: 'Electronics',
-                subcategory: 'Phones',
-                image: 'phone.jpg',
-                listingId: 'listing-42',
-                status: 'pending_moderation',
+                product: const Product(
+                  id: 'product-42',
+                  title: 'Phone',
+                  price: 1250,
+                  city: 'Baku',
+                  status: ProductStatus.underReview,
+                ),
               ),
               child: const Text('Open promotion'),
             ),
@@ -64,7 +64,7 @@ void main() {
     final page = tester.widget<ListingPromotionPage>(
       find.byType(ListingPromotionPage),
     );
-    expect(page.listingId, 'listing-42');
-    expect(page.status, ListingStatus.pendingModeration);
+    expect(page.product.id, 'product-42');
+    expect(page.product.status, ProductStatus.underReview);
   });
 }

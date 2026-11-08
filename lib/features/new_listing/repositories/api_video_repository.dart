@@ -15,9 +15,8 @@ class ApiVideoRepository implements VideoRepository {
   @override
   Future<Video> upload(String filePath) async {
     final data = await _client.postMultipart(
-      '/media/upload',
+      '/videos',
       data: FormData.fromMap({
-        'type': 'video',
         'file': await MultipartFile.fromFile(
           filePath,
           filename: path.basename(filePath),
@@ -49,6 +48,11 @@ class ApiVideoRepository implements VideoRepository {
       }
     }
     throw TimeoutException('Video processing timed out.');
+  }
+
+  @override
+  Future<void> tagProduct(String videoId, String productId) async {
+    await _client.post('/videos/$videoId/products/$productId');
   }
 
   @override

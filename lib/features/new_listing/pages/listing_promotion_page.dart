@@ -13,14 +13,13 @@ import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/cabinet/pages/wallet_page.dart';
 import 'package:vidsell/features/new_listing/repositories/promotion_repository.dart';
 import 'package:vidsell/features/home/widgets/subscription_shared_widgets.dart';
-import 'package:vidsell/features/new_listing/models/listing.dart';
 import 'package:vidsell/features/new_listing/pages/boost_subscription_page.dart';
-import 'package:vidsell/features/new_listing/models/listing_submission_details.dart';
 import 'package:vidsell/features/new_listing/pages/premium_subscription_page.dart';
 import 'package:vidsell/features/new_listing/pages/listing_submission_success_page.dart';
 import 'package:vidsell/features/new_listing/pages/vip_subscription_page.dart';
 import 'package:vidsell/models/enums/promotion_type.dart';
 import 'package:vidsell/models/product/promote_request.dart';
+import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/promotion/promotion_availability.dart';
 
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -29,26 +28,9 @@ import 'package:vidsell/l10n/app_localizations_extensions.dart';
 enum _Promotion { vip, premium, boost }
 
 class ListingPromotionPage extends StatefulWidget {
-  const ListingPromotionPage({
-    super.key,
-    required this.title,
-    required this.price,
-    required this.city,
-    required this.categoryName,
-    required this.subcategoryName,
-    required this.imagePath,
-    this.listingId,
-    this.status = ListingStatus.unknown,
-  });
+  const ListingPromotionPage({super.key, required this.product});
 
-  final String title;
-  final String price;
-  final String city;
-  final String categoryName;
-  final String subcategoryName;
-  final String imagePath;
-  final String? listingId;
-  final ListingStatus status;
+  final Product product;
 
   @override
   State<ListingPromotionPage> createState() => _ListingPromotionPageState();
@@ -72,23 +54,13 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
     }
   }
 
-  ListingSubmissionDetails get _listingDetails => ListingSubmissionDetails(
-    title: widget.title,
-    price: widget.price,
-    city: widget.city,
-    categoryName: widget.categoryName,
-    subcategoryName: widget.subcategoryName,
-    listingId: widget.listingId,
-    status: widget.status,
-  );
-
   void _finishListing() {
     _finishListingWithService(context.l10n.standardService);
   }
 
   void _finishListingWithService(String service) {
     context.goAndClear(
-      ListingSubmissionSuccessPage(listing: _listingDetails, service: service),
+      ListingSubmissionSuccessPage(product: widget.product, service: service),
     );
   }
 
@@ -283,8 +255,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
   }
 
   Future<void> _purchaseApiPromotion() async {
-    final productId = widget.listingId;
-    if (productId == null || productId.isEmpty) {
+    if (widget.product.id.isEmpty) {
       _showApiPromotionError();
       return;
     }
@@ -298,7 +269,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
 
     try {
       await context.read<PromotionRepository>().promoteProduct(
-        productId: productId,
+        productId: widget.product.id,
         request: PromoteRequest(promotionType: promotionType, days: 30),
       );
       if (!mounted) return;
@@ -345,15 +316,20 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
       return;
     }
     if (_selectedPromotion == _Promotion.vip) {
-      await context.goTo(VipSubscriptionPage(listing: _listingDetails));
+      await context.goTo(VipSubscriptionPage(product: widget.product));
     } else if (_selectedPromotion == _Promotion.premium) {
-      await context.goTo(PremiumSubscriptionPage(listing: _listingDetails));
+      await context.goTo(PremiumSubscriptionPage(product: widget.product));
     } else {
-      await context.goTo(BoostSubscriptionPage(listing: _listingDetails));
+      await context.goTo(BoostSubscriptionPage(product: widget.product));
     }
   }
 
   Widget _buildListingPreview() {
+    final details = [
+      widget.product.city,
+      widget.product.categoryDisplay,
+      widget.product.subcategoryDisplay,
+    ].whereType<String>().where((value) => value.isNotEmpty).join(' · ');
     return Container(
       height: 88.h,
       padding: EdgeInsets.all(12.w),
@@ -363,7 +339,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
       ),
       child: Row(
         children: [
-          _ListingPhoto(path: widget.imagePath),
+          _ListingPhoto(path: widget.product.imageUrls.firstOrNull ?? ''),
           12.width,
           Expanded(
             child: Column(
@@ -371,7 +347,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  widget.title,
+                  widget.product.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyle.primaryText.copyWith(
@@ -381,20 +357,24 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
                 ),
                 2.height,
                 Text(
-                  widget.price,
+                  CurrencyFormatter.formatPrice(
+                    widget.product.price,
+                    widget.product.currency,
+                    decimalDigits: 2,
+                  ),
                   style: AppTextStyle.primaryText.copyWith(
                     color: AppColor.activeColor,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Text(
-                  '${widget.city} · ${widget.categoryName} / '
-                  '${widget.subcategoryName}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyle.mutedText.copyWith(fontSize: 12.sp),
-                ),
+                if (details.isNotEmpty)
+                  Text(
+                    details,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.mutedText.copyWith(fontSize: 12.sp),
+                  ),
               ],
             ),
           ),

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vidsell/core/constants/app_color.dart';
-import 'package:vidsell/features/new_listing/models/listing.dart';
+
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/features/auth/widgets/auth_gate.dart';
 import 'package:vidsell/features/auth/widgets/location_permission_gate.dart';
 import 'package:vidsell/features/new_listing/pages/listing_promotion_page.dart';
+import 'package:vidsell/models/product/product.dart';
 
 GoRoute routedPageRoute() {
   return GoRoute(
@@ -39,32 +40,9 @@ GoRoute listingPromotionRoute() {
   return GoRoute(
     path: '/listing-promotion',
     builder: (context, state) {
-      final parameters = state.uri.queryParameters;
-      final title = parameters['title'];
-      final price = parameters['price'];
-      final city = parameters['city'];
-      final category = parameters['category'];
-      final subcategory = parameters['subcategory'];
-      final image = parameters['image'];
-      if (title == null ||
-          price == null ||
-          city == null ||
-          category == null ||
-          subcategory == null ||
-          image == null) {
-        return const _InvalidPageRoute();
-      }
-
-      return ListingPromotionPage(
-        title: title,
-        price: price,
-        city: city,
-        categoryName: category,
-        subcategoryName: subcategory,
-        imagePath: image,
-        listingId: parameters['listingId'],
-        status: ListingStatus.parse(parameters['status']),
-      );
+      final product = state.extra;
+      if (product is! Product) return const _InvalidPageRoute();
+      return ListingPromotionPage(product: product);
     },
   );
 }

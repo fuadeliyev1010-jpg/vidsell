@@ -19,7 +19,7 @@ class ListingDraft {
     required this.city,
     required this.cityId,
     required this.condition,
-    required this.delivery,
+    this.delivery,
     required this.title,
     required this.description,
     required this.sellerName,
@@ -44,7 +44,7 @@ class ListingDraft {
   final String cityId;
   final String currency;
   final ListingCondition condition;
-  final DeliveryOption delivery;
+  final DeliveryOption? delivery;
   final String title;
   final String description;
   final String sellerName;

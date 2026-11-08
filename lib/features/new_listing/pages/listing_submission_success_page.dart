@@ -7,8 +7,8 @@ import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/cabinet/pages/cabinet_page.dart';
 import 'package:vidsell/features/home/page/home_page.dart';
 import 'package:vidsell/features/home/widgets/subscription_shared_widgets.dart';
-import 'package:vidsell/features/new_listing/models/listing.dart';
-import 'package:vidsell/features/new_listing/models/listing_submission_details.dart';
+import 'package:vidsell/models/enums/product_status.dart';
+import 'package:vidsell/models/product/product.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
@@ -16,11 +16,11 @@ import 'package:vidsell/l10n/app_localizations.dart';
 class ListingSubmissionSuccessPage extends StatelessWidget {
   const ListingSubmissionSuccessPage({
     super.key,
-    required this.listing,
+    required this.product,
     required this.service,
   });
 
-  final ListingSubmissionDetails listing;
+  final Product product;
   final String service;
 
   @override
@@ -58,7 +58,9 @@ class ListingSubmissionSuccessPage extends StatelessWidget {
                     ),
                     16.height,
                     Text(
-                      context.l10n.listingModeration,
+                      product.status == ProductStatus.active
+                          ? context.l10n.listingCreatedActive
+                          : context.l10n.listingModeration,
                       textAlign: TextAlign.center,
                       style: AppTextStyle.primaryText.copyWith(
                         color: Colors.white,
@@ -68,7 +70,11 @@ class ListingSubmissionSuccessPage extends StatelessWidget {
                     ),
                     16.height,
                     Text(
-                      AppLocalizations.of(context)!.listingSuccessDescription,
+                      product.status == ProductStatus.active
+                          ? context.l10n.listingCreatedActiveDescription
+                          : AppLocalizations.of(
+                              context,
+                            )!.listingSuccessDescription,
                       textAlign: TextAlign.center,
                       style: AppTextStyle.mutedText.copyWith(
                         color: const Color(0xFF9CA3AF),
@@ -121,19 +127,18 @@ class ListingSubmissionSuccessPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _summaryRow(context.l10n.listingSummary, listing.title),
-          if (listing.listingId?.isNotEmpty == true) ...[
+          _summaryRow(context.l10n.listingSummary, product.title),
+          if (product.id.isNotEmpty) ...[
             12.height,
-            _summaryRow(context.l10n.listingIdLabel, listing.listingId!),
+            _summaryRow(context.l10n.listingIdLabel, product.id),
           ],
           12.height,
           _summaryRow(context.l10n.listingService, service),
-          12.height,
-          _summaryRow(context.l10n.amountToPay, context.l10n.zeroAmountAzn),
-          12.height,
           _summaryRow(
             context.l10n.listingStatusLabel,
-            _statusLabel(context, listing.status),
+            product.statusLabel?.isNotEmpty == true
+                ? product.statusLabel!
+                : _statusLabel(context, product.status),
             valueColor: const Color(0xFFFFB21A),
             emphasize: true,
           ),
@@ -142,19 +147,17 @@ class ListingSubmissionSuccessPage extends StatelessWidget {
     );
   }
 
-  String _statusLabel(BuildContext context, ListingStatus status) =>
+  String _statusLabel(BuildContext context, ProductStatus? status) =>
       switch (status) {
-        ListingStatus.pendingPayment =>
+        ProductStatus.pendingPayment =>
           context.l10n.listingStatusPendingPayment,
-        ListingStatus.pendingModeration => context.l10n.moderationStatus,
-        ListingStatus.active => context.l10n.active,
-        ListingStatus.inactive => context.l10n.listingStatusInactive,
-        ListingStatus.rejected => context.l10n.listingStatusRejected,
-        ListingStatus.expired => context.l10n.listingStatusExpired,
-        ListingStatus.sold => context.l10n.listingStatusSold,
-        ListingStatus.deleted => context.l10n.listingStatusDeleted,
-        ListingStatus.draft => context.l10n.listingStatusDraft,
-        ListingStatus.unknown => context.l10n.listingStatusUnknown,
+        ProductStatus.underReview => context.l10n.moderationStatus,
+        ProductStatus.active => context.l10n.active,
+        ProductStatus.inactive => context.l10n.listingStatusInactive,
+        ProductStatus.rejected => context.l10n.listingStatusRejected,
+        ProductStatus.sold => context.l10n.listingStatusSold,
+        ProductStatus.deleted => context.l10n.listingStatusDeleted,
+        ProductStatus.unknown || null => context.l10n.listingStatusUnknown,
       };
 
   Widget _summaryRow(

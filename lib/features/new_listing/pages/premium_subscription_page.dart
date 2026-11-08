@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/features/home/widgets/subscription_shared_widgets.dart';
-import 'package:vidsell/features/new_listing/models/listing_submission_details.dart';
 import 'package:vidsell/features/new_listing/pages/listing_submission_success_page.dart';
+import 'package:vidsell/models/product/product.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class PremiumSubscriptionPage extends StatelessWidget {
-  const PremiumSubscriptionPage({super.key, this.listing});
+  const PremiumSubscriptionPage({super.key, this.product});
 
-  final ListingSubmissionDetails? listing;
+  final Product? product;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +34,11 @@ class PremiumSubscriptionPage extends StatelessWidget {
   }
 
   void _activateFree(BuildContext context) {
-    final listing = this.listing;
-    if (listing != null) {
+    final product = this.product;
+    if (product != null) {
       context.goAndClear(
         ListingSubmissionSuccessPage(
-          listing: listing,
+          product: product,
           service: context.l10n.premiumServiceFree(context.l10n.threeDays),
         ),
       );

@@ -12,19 +12,21 @@ class ApiSubcategoryRepository implements SubcategoryRepository {
 
   @override
   Future<List<Subcategory>> fetchForCategory(String categoryId) async {
+    final category = switch (categoryId) {
+      'electronics' => 'ELECTRONICS',
+      'vehicles' || 'transport' => 'TRANSPORT',
+      'real-estate' => 'REAL_ESTATE',
+      'home-appliances' => 'HOME_APPLIANCES',
+      'special-occasion-clothing' => 'SPECIAL_OCCASION',
+      'cosmetics' => 'COSMETICS',
+      _ => throw StateError('Unsupported product category.'),
+    };
     final data = await _client.get(
-      '/subcategories',
-      queryParameters: {'categoryId': categoryId},
+      '/products/subcategories',
+      queryParameters: {'category': category},
     );
-    return parsePage(data, (json) => json).items
-        .map(
-          (json) => Subcategory(
-            id: json['id'].toString(),
-            label: json['name'] as String? ?? '',
-            categoryId: json['categoryId']?.toString() ?? categoryId,
-          ),
-        )
-        .toList(growable: false);
+    final enumData = await _client.get('/i18n/enums');
+    return Subcategory.fromApiResponse(data, enumData, categoryId: categoryId);
   }
 }
 

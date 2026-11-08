@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vidsell/core/pager/app_router.dart';
+import 'package:vidsell/models/product/product.dart';
 
 extension ContextGo on BuildContext {
   String _pageLocation(Widget page) =>
@@ -16,31 +17,8 @@ extension ContextGo on BuildContext {
     );
   }
 
-  Future<void> goToListingPromotion({
-    required String title,
-    required String price,
-    required String city,
-    required String category,
-    required String subcategory,
-    required String image,
-    String? listingId,
-    String? status,
-  }) {
-    final location = Uri(
-      path: '/listing-promotion',
-      queryParameters: {
-        'title': title,
-        'price': price,
-        'city': city,
-        'category': category,
-        'subcategory': subcategory,
-        'image': image,
-        'listingId': ?listingId,
-        'status': ?status,
-      },
-    );
-    return GoRouter.of(this).push<void>(location.toString());
-  }
+  Future<void> goToListingPromotion({required Product product}) =>
+      GoRouter.of(this).push<void>('/listing-promotion', extra: product);
 
   void goReplace(Widget page) {
     GoRouter.of(

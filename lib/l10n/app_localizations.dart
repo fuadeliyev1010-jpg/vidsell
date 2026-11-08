@@ -4639,6 +4639,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} free promotions available today'**
   String freeDailyPromotions(int count);
+
+  /// No description provided for @sellerType.
+  ///
+  /// In en, this message translates to:
+  /// **'Seller type'**
+  String get sellerType;
+
+  /// No description provided for @individual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get individual;
+
+  /// No description provided for @store.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get store;
+
+  /// No description provided for @listingCreatedActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listing is active'**
+  String get listingCreatedActive;
+
+  /// No description provided for @listingCreatedActiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your product is now available to customers.'**
+  String get listingCreatedActiveDescription;
+
+  /// No description provided for @listingCreatedVideoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listing was created, but its video could not be attached.'**
+  String get listingCreatedVideoFailed;
 }
 
 class _AppLocalizationsDelegate

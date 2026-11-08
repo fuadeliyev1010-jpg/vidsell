@@ -1,15 +1,12 @@
 import 'package:vidsell/core/network/api_client.dart';
-import 'package:dio/dio.dart';
-import 'package:path/path.dart' as path;
-import 'package:vidsell/features/new_listing/models/created_listing.dart';
 import 'package:vidsell/features/new_listing/models/listing_draft.dart';
+import 'package:vidsell/features/new_listing/repositories/api_video_repository.dart';
 import 'package:vidsell/features/new_listing/repositories/listing_repository.dart';
-import 'package:vidsell/models/enums/delivery_type.dart';
 import 'package:vidsell/models/enums/product_category.dart';
 import 'package:vidsell/models/enums/product_condition.dart';
+import 'package:vidsell/models/enums/product_subcategory.dart';
 import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/product/product_request.dart';
-import 'package:vidsell/features/new_listing/repositories/api_video_repository.dart';
 
 class ApiListingRepository implements ListingRepository {
   ApiListingRepository(this._client);
@@ -19,158 +16,89 @@ class ApiListingRepository implements ListingRepository {
   ApiVideoRepository get _videos => ApiVideoRepository(_client);
 
   @override
-  Future<CreatedListing> createListing(ListingDraft draft) async {
-    if (draft.imagePaths.isEmpty && draft.videoPaths.isEmpty) {
-      throw StateError('missing_media');
+  Future<List<String>> uploadImages(List<String> localPaths) async {
+    // TODO(api): API.md does not document product image uploads.
+    throw UnsupportedError(
+      'Product image uploads are unavailable in API mode.',
+    );
+  }
+
+  @override
+  Future<Product> createListing(ListingDraft draft) async {
+    if (draft.videoPaths.length > 1) {
+      throw StateError('A product can be tagged to only one video.');
     }
 
-    final uploadedImages = await _uploadFiles(draft.imagePaths, 'image');
-    final uploadedVideos = await _uploadFiles(draft.videoPaths, 'video');
-    final videoMedia = <Map<String, dynamic>>[];
-    for (var index = 0; index < uploadedVideos.length; index++) {
-      final thumbnailPath = index < draft.videoCoverPaths.length
-          ? draft.videoCoverPaths[index]
-          : '';
-      String? thumbnailUrl;
-      if (thumbnailPath.isNotEmpty) {
-        final imageIndex = draft.imagePaths.indexOf(thumbnailPath);
-        thumbnailUrl = imageIndex >= 0
-            ? uploadedImages[imageIndex]
-            : await _uploadSingleFile(thumbnailPath, 'image');
-      }
-      videoMedia.add({
-        'url': uploadedVideos[index],
-        'type': 'video',
-        'sortOrder': uploadedImages.length + index,
-        'thumbnailUrl': ?thumbnailUrl,
-      });
-    }
-    final media = <Map<String, dynamic>>[
-      for (var index = 0; index < uploadedImages.length; index++)
-        {'url': uploadedImages[index], 'type': 'image', 'sortOrder': index},
-      ...videoMedia,
-    ];
     final request = ProductRequest(
       title: draft.title,
       price: draft.price,
       currency: draft.currency,
       description: draft.description,
-      categoryId: draft.categoryId,
-      subcategoryId: draft.subcategoryId,
-      cityId: draft.cityId,
-      city: draft.city,
       category: _category(draft.categoryId),
+      subcategory: draft.subcategoryId.isEmpty
+          ? null
+          : ProductSubcategory.fromCode(draft.subcategoryId),
+      city: draft.city,
       condition: _condition(draft.condition),
-      deliveryType: _delivery(draft.delivery),
-      brand: draft.brand,
-      model: draft.model,
-      imageUrls: media.map((item) => item['url'] as String).toList(),
-      contact: {
-        'name': draft.sellerName,
-        'email': draft.email,
-        'phone': draft.phone,
-      },
-      contactMethod: draft.contactMethod,
-      sellerType: draft.sellerType,
+      brand: draft.brand.isEmpty ? null : draft.brand,
+      modelName: draft.model.isEmpty ? null : draft.model,
+      imageUrls: [
+        for (final imageUrl in draft.imagePaths)
+          if (_isRemoteUrl(imageUrl)) imageUrl,
+      ],
     );
-    final data = await _client.post(
-      '/products',
-      data: {
-        ...request.toJson(),
-        'categoryId': draft.categoryId,
-        'subcategoryId': draft.subcategoryId,
-        'categoryName': draft.categoryName,
-        'subcategoryName': draft.subcategoryName,
-        'brand': draft.brand,
-        'model': draft.model,
-        'price': draft.price,
-        'currency': draft.currency,
-        'cityId': draft.cityId,
-        'cityName': draft.city,
-        'condition': draft.condition.name,
-        'delivery': draft.delivery.name,
-        'sellerType': draft.sellerType.code,
-        'title': draft.title,
-        'description': draft.description,
-        'contact': {
-          'name': draft.sellerName,
-          'email': draft.email,
-          'phone': draft.phone,
-        },
-        'contactMethod': draft.contactMethod,
-        'media': media,
-      },
-    );
+    final data = await _client.post('/products', data: request.toJson());
     if (data is! Map<String, dynamic>) {
-      throw StateError('Invalid listing response.');
+      throw StateError('Invalid product response.');
     }
     final product = Product.fromJson(data);
-    final id = product.id.trim();
-    if (id.isEmpty) throw StateError('Listing response has no ID.');
-    final rawStatus = data['status']?.toString().trim() ?? '';
-    if (rawStatus.isEmpty) {
-      throw StateError('Listing response has no status.');
+    if (product.id.trim().isEmpty) {
+      throw StateError('Product response has no ID.');
+    }
+    if (product.status == null) {
+      throw StateError('Product response has no status.');
     }
 
-    return CreatedListing.fromProduct(product);
+    if (draft.videoPaths.isNotEmpty) {
+      try {
+        final uploadedVideo = await _videos.upload(draft.videoPaths.single);
+        if (uploadedVideo.id.isEmpty) {
+          throw StateError('Video response has no ID.');
+        }
+        final processedVideo = await _videos.waitUntilProcessed(
+          uploadedVideo.id,
+        );
+        await _videos.tagProduct(processedVideo.id, product.id);
+      } on Object catch (error) {
+        throw ProductVideoAttachmentException(product: product, cause: error);
+      }
+    }
+    return product;
   }
 
-  ProductCategory? _category(String value) => switch (value) {
-    'electronics' => ProductCategory.electronics,
-    'vehicles' || 'transport' => ProductCategory.transport,
-    'real-estate' => ProductCategory.realEstate,
-    'home-appliances' => ProductCategory.homeAppliances,
-    'special-occasion-clothing' => ProductCategory.specialOccasion,
-    'cosmetics' => ProductCategory.cosmetics,
-    _ => null,
-  };
+  ProductCategory _category(String categoryId) {
+    final categoryCode = switch (categoryId) {
+      'electronics' => 'ELECTRONICS',
+      'vehicles' || 'transport' => 'TRANSPORT',
+      'real-estate' => 'REAL_ESTATE',
+      'home-appliances' => 'HOME_APPLIANCES',
+      'special-occasion-clothing' => 'SPECIAL_OCCASION',
+      'cosmetics' => 'COSMETICS',
+      _ => categoryId,
+    };
+    final category = ProductCategory.fromCode(categoryCode);
+    if (category == null || category == ProductCategory.unknown) {
+      throw StateError('Unsupported product category.');
+    }
+    return category;
+  }
 
-  ProductCondition? _condition(ListingCondition condition) =>
+  ProductCondition _condition(ListingCondition condition) =>
       switch (condition) {
         ListingCondition.newItem => ProductCondition.newCondition,
         ListingCondition.used => ProductCondition.used,
       };
 
-  DeliveryType? _delivery(DeliveryOption delivery) => switch (delivery) {
-    DeliveryOption.free || DeliveryOption.paid => DeliveryType.shipping,
-    DeliveryOption.none => DeliveryType.pickup,
-  };
-
-  Future<List<String>> _uploadFiles(List<String> paths, String type) async {
-    final urls = <String>[];
-    for (final filePath in paths) {
-      urls.add(await _uploadSingleFile(filePath, type));
-    }
-    return urls;
-  }
-
-  Future<String> _uploadSingleFile(String filePath, String type) async {
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-      return filePath;
-    }
-    if (type == 'video') {
-      final video = await _videos.upload(filePath);
-      if (video.id.isNotEmpty) {
-        final processed = await _videos.waitUntilProcessed(video.id);
-        return processed.hlsUrl ?? processed.thumbnailUrl ?? '';
-      }
-      if (video.hlsUrl?.isNotEmpty == true) return video.hlsUrl!;
-    }
-    final response = await _client.postMultipart(
-      '/media/upload',
-      data: FormData.fromMap({
-        'type': type,
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: path.basename(filePath),
-        ),
-      }),
-    );
-    if (response is! Map<String, dynamic> ||
-        response['url'] is! String ||
-        (response['url'] as String).isEmpty) {
-      throw StateError('Invalid media upload response.');
-    }
-    return response['url'] as String;
-  }
+  bool _isRemoteUrl(String value) =>
+      value.startsWith('http://') || value.startsWith('https://');
 }

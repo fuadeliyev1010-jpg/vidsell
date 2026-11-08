@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/features/home/widgets/subscription_shared_widgets.dart';
-import 'package:vidsell/features/new_listing/models/listing_submission_details.dart';
 import 'package:vidsell/features/new_listing/pages/listing_submission_success_page.dart';
+import 'package:vidsell/models/product/product.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class BoostSubscriptionPage extends StatelessWidget {
-  const BoostSubscriptionPage({super.key, this.listing});
+  const BoostSubscriptionPage({super.key, this.product});
 
-  final ListingSubmissionDetails? listing;
+  final Product? product;
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +45,11 @@ class BoostSubscriptionPage extends StatelessWidget {
   }
 
   void _activateFree(BuildContext context) {
-    final listing = this.listing;
-    if (listing != null) {
+    final product = this.product;
+    if (product != null) {
       context.goAndClear(
         ListingSubmissionSuccessPage(
-          listing: listing,
+          product: product,
           service: context.l10n.boostServiceFree(1),
         ),
       );

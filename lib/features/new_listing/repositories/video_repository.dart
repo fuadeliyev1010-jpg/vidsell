@@ -7,6 +7,8 @@ abstract interface class VideoRepository {
 
   Future<Video> waitUntilProcessed(String videoId);
 
+  Future<void> tagProduct(String videoId, String productId);
+
   Future<Video> pause(String videoId);
 
   Future<Video> resume(String videoId);

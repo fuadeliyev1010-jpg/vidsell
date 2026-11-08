@@ -796,4 +796,10 @@
   ,"walletInsufficientBalance": "Your wallet balance is insufficient. Top up your wallet to continue."
   ,"freeDailyPromotions": "{count} free promotions available today"
   ,"@freeDailyPromotions": {"placeholders": {"count": {"type": "int"}}}
+  ,"sellerType": "Seller type"
+  ,"individual": "Individual"
+  ,"store": "Store"
+  ,"listingCreatedActive": "Your listing is active"
+  ,"listingCreatedActiveDescription": "Your product is now available to customers."
+  ,"listingCreatedVideoFailed": "Your listing was created, but its video could not be attached."
 }

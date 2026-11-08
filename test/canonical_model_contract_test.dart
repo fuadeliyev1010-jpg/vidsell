@@ -5,6 +5,8 @@ import 'package:vidsell/models/enums/feed_content_type.dart';
 import 'package:vidsell/models/enums/feed_section.dart';
 import 'package:vidsell/models/enums/notification_type.dart';
 import 'package:vidsell/models/enums/payment_method.dart';
+import 'package:vidsell/models/enums/product_category.dart';
+import 'package:vidsell/models/enums/product_condition.dart';
 import 'package:vidsell/models/enums/product_status.dart';
 import 'package:vidsell/models/enums/product_subcategory.dart';
 import 'package:vidsell/models/enums/top_up_status.dart';
@@ -29,9 +31,28 @@ void main() {
         const ProductRequest(
           title: 'Phone',
           price: 10,
+          category: ProductCategory.electronics,
+          subcategory: ProductSubcategory.phones,
+          condition: ProductCondition.used,
+          brand: 'Brand',
+          modelName: 'Model',
+          city: 'Baku',
+          description: 'Description',
           imageUrls: ['a.jpg'],
         ).toJson(),
-        containsPair('imageUrls', ['a.jpg']),
+        {
+          'title': 'Phone',
+          'description': 'Description',
+          'price': 10,
+          'currency': 'TRY',
+          'category': 'ELECTRONICS',
+          'subcategory': 'PHONES',
+          'brand': 'Brand',
+          'modelName': 'Model',
+          'city': 'Baku',
+          'condition': 'USED',
+          'imageUrls': ['a.jpg'],
+        },
       );
     },
   );

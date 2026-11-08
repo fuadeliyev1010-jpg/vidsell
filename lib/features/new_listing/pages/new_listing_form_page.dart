@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
-import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/discover/models/city.dart';
@@ -22,6 +22,7 @@ import 'package:vidsell/features/new_listing/widgets/listing_form_components.dar
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/models/enums/seller_type.dart';
+import 'package:vidsell/models/product/product.dart';
 export 'package:vidsell/features/new_listing/models/listing_draft.dart';
 
 class NewListingFormPage extends StatefulWidget {
@@ -47,6 +48,7 @@ class NewListingFormPage extends StatefulWidget {
 class _NewListingFormPageState extends State<NewListingFormPage> {
   late final ListingRepository _listingRepository;
   late final CityRepository _cityRepository;
+  late final bool _isMockBackend;
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
@@ -84,6 +86,7 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
   @override
   void initState() {
     super.initState();
+    _isMockBackend = context.read<AppConfig>().useMockBackend;
     _listingRepository = widget.repository ?? context.read<ListingRepository>();
     _cityRepository = widget.cityRepository ?? context.read<CityRepository>();
   }
@@ -129,20 +132,22 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
                   children: [
                     16.height,
                     _buildCategoryField(),
-                    12.height,
-                    const ListingSectionHeader('Seller type'),
-                    ListingRadioRow(
-                      label: 'Individual',
-                      selected: _sellerType == SellerType.individual,
-                      onTap: () =>
-                          setState(() => _sellerType = SellerType.individual),
-                    ),
-                    ListingRadioRow(
-                      label: 'Store',
-                      selected: _sellerType == SellerType.store,
-                      onTap: () =>
-                          setState(() => _sellerType = SellerType.store),
-                    ),
+                    if (_isMockBackend) ...[
+                      12.height,
+                      ListingSectionHeader(context.l10n.sellerType),
+                      ListingRadioRow(
+                        label: context.l10n.individual,
+                        selected: _sellerType == SellerType.individual,
+                        onTap: () =>
+                            setState(() => _sellerType = SellerType.individual),
+                      ),
+                      ListingRadioRow(
+                        label: context.l10n.store,
+                        selected: _sellerType == SellerType.store,
+                        onTap: () =>
+                            setState(() => _sellerType = SellerType.store),
+                      ),
+                    ],
                     12.height,
                     ListingBasicInfoSection(
                       brandController: _brandController,
@@ -166,26 +171,28 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
                       onTap: () =>
                           setState(() => _condition = ListingCondition.used),
                     ),
-                    24.height,
-                    ListingSectionHeader(context.l10n.listingDelivery),
-                    ListingRadioRow(
-                      label: context.l10n.freeDelivery,
-                      selected: _delivery == DeliveryOption.free,
-                      onTap: () =>
-                          setState(() => _delivery = DeliveryOption.free),
-                    ),
-                    ListingRadioRow(
-                      label: context.l10n.deliveryToRegions,
-                      selected: _delivery == DeliveryOption.paid,
-                      onTap: () =>
-                          setState(() => _delivery = DeliveryOption.paid),
-                    ),
-                    ListingRadioRow(
-                      label: context.l10n.pickupAtAddress,
-                      selected: _delivery == DeliveryOption.none,
-                      onTap: () =>
-                          setState(() => _delivery = DeliveryOption.none),
-                    ),
+                    if (_isMockBackend) ...[
+                      24.height,
+                      ListingSectionHeader(context.l10n.listingDelivery),
+                      ListingRadioRow(
+                        label: context.l10n.freeDelivery,
+                        selected: _delivery == DeliveryOption.free,
+                        onTap: () =>
+                            setState(() => _delivery = DeliveryOption.free),
+                      ),
+                      ListingRadioRow(
+                        label: context.l10n.deliveryToRegions,
+                        selected: _delivery == DeliveryOption.paid,
+                        onTap: () =>
+                            setState(() => _delivery = DeliveryOption.paid),
+                      ),
+                      ListingRadioRow(
+                        label: context.l10n.pickupAtAddress,
+                        selected: _delivery == DeliveryOption.none,
+                        onTap: () =>
+                            setState(() => _delivery = DeliveryOption.none),
+                      ),
+                    ],
                     24.height,
                     ListingTextField(
                       controller: _titleController,
@@ -195,15 +202,17 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
                     ListingSectionHeader(context.l10n.listingContent),
                     12.height,
                     _buildDescriptionField(),
-                    24.height,
-                    ListingContactSection(
-                      nameController: _nameController,
-                      emailController: _emailController,
-                      phoneController: _phoneController,
-                      contactMethod: _contactMethod,
-                      onContactMethodChanged: (method) =>
-                          setState(() => _contactMethod = method),
-                    ),
+                    if (_isMockBackend) ...[
+                      24.height,
+                      ListingContactSection(
+                        nameController: _nameController,
+                        emailController: _emailController,
+                        phoneController: _phoneController,
+                        contactMethod: _contactMethod,
+                        onContactMethodChanged: (method) =>
+                            setState(() => _contactMethod = method),
+                      ),
+                    ],
                     24.height,
                     ListingMediaSection(
                       imagePaths: _imageUrls,
@@ -448,21 +457,25 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
 
   Future<void> _submitListing() async {
     final price = double.tryParse(_priceController.text.trim());
-    final hasMedia = _imageUrls.isNotEmpty || _videoUrls.isNotEmpty;
     final l10n = context.l10n;
     final missing = <String>[
       if (_modelController.text.trim().isEmpty) l10n.listingFieldModel,
       if (price == null || price <= 0) l10n.listingFieldPrice,
       if (_cityController.text.trim().isEmpty) l10n.listingFieldCity,
       if (_condition == null) l10n.listingFieldCondition,
-      if (_delivery == null) l10n.listingFieldDelivery,
+      if (_isMockBackend && _delivery == null) l10n.listingFieldDelivery,
       if (_titleController.text.trim().isEmpty) l10n.listingFieldTitle,
       if (_descriptionController.text.trim().isEmpty)
         l10n.listingFieldDescription,
-      if (_nameController.text.trim().isEmpty) l10n.listingFieldName,
-      if (_emailController.text.trim().isEmpty) l10n.listingFieldEmail,
-      if (_phoneController.text.trim().isEmpty) l10n.listingFieldPhone,
-      if (!hasMedia) l10n.listingFieldMedia,
+      if (_isMockBackend && _delivery == null) l10n.listingFieldDelivery,
+      if (_isMockBackend && _nameController.text.trim().isEmpty)
+        l10n.listingFieldName,
+      if (_isMockBackend && _emailController.text.trim().isEmpty)
+        l10n.listingFieldEmail,
+      if (_isMockBackend && _phoneController.text.trim().isEmpty)
+        l10n.listingFieldPhone,
+      if (_isMockBackend && _imageUrls.isEmpty && _videoUrls.isEmpty)
+        l10n.listingFieldMedia,
     ];
     if (missing.isNotEmpty) {
       _showMessage(l10n.fillListingFields(missing.join(', ')));
@@ -471,7 +484,9 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
 
     setState(() => _isSubmitting = true);
     try {
-      final selectedCity = await _resolveCity(_cityController.text, l10n);
+      final selectedCity = _isMockBackend
+          ? await _resolveCity(_cityController.text, l10n)
+          : City(id: '', name: _cityController.text.trim());
       if (!mounted) return;
       if (selectedCity == null) {
         _showMessage(l10n.listingCityNotFound);
@@ -488,39 +503,27 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
         city: selectedCity.name,
         cityId: selectedCity.id,
         condition: _condition!,
-        delivery: _delivery!,
+        delivery: _delivery,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        sellerName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
+        sellerName: _isMockBackend ? _nameController.text.trim() : '',
+        email: _isMockBackend ? _emailController.text.trim() : '',
+        phone: _isMockBackend ? _phoneController.text.trim() : '',
         contactMethod: _contactMethod.name,
         imagePaths: List.unmodifiable(_imageUrls),
         videoPaths: List.unmodifiable(_videoUrls),
         sellerType: _sellerType,
         videoCoverPaths: List.unmodifiable(_videoCoverUrls),
       );
-      final createdListing = await _listingRepository.createListing(draft);
+      Product createdProduct;
+      try {
+        createdProduct = await _listingRepository.createListing(draft);
+      } on ProductVideoAttachmentException catch (error) {
+        createdProduct = error.product;
+        _showMessage(l10n.listingCreatedVideoFailed);
+      }
       if (!mounted) return;
-      final previewImage = draft.imagePaths.isNotEmpty
-          ? draft.imagePaths.first
-          : draft.videoPaths.isNotEmpty
-          ? draft.videoPaths.first
-          : '';
-      await context.goToListingPromotion(
-        title: draft.title,
-        price: CurrencyFormatter.formatPrice(
-          draft.price,
-          draft.currency,
-          decimalDigits: 2,
-        ),
-        city: draft.city,
-        category: draft.categoryName,
-        subcategory: draft.subcategoryName,
-        image: previewImage,
-        listingId: createdListing.id,
-        status: createdListing.status.apiValue,
-      );
+      await context.goToListingPromotion(product: createdProduct);
     } catch (error) {
       if (mounted) {
         final message = error is StateError && error.message == 'missing_media'
