@@ -262,7 +262,7 @@ class _ListingMapViewState extends State<ListingMapView> {
               listing: item,
               onMessage: (message) {
                 Navigator.of(context).pop();
-                openSellerChat(
+                openLegacySellerChat(
                   context,
                   ProductLegacyAdapter.toHomeListing(item),
                   initialMessage: message.isEmpty ? null : message,
@@ -879,7 +879,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
         listing: item,
         onMessage: (message) {
           Navigator.of(context).pop();
-          openSellerChat(
+          openLegacySellerChat(
             context,
             ProductLegacyAdapter.toHomeListing(item),
             initialMessage: message.isEmpty ? null : message,

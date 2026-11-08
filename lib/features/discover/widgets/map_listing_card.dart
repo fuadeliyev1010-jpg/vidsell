@@ -39,7 +39,7 @@ class MapListingCard extends StatelessWidget {
         listing: listing,
         onMessage: (message) {
           Navigator.of(context).pop();
-          openSellerChat(
+          openLegacySellerChat(
             context,
             ProductLegacyAdapter.toHomeListing(listing),
             initialMessage: message.isEmpty ? null : message,

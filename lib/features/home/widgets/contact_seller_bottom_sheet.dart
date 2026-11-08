@@ -5,9 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/utils/call_seller.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/messages/utils/open_seller_chat.dart';
+import 'package:vidsell/models/product/product.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -15,16 +16,16 @@ class ContactSellerBottomSheet extends StatelessWidget {
   const ContactSellerBottomSheet({
     super.key,
     required this.listing,
-    this.phoneNumber = '+994 50 123 45 67',
+    this.phoneNumber,
   });
 
-  final HomeListing listing;
-  final String phoneNumber;
+  final Product listing;
+  final String? phoneNumber;
 
   static Future<void> show(
     BuildContext context, {
-    required HomeListing listing,
-    String phoneNumber = '+994 50 123 45 67',
+    required Product listing,
+    String? phoneNumber,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -35,7 +36,9 @@ class ContactSellerBottomSheet extends StatelessWidget {
     );
   }
 
-  String get _cleanPhone => phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+  String? get _resolvedPhoneNumber => phoneNumber ?? listing.sellerPhone;
+  String get _cleanPhone =>
+      (_resolvedPhoneNumber ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
 
   Future<void> _openWhatsApp(BuildContext context) async {
     final cleanDigits = _cleanPhone.replaceAll('+', '');
@@ -59,7 +62,11 @@ class ContactSellerBottomSheet extends StatelessWidget {
     }
   }
 
-  void _copyAndNotify(BuildContext context, {String? message}) {
+  void _copyAndNotify(
+    BuildContext context, {
+    required String phoneNumber,
+    String? message,
+  }) {
     Clipboard.setData(ClipboardData(text: phoneNumber));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -146,28 +153,35 @@ class ContactSellerBottomSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        listing.sellerName.isNotEmpty
-                            ? listing.sellerName
-                            : listing.sellerHandle,
+                        listing.sellerName?.isNotEmpty == true
+                            ? listing.sellerName!
+                            : listing.sellerHandle?.isNotEmpty == true
+                            ? listing.sellerHandle!
+                            : context.l10n.sellerLabel,
                         style: AppTextStyle.primaryText.copyWith(
                           color: Colors.white,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      2.height,
-                      Text(
-                        listing.sellerHandle,
-                        style: AppTextStyle.primaryText.copyWith(
-                          color: Colors.grey.shade400,
-                          fontSize: 12.sp,
+                      if (listing.sellerHandle?.isNotEmpty == true) ...[
+                        2.height,
+                        Text(
+                          listing.sellerHandle!,
+                          style: AppTextStyle.primaryText.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 12.sp,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
                 Text(
-                  listing.price,
+                  CurrencyFormatter.formatPrice(
+                    listing.price,
+                    listing.currency,
+                  ),
                   style: AppTextStyle.primaryText.copyWith(
                     color: AppColor.activeColor,
                     fontSize: 14.sp,
@@ -179,73 +193,68 @@ class ContactSellerBottomSheet extends StatelessWidget {
           ),
           18.height,
 
-          // Call button tile
-          _buildActionTile(
-            icon: Icons.phone_in_talk_rounded,
-            iconColor: AppColor.success,
-            title: context.l10n.call,
-            subtitle: phoneNumber,
-            trailingWidget: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: AppColor.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Text(
-                context.l10n.call,
-                style: TextStyle(
-                  color: AppColor.success,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
+          if (_resolvedPhoneNumber?.isNotEmpty == true) ...[
+            _buildActionTile(
+              icon: Icons.phone_in_talk_rounded,
+              iconColor: AppColor.success,
+              title: context.l10n.call,
+              subtitle: _resolvedPhoneNumber!,
+              trailingWidget: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: AppColor.success.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  context.l10n.call,
+                  style: TextStyle(
+                    color: AppColor.success,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+              onTap: () => callSeller(context, _resolvedPhoneNumber!),
             ),
-            onTap: () {
-              callSeller(context, listing.phoneNumber);
-            },
-          ),
-          _buildDivider(),
-
-          // WhatsApp button tile
-          _buildActionTile(
-            icon: Icons.chat_bubble_outline_rounded,
-            iconColor: const Color(0xFF25D366),
-            title: context.l10n.whatsappMessage,
-            subtitle: context.l10n.openDirectChat,
-            trailingWidget: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: const Color(0xFF25D366).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Text(
-                'WhatsApp',
-                style: TextStyle(
-                  color: const Color(0xFF25D366),
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
+            _buildDivider(),
+            _buildActionTile(
+              icon: Icons.chat_bubble_outline_rounded,
+              iconColor: const Color(0xFF25D366),
+              title: context.l10n.whatsappMessage,
+              subtitle: context.l10n.openDirectChat,
+              trailingWidget: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  'WhatsApp',
+                  style: TextStyle(
+                    color: const Color(0xFF25D366),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+              onTap: () {
+                Navigator.pop(context);
+                _openWhatsApp(context);
+              },
             ),
-            onTap: () {
-              Navigator.pop(context);
-              _openWhatsApp(context);
-            },
-          ),
-          _buildDivider(),
-
-          // Copy number tile
-          _buildActionTile(
-            icon: Icons.copy_rounded,
-            iconColor: Colors.white70,
-            title: context.l10n.copyNumber,
-            subtitle: phoneNumber,
-            onTap: () {
-              _copyAndNotify(context);
-              Navigator.pop(context);
-            },
-          ),
-          _buildDivider(),
+            _buildDivider(),
+            _buildActionTile(
+              icon: Icons.copy_rounded,
+              iconColor: Colors.white70,
+              title: context.l10n.copyNumber,
+              subtitle: _resolvedPhoneNumber!,
+              onTap: () {
+                _copyAndNotify(context, phoneNumber: _resolvedPhoneNumber!);
+                Navigator.pop(context);
+              },
+            ),
+            _buildDivider(),
+          ],
 
           // In-app chat tile
           _buildActionTile(

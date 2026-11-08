@@ -674,7 +674,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openSellerChat(FeedItem listing, {String? initialMessage}) {
     return _navigateWithPlaybackPaused(
-      () => openSellerChat(
+      () => openLegacySellerChat(
         context,
         ProductLegacyAdapter.toHomeListingFromFeedItem(listing),
         initialMessage: initialMessage,
