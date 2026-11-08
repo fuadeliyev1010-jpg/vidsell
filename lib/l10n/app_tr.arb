@@ -1,0 +1,785 @@
+{
+  "@@locale": "tr",
+  "appError": "Bu sayfa yüklenirken bir hata oluştu.",
+  "offlineMessage": "İnternet bağlantısı yok. Bazı özellikler kullanılamayabilir.",
+  "close": "Kapat",
+  "retry": "Tekrar dene",
+  "loading": "Yükleniyor...",
+  "languageEnglish": "İngilizce",
+  "languageTurkish": "Türkçe",
+  "language": "Dil",
+  "settingsTitle": "Ayarlar",
+  "support": "Destek",
+  "contactUs": "Bize ulaşın",
+  "aboutApp": "Uygulama hakkında",
+  "userAgreement": "Kullanıcı sözleşmesi",
+  "rules": "Kurallar",
+  "offerAgreement": "Teklif sözleşmesi",
+  "privacyPolicy": "Gizlilik politikası",
+  "logout": "Çıkış yap",
+  "cancel": "Vazgeç",
+  "delete": "Sil",
+  "save": "Kaydet",
+  "change": "Değiştir",
+  "searchProduct": "Ürün veya hizmet ara",
+  "searchCategory": "Kategori ara",
+  "searchCity": "Şehir ara",
+  "category": "Kategori",
+  "allListings": "Tüm ilanlar",
+  "showListings": "İlanları göster",
+  "filters": "Filtreler",
+  "reset": "Sıfırla",
+  "noResults": "Sonuç bulunamadı",
+  "loadFailed": "Yüklenemedi",
+  "locationPermissionTitle": "Konum erişimi",
+  "locationPermissionDescription": "VidSell'in yakındaki ilanları, mağazaları ve arama sonuçlarını haritada doğru şekilde gösterebilmesi için konum izni gerekiyor.",
+  "allow": "İzin ver",
+  "later": "Daha sonra",
+  "newListing": "Yeni ilan",
+  "createListing": "İlan ver",
+  "myListings": "İlanlarım",
+  "listingDescription": "Açıklama",
+  "listingTitle": "Başlık",
+  "reportListing": "İlanı şikayet et",
+  "selectReason": "Bir neden seçin",
+  "describeReport": "Şikayetinizi açıklayın",
+  "send": "Gönder",
+  "nameAndSurname": "Ad ve soyad",
+  "email": "E-posta",
+  "phone": "Telefon",
+  "password": "Şifre",
+  "repeatPassword": "Şifreyi tekrar girin",
+  "loginOrRegister": "Giriş yapın veya hesap oluşturun",
+  "phoneOrEmail": "Telefon numarası veya e-posta",
+  "verifyIdentity": "Kimliğinizi doğrulayın",
+  "resendCode": "Kodu yeniden gönder",
+  "or": "veya",
+  "registerIntro": "Hesabınızı oluşturalım",
+  "registerDescription": "İlan verin ve alım satıma başlayın.",
+  "termsLead": "Devam ederek şunları kabul etmiş olursunuz:",
+  "termsJoin": "ve",
+  "termsAccept": ".",
+  "searchHistoryEmpty": "Son arama yok",
+  "recentSearches": "Son aramalar",
+  "clear": "Temizle",
+  "savedSearch": "Kaydedilen arama",
+  "noSavedListings": "Henüz kaydedilmiş ilanınız yok",
+  "noSavedSearches": "Henüz kaydedilmiş aramanız yok",
+  "noFollowedStores": "Henüz takip ettiğiniz mağaza yok",
+  "stores": "Mağazalar",
+  "vipListings": "VIP ilanlar",
+  "noMatchingListings": "Bu kriterlere uygun ilan bulunamadı",
+  "minimumPriceError": "Minimum fiyat maksimum fiyattan düşük olmalıdır",
+  "mapRouteError": "Rota açılamadı",
+  "homeEmpty": "Şu anda ilan yok",
+  "homeLoadError": "İlanlar yüklenemedi",
+  "describePlaceholder": "Açıklayın...",
+  "contactSeller": "Satıcıyla iletişim",
+  "call": "Ara",
+  "whatsappMessage": "WhatsApp ile mesaj gönder",
+  "openDirectChat": "Doğrudan sohbet aç",
+  "copyNumber": "Numarayı kopyala",
+  "inAppMessage": "Uygulama içinden mesaj gönder",
+  "chatWithVidsell": "VidSell sohbeti üzerinden satıcıyla iletişime geçin",
+  "whatsappUnavailable": "WhatsApp açılamadı",
+  "mapUnavailable": "Harita uygulaması açılamadı",
+  "linkCopied": "Bağlantı kopyalandı",
+  "linkCopiedInstagram": "Bağlantı kopyalandı. Instagram'da paylaşabilirsiniz.",
+  "appCouldNotOpen": "Uygulama açılamadı",
+  "storeAddress": "Mağaza adresi",
+  "navigateGoogleMaps": "Google Haritalar'da yol tarifi al",
+  "message": "Mesaj",
+  "deleteSelectedMessages": "Seçili mesajlar silinsin mi?",
+  "deleteConversation": "Bu sohbet silinsin mi?",
+  "messagesDeletedPermanently": "Tüm mesajlar kalıcı olarak silinecek.",
+  "reportUser": "Kullanıcıyı şikayet et",
+  "actionNotAvailable": "Bu işlem henüz kullanılamıyor.",
+  "conversationDeleted": "Sohbeti sil",
+  "aboutListing": "İlan hakkında",
+  "deletedMessage": "Bu mesajı sildiniz",
+  "messages": "Mesajlar",
+  "notifications": "Bildirimler",
+  "noNotifications": "Bildirim yok",
+  "markAllRead": "Tümünü okundu olarak işaretle",
+  "pleaseWait": "Lütfen bekleyin",
+  "boostListing": "İlanı öne çıkar",
+  "vipActivate": "VIP hizmeti ücretsiz olarak etkinleştirildi.",
+  "boostActivate": "Öne çıkarma hizmeti ücretsiz olarak etkinleştirildi.",
+  "paymentUnavailable": "Ödeme hizmeti henüz kullanılamıyor.",
+  "premiumActivate": "Premium hizmeti ücretsiz olarak etkinleştirildi.",
+  "videoAdd": "Video ekle",
+  "videoAddHint": "9:16 formatında kısa bir video ekleyin",
+  "videoFrameError": "Video karesi oluşturulamadı: {error}",
+  "videoOnlyOne": "Yalnızca bir video ekleyebilirsiniz.",
+  "videoAddFailed": "Video eklenemedi.",
+  "listingSubmitted": "İlan gönderildi",
+  "listingModeration": "İlanınız incelemeye gönderildi.",
+  "listingWillPublish": "İlanınız incelendikten sonra yayımlanacaktır.",
+  "freeServicesMonthly": "Ücretsiz hizmetler (aylık)",
+  "freeListingLimit": "Ücretsiz ilan sınırı · bu ay",
+  "postOnly": "Yalnızca yayınla",
+  "premium": "Premium",
+  "vip": "VIP",
+  "boost": "Öne çıkar",
+  "included": "Dahil",
+  "accountDelete": "Hesabı sil",
+  "accountDeleteConfirm": "Mağaza hesabı silinsin mi?",
+  "storeDelete": "Mağazayı sil",
+  "storeUnavailable": "Mağaza düzenleme henüz desteklenmiyor.",
+  "profileViews": "Profil görüntülemeleri",
+  "howOthersSeeProfile": "Diğer kullanıcıların profilinizi nasıl gördüğünü inceleyin",
+  "socialLinks": "Sosyal medya bağlantıları",
+  "additionalPhone": "Ek telefon",
+  "workHours": "Çalışma saatleri",
+  "photoGallery": "Fotoğraf galerisi",
+  "welcomeMessages": "Karşılama mesajları",
+  "greetNewCustomers": "Yeni müşterileri otomatik olarak karşılayın",
+  "changePassword": "Şifreyi değiştir",
+  "profilePhotoDelete": "Profil fotoğrafı silinsin mi?",
+  "profilePhotoDeleteDescription": "Profil fotoğrafınız silinecek. İstediğiniz zaman yeni bir fotoğraf ekleyebilirsiniz.",
+  "wallet": "Cüzdan",
+  "walletBalance": "Cüzdan bakiyeniz",
+  "topUpBalance": "Bakiye yükle",
+  "amountAzn": "Tutar (AZN)",
+  "amountRangeError": "1-5000 AZN arasında bir tutar girin",
+  "cardholderName": "Ad, soyad",
+  "cardNumber": "Kart numarası",
+  "month": "Ay",
+  "year": "Yıl",
+  "cvv": "CVV",
+  "profileEdit": "Profili düzenle",
+  "basicInfo": "Temel bilgiler",
+  "aboutYou": "Kendinizden bahsedin",
+  "categories": "Kategoriler",
+  "noCategoryFound": "Kategori bulunamadı",
+  "subcategoryNotFound": "Alt kategori bulunamadı",
+  "storeProfile": "Mağaza profili",
+  "storeSearch": "Mağaza ara",
+  "storeClosed": "Kapalı",
+  "showMore": "Daha fazla göster",
+  "routeOpenFailed": "Rota açılamadı",
+  "contactLinkFailed": "Bağlantı açılamadı",
+  "questionUnanswered": "Sorunuza yanıt bulamadınız mı?",
+  "callUs": "Bizi arayın",
+  "messageUs": "Bize mesaj gönderin",
+  "profileEditUnavailable": "Profil düzenleme henüz desteklenmiyor.",
+  "businessLogin": "İşletme hesabınıza giriş yapın",
+  "businessAccount": "İşletme hesabı",
+  "businessNoStore": "Mağazanız yok",
+  "createStoreDescription": "İşletmeniz için özel bir mağaza sayfası oluşturun. Çıkış yapmadan iki hesap arasında geçiş yapabilirsiniz.",
+  "createStore": "Mağaza oluştur",
+  "businessStatsEmpty": "Bu dönem için günlük veri yok",
+  "businessStatsError": "İstatistikler yüklenemedi.",
+  "fillRequiredFields": "Lütfen zorunlu alanları doldurun.",
+  "applicationLinkUnavailable": "Bağlantı açılamadı.",
+  "imageCropError": "Fotoğraf kırpılırken bir hata oluştu.",
+  "stepOfThree": "3 üzerinden {step}. adım",
+  "storeLogoDescription": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 500×500 px",
+  "storeBannerDescription": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 2000×532 px",
+  "storeCategoryReady": "Hazır",
+  "storeCategory": "Mağaza kategorisi",
+  "businessBenefits": "Avantajları ve önemli ayrıntıları vurgulayın",
+  "storeDescription": "Mağaza hakkında",
+  "businessContact": "İletişim bilgileri",
+  "applicationAccepted": "Başvurunuz alındı",
+  "applicationAcceptedDescription": "Ekibimiz başvurunuzu aldı.",
+  "sort": "Sıralama",
+  "activate": "Etkinleştir",
+  "pauseListing": "İlanı pasife al",
+  "listingIdLabel": "İlan kimliği",
+  "deleteAccountWarning": "Bu işlem mağaza hesabınızı ve profil bilgilerinizi siler. Kişisel hesabınız silinmez.",
+  "dismiss": "Kapat",
+  "favorites": "Favoriler",
+  "englishMenu": "İngilizce",
+  "businesses": "İşletmeler için",
+  "map": "Harita",
+  "filterListingsError": "Favoriler güncellenemedi: {error}",
+  "favoritesUpdateFailed": "Favoriler güncellenemedi. Lütfen tekrar deneyin.",
+  "genericError": "Bir sorun oluştu.",
+  "otpCodePrefix": "Kodu şu numaraya gönderdik: ",
+  "otpCodeSuffix": ".",
+  "and": "ve",
+  "termsAndConditions": "Kullanım koşulları",
+  "privacy": "Gizlilik politikası",
+  "searchPlaceholder": "Arama",
+  "storeListings": "Bu kullanıcının tüm ilanları",
+  "blockedSeller": "Bu kullanıcı engellendi. İlanlarını görmek için engelini kaldırın.",
+  "sellerHours": "Çalışma saatleri",
+  "storeProfileTab": "Profil",
+  "listingNoSellerEmail": "E-posta adresi belirtilmemiş",
+  "listingVerified": "Doğrulandı",
+  "listingAccount": "Hesap",
+  "listingDetails": "Detaylar",
+  "askSeller": "Satıcıya sorun",
+  "businessProfileUnavailable": "Bu profil kullanılamıyor.",
+  "socialContact": "Sosyal medya",
+  "mapSearchEmpty": "Sonuç bulunamadı",
+  "imageAdd": "Ekle",
+  "listingMore": "Daha fazla ilan",
+  "listingNoStore": "Mağaza bulunamadı",
+  "listingNoUser": "Kullanıcı bulunamadı",
+  "openHours247": "7/24 açık",
+  "openHours247Description": "Mağaza her gün gün boyu açıktır",
+  "selectWorkDays": "Çalışma günlerini seçin",
+  "workDaysAndHours": "Çalışma günleri ve saatleri",
+  "listingDetailLoadError": "İlan ayrıntıları yüklenemedi.",
+  "loginTitle": "Giriş yapın",
+  "loginPhonePlaceholder": "Telefon numarası",
+  "registerPhone": "Telefon",
+  "listingFormAgreement": "İlan vererek, ilgilenen alıcılarla doğrudan iletişim kuracağınızı onaylamış olursunuz.",
+  "resetForm": "Sıfırla",
+  "listingEdit": "İlanı düzenle",
+  "listingDelete": "İlanı sil",
+  "shareLinkCopied": "Bağlantı panoya kopyalandı",
+  "reportSubmitted": "Şikayetiniz gönderildi.",
+  "reportFailed": "Şikayetiniz gönderilemedi.",
+  "subscriptionMethod": "Ödeme yöntemi",
+  "pay": "Öde",
+  "subscriptionTerms": "“Öde” düğmesine dokunarak VidSell Kullanıcı Sözleşmesi'ni ve Kurallarını kabul ettiğinizi onaylarsınız.",
+  "subscriptionRemaining": "{count} kaldı",
+  "subscriptionRenewal": "Limit her ayın 1'inde yenilenir · sonraki: {date}",
+  "serviceDuration": "Hizmet süresi",
+  "amountDue": "Ödenecek tutar",
+  "subscriptionBefore": "Önce",
+  "subscriptionNow": "Şimdi",
+  "free": "Ücretsiz",
+  "bonus": "Bonus",
+  "banner": "Afiş",
+  "storeLogo": "Mağaza logosu",
+  "storeBanner": "Mağaza afişi",
+  "statistics": "İstatistikler",
+  "registerDetailsPrompt": "İlan vermek ve alım satıma başlamak için bilgilerinizi girin.",
+  "applicationReviewMessage": "Ekibimiz başvurunuzu aldı. İncelemeden sonra sizinle iletişime geçeceğiz.",
+  "callUnavailable": "Arama yapılamadı.",
+  "logoutConfirmation": "Çıkış yapmak istiyor musunuz?",
+  "logoutDescription": "Çıkış yaptıktan sonra hesabınıza tekrar giriş yapmanız gerekecek.",
+  "discardDataTitle": "Girilen bilgiler silinsin mi?",
+  "discardDataDescription": "Geri dönerseniz girdiğiniz bilgiler silinecektir.",
+  "stayOnForm": "Formda kal",
+  "businessListingsPrompt": "Satmak istediğiniz ürün veya hizmeti ekleyin.",
+  "profileEmailMissing": "E-posta adresi belirtilmemiş",
+  "storeDeleteDescription": "Bu işlem mağaza hesabınızı ve profil bilgilerinizi siler. Kişisel hesabınız silinmez.",
+  "noDailyStats": "Bu dönem için günlük veri yok.",
+  "retryAgain": "Tekrar dene",
+  "accountAbout": "Hakkında",
+  "sellerOtherListings": "Bu kullanıcının tüm ilanları",
+  "readMore": "Devamını oku",
+  "report": "Şikayet et",
+  "block": "Engelle",
+  "videoLimit": "Yalnızca bir video ekleyebilirsiniz.",
+  "videoAddFailure": "Video eklenemedi.",
+  "open247": "7/24 açık",
+  "open247Description": "Mağaza haftanın her günü gün boyu açıktır.",
+  "workDays": "Çalışma günleri",
+  "stepOneOfThree": "3 üzerinden 1. adım",
+  "stepTwoOfThree": "3 üzerinden 2. adım",
+  "storeLogoInfo": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 500×500 px.",
+  "storeBannerInfo": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 2000×532 px.",
+  "businessLoginTitle": "Kabinete giriş",
+  "subscriptionAccepted": "“Öde” düğmesine dokunarak VidSell Kullanıcı Sözleşmesi'ni ve Kurallarını kabul ettiğinizi onaylarsınız.",
+  "remainingListingCount": "{count} kaldı",
+  "remainingListingMessage": "Bu ilandan sonra {count} ücretsiz ilan hakkınız kalacak.",
+  "genericRetry": "Tekrar dene",
+  "newListings": "Yeni ilanlar",
+  "subscriptionPremium": "Premium'u etkinleştir",
+  "subscriptionVip": "VIP'yi etkinleştir",
+  "sellerAsk": "Satıcıya sorun",
+  "termsAgreementLead": "Devam ederek şu sözleşmeleri kabul etmiş olursunuz:",
+  "termsAgreementEnd": ".",
+  "distanceSalesAgreement": "Mesafeli satış sözleşmesi",
+  "personalLink": "Kişisel bağlantı",
+  "newListingVideoTitle": "Yeni ilan > Video ekle",
+  "inStock": "Stokta",
+  "profileSummary": "Profil fotoğrafı, ad, açıklama",
+  "catalog": "Katalog",
+  "contactDetails": "Adres, iletişim bilgileri",
+  "generalInfo": "Genel bilgiler",
+  "noStore": "Mağazanız yok",
+  "createStorePrompt": "İşletmeniz için özel bir mağaza sayfası oluşturun. Çıkış yapmadan hesaplar arasında geçiş yapabilirsiniz.",
+  "accountIdLabel": "ID: {id}",
+  "zeroBalance": "0 AZN",
+  "efficiency": "Performans",
+  "clearFilter": "Filtreyi temizle",
+  "sellProductPrompt": "Satmak istediğiniz ürün veya hizmeti ekleyin.",
+  "userProfile": "Profil",
+  "storeOpensAt": "Saat {time}'de açılır",
+  "askAboutProduct": "Bu ürün hakkında satıcıya sorun",
+  "listingsTab": "İlanlar",
+  "applicationIdLabel": "Başvuru ID: {id}",
+  "videoFrameGenerationError": "Video karesi oluşturulamadı: {error}",
+  "videoFrameCreationFailed": "Video karesi oluşturulamadı. Lütfen tekrar deneyin.",
+  "listingRulesText": "İlan vererek, ilgilenen alıcılarla doğrudan iletişim kuracağınızı onaylamış olursunuz.",
+  "storeLogoHelp": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 500×500 px.",
+  "storeBannerHelp": "Mağaza sayfanızda ve katalogda gösterilir. PNG, 2000×532 px.",
+  "openUntil": "Saat {time}'e kadar açık",
+  "generalSchedule": "Genel",
+  "individualSchedule": "Bireysel",
+  "scheduleTitle": "Çalışma saatleri",
+  "scheduleSummary": "Çalışma programınız",
+  "noWorkingDaysSelected": "Çalışma günü seçilmedi",
+  "weekdayMonday": "Pazartesi",
+  "weekdayTuesday": "Salı",
+  "weekdayWednesday": "Çarşamba",
+  "weekdayThursday": "Perşembe",
+  "weekdayFriday": "Cuma",
+  "weekdaySaturday": "Cumartesi",
+  "weekdaySunday": "Pazar",
+  "bankCard": "Banka kartı",
+  "terminalPayment": "Terminalde ödeme",
+  "personalAccountPayment": "Kişisel hesap ({balance})",
+  "activateFree": "Ücretsiz etkinleştir",
+  "activateNow": "Etkinleştir",
+  "threeDays": "3 gün",
+  "showCategoryListings": "{category} ilanlarını göster",
+  "quotaRemaining": "{remaining} / {total} kaldı",
+  "freeListingsAfter": "Bu ilandan sonra {count} ücretsiz ilan hakkınız kalacak.",
+  "submitting": "Gönderiliyor...",
+  "listingStockLocation": "Stokta · {location}",
+  "listingSuccessDescription": "İlanınız incelendikten sonra yayımlanacaktır. Seçtiğiniz hizmet, ilan onaylandıktan sonra etkinleşecektir. İlan reddedilirse ödeme iade edilecektir.",
+  "listingPromotionVipDescription": "Ana sayfada öne çıkarılır ve haritada büyük bir işaretçiyle gösterilir",
+  "listingPromotionPremiumDescription": "Çerçeveli ve rozetli ilan",
+  "listingPromotionBoostDescription": "İlanınızı listede daha üst sıralara taşır",
+  "listingBoostButton": "Öne çıkar",
+  "vipSubscriptionDescription": "İlanınız arama sonuçlarında öne çıkarılacak, kategorisindeki VIP ilanlar arasında rastgele gösterilecek ve haritada büyük bir işaretçiyle vurgulanacaktır.",
+  "premiumSubscriptionDescription": "İlanınız arama sonuçlarında öne çıkarılacak, kategorisindeki VIP ilanlar arasında rastgele gösterilecek ve hizmet süresi dolana kadar ana sayfada kalacaktır.",
+  "boostSubscriptionDescription": "İlanınız tüm arama sonuçlarının en üstüne taşınacaktır.",
+  "vipFreeLimit": "VIP ücretsiz kullanım hakkı · bu ay",
+  "premiumFreeLimit": "Premium ücretsiz kullanım hakkı · bu ay",
+  "boostFreeLimit": "Öne çıkarma ücretsiz kullanım hakkı · bu ay",
+  "planDays": "{count} gün",
+  "@planDays": {"placeholders": {"count": {"type": "int"}}},
+  "planTimes": "{count} kez",
+  "@planTimes": {"placeholders": {"count": {"type": "int"}}},
+  "everyHours": "{count} saatte bir",
+  "@everyHours": {"placeholders": {"count": {"type": "int"}}},
+  "boostDailyBenefit": "HER GÜN ÖNE ÇIKAR",
+  "makeVip": "VIP YAP",
+  "boostServiceFree": "Öne çıkar · {count} kez (ücretsiz)",
+  "@boostServiceFree": {"placeholders": {"count": {"type": "int"}}},
+  "vipServiceFree": "VIP · {duration} (ücretsiz)",
+  "@vipServiceFree": {"placeholders": {"duration": {"type": "String"}}},
+  "premiumServiceFree": "Premium · {duration} (ücretsiz)",
+  "@premiumServiceFree": {"placeholders": {"duration": {"type": "String"}}},
+  "listingCondition": "Durum",
+  "listingDelivery": "Teslimat",
+  "freeDelivery": "Ücretsiz teslimat",
+  "deliveryToRegions": "Bölgelere teslimat",
+  "pickupAtAddress": "Adresten teslim alma",
+  "listingContent": "İçerik",
+  "listingDescriptionHint": "Avantajları ve önemli ayrıntıları ekleyin",
+  "listingContactMethod": "İletişim yöntemi",
+  "callsAndMessages": "Arama ve mesajlar",
+  "callsOnly": "Yalnızca arama",
+  "messagesOnlyHiddenNumber": "Yalnızca mesaj (numaranız gizlenir)",
+  "usedCondition": "İkinci el",
+  "fillListingFields": "Lütfen şu alanları doldurun: {fields}.",
+  "@fillListingFields": {"placeholders": {"fields": {"type": "String"}}},
+  "listingFieldPrice": "fiyat",
+  "listingFieldCity": "şehir",
+  "listingCityNotFound": "Lütfen şehir listesinden bir şehir seçin.",
+  "listingFieldCondition": "durum",
+  "listingFieldModel": "model",
+  "listingFieldDelivery": "teslimat seçeneği",
+  "listingFieldTitle": "başlık",
+  "listingFieldName": "ad",
+  "listingFieldEmail": "e-posta",
+  "listingFieldPhone": "telefon numarası",
+  "listingFieldDescription": "açıklama",
+  "listingFieldMedia": "en az bir fotoğraf veya video",
+  "listingMediaRequired": "İlanınıza en az bir fotoğraf veya video ekleyin.",
+  "listingService": "Hizmet",
+  "amountToPay": "Ödenecek tutar",
+  "listingHome": "Ana sayfa",
+  "listingSummary": "İlan",
+  "listingPriceLabel": "Fiyat",
+  "newCondition": "Yeni",
+  "moderationStatus": "İNCELEMEDE",
+  "zeroAmountAzn": "0,00 AZN",
+  "activateVip": "VIP'yi etkinleştir",
+  "activatePremium": "Premium'u etkinleştir",
+  "standardService": "Standart",
+  "listingStatusLabel": "Durum",
+  "aboutWhatTitle": "Vidsell nedir?",
+  "aboutWhatBody": "Vidsell; kullanıcıların ilan oluşturmasına, ürün aramasına ve satıcılarla iletişim kurmasına olanak tanıyan bir pazaryeri platformudur.",
+  "aboutFeaturesTitle": "Temel özellikler",
+  "aboutFeaturesBody": "İlanları kategorilere göre keşfedebilir, arama ve filtreleri kullanabilir, ilanları kaydedebilir ve satıcılara mesaj gönderebilirsiniz.",
+  "aboutVersionTitle": "Sürüm",
+  "aboutVersionBody": "Uygulamanın bu sürümünde, backend entegrasyonuna hazırlık amacıyla örnek veri kaynakları kullanılmaktadır. Backend bağlandığında veri saklama ve hesap senkronizasyonu etkinleştirilecektir.",
+  "privacyDataCollectedTitle": "Toplanan veriler",
+  "privacyDataCollectedBody": "Hesap oluştururken telefon numaranız, adınız ve gerektiğinde e-posta adresiniz kullanılır. İlan, mesaj, kaydedilen içerik ve takip edilen mağaza bilgileri hesabınızla ilişkilendirilebilir.",
+  "privacyDataUseTitle": "Verilerin kullanımı",
+  "privacyDataUseBody": "Veriler; hesabınızı yönetmek, ilanları göstermek, mesajlaşma, güvenlik ve destek hizmetlerini sağlamak için kullanılır.",
+  "privacyRetentionTitle": "Saklama ve güvenlik",
+  "privacyRetentionBody": "Verilere erişim, hesap izinleriyle sınırlandırılmalıdır. Gerçek backend entegrasyonunda saklama süreleri, silme talepleri ve güvenlik önlemleri backend politikasında netleştirilecektir.",
+  "privacyRightsTitle": "Haklarınız",
+  "privacyRightsBody": "Profil bilgilerinizi güncelleyebilir; hesap verilerinin silinmesi veya kişisel verilerle ilgili sorularınız için destek ekibiyle iletişime geçebilirsiniz.",
+  "agreementUseTitle": "Hizmetin kullanımı",
+  "agreementUseBody": "Vidsell'de yalnızca yasal, doğru ve başkalarının haklarını ihlal etmeyen ilanlar yayımlanabilir. Hesap bilgilerinizin gizliliğini korumaktan siz sorumlusunuz.",
+  "agreementListingsTitle": "İlanlar ve işlemler",
+  "agreementListingsBody": "İlanın içeriği, fiyatı, fotoğrafları ve iletişim bilgilerinden satıcı sorumludur. Vidsell ilanları denetleyebilir ve kurallara uymayan içerikleri kısıtlayabilir.",
+  "agreementMessagesTitle": "Mesajlaşma",
+  "agreementMessagesBody": "Mesajlarda hakaret, spam, dolandırıcılık ve kişisel bilgilerin kötüye kullanılması yasaktır. Şüpheli etkinlikleri desteğe bildirin.",
+  "agreementRestrictionsTitle": "Hesap kısıtlamaları",
+  "agreementRestrictionsBody": "Kuralların ihlali durumunda hesaplar ve ilanlar geçici veya kalıcı olarak kısıtlanabilir. Kararla ilgili destek ekibiyle iletişime geçebilirsiniz.",
+  "offerPartiesTitle": "Sözleşmenin tarafları",
+  "offerPartiesBody": "Bu teklif, Vidsell hizmetlerinin kullanım koşullarını ve kullanıcı ile platform arasındaki temel şartları belirler.",
+  "offerPlatformRoleTitle": "Platformun rolü",
+  "offerPlatformRoleBody": "Vidsell; ilan, arama, iletişim ve hesap hizmetleri sunar. Ürün ve ödeme anlaşmalarından alıcı ile satıcı sorumludur.",
+  "offerPaidServicesTitle": "Ücretli hizmetler",
+  "offerPaidServicesBody": "Ücretli hizmetler, uygulamada gösterilen fiyat ve koşullarla sunulur. Ödeme onayı ve iadeler, canlı ödeme sağlayıcısının ve backend'in kurallarına göre yürütülür.",
+  "offerChangesTitle": "Değişiklikler",
+  "offerChangesBody": "Hizmet veya mevzuat değiştiğinde bu koşullar güncellenebilir. Güncellenmiş metin uygulamada yayımlandığı tarihte yürürlüğe girer.",
+  "rulesProhibitedTitle": "Yasaklı ilanlar",
+  "rulesProhibitedBody": "Yasa dışı ürünlerin, sahte malların, silahların, uyuşturucuların, çalıntı eşyaların ve insan sağlığına zararlı ürünlerin ilanı yasaktır.",
+  "rulesQualityTitle": "İlan kalitesi",
+  "rulesQualityBody": "Başlık, açıklama, fiyat ve fotoğraflar ürünü doğru şekilde yansıtmalıdır. Tekrarlanan ilanlar, yanıltıcı fiyatlar ve spam içerikler kabul edilmez.",
+  "rulesCommunicationTitle": "İletişim kuralları",
+  "rulesCommunicationBody": "Diğer kullanıcılara saygılı davranın. Hakaret, tehdit, spam, dolandırıcılık girişimi veya platform dışı riskli ödeme taleplerini bildirin.",
+  "rulesComplaintsTitle": "Şikâyet",
+  "rulesComplaintsBody": "Kural ihlali gördüğünüzde ilan veya kullanıcı şikâyet özelliğini kullanın. Acil güvenlik durumlarında yerel kolluk kuvvetlerine başvurun.",
+  "supportPopularQuestions": "Sık sorulan sorular",
+  "supportListing": "İlan",
+  "supportPersonalCabinet": "Hesap",
+  "supportPostingListing": "İlan verme",
+  "faqCreateAccount": "Nasıl hesap oluşturabilirim?",
+  "faqEditListing": "İlanımı nasıl düzenleyebilirim?",
+  "faqFindMessages": "Mesajlarımı nerede bulabilirim?",
+  "faqReportListing": "Bir ilanı nasıl şikâyet edebilirim?",
+  "faqPostListing": "Nasıl ilan verebilirim?",
+  "faqPublishTime": "İlanım ne zaman yayımlanır?",
+  "faqDeleteListing": "İlanımı nasıl silebilirim?",
+  "faqListingRejected": "İlanım neden reddedildi?",
+  "faqEditProfile": "Profil bilgilerimi nasıl değiştirebilirim?",
+  "faqVerifyPhone": "Telefon numaram nasıl doğrulanır?",
+  "faqForgotPassword": "Şifremi unuttum",
+  "faqDeleteAccount": "Hesabımı nasıl silebilirim?",
+  "faqAddMedia": "Nasıl fotoğraf ve video ekleyebilirim?",
+  "faqSetPrice": "Fiyatı nasıl belirlemeliyim?",
+  "faqChooseCategory": "Nasıl kategori seçebilirim?",
+  "faqModeration": "İlan denetimi nedir?",
+  "faqAccountAnswer": "Hesap bilgilerinizi profilinizden yönetebilirsiniz. Hesap güvenliği için telefon doğrulaması gerekir.",
+  "faqListingAnswer": "İlan formunu doldurup medya ekleyin ve gönderin. İncelemenin ardından ilanınız etkinleştirilir.",
+  "faqProfileAnswer": "Profil ve hesap bölümlerinden bilgilerinizi güncelleyebilir, şifrenizi değiştirebilir ve hesabınızla ilgili talep gönderebilirsiniz.",
+  "faqQualityAnswer": "Doğru bir başlık, açıklama, fiyat ve net medya ekleyin. Kurallara uygun ilanlar denetimden sonra yayımlanır.",
+  "homeForYou": "Sizin için",
+  "followingTab": "Takip",
+  "follow": "Takip et",
+  "followingStatus": "Takip ediliyor",
+  "followerCount": "{count} takipçi",
+  "@followerCount": {"placeholders": {"count": {"type": "int"}}},
+  "productDetails": "Ürün detayları",
+  "productCity": "Şehir",
+  "productColor": "Renk",
+  "productCondition": "Durum",
+  "productDescriptionMissing": "Açıklama eklenmemiş.",
+  "productPhoneReveal": "Numarayı göster",
+  "listingNumber": "İlan numarası",
+  "listingUpdated": "Güncellendi",
+  "sampleProductDescription": "📱 Modern teknoloji ve premium tasarım, şimdi avantajlı fiyatla!\n\n🔒 Bir yıl resmi uluslararası garanti dahildir.\n\n🔹 Kalite garantili resmi satış.",
+  "sellerGreetingCurrent": "Merhaba, hâlâ güncel mi?",
+  "sellerGreetingInterest": "Merhaba, ilgileniyorum!",
+  "sellerNumberCopied": "Numara kopyalandı: {number}",
+  "@sellerNumberCopied": {"placeholders": {"number": {"type": "String"}}},
+  "followingListTitle": "Kaydedilenler",
+  "savedListingsEmptyDescription": "İlanlara göz atıp kaydet simgesine dokunun; ilanlar burada görünür.",
+  "followedStoresEmptyDescription": "Yeni ilanları kaçırmamak için mağazaları takip edin.",
+  "searchSuggestionsLoadError": "Öneriler yüklenemedi.",
+  "searchResultsLoadError": "Arama sonuçları yüklenemedi.",
+  "searchNoResults": "Sonuç bulunamadı.",
+  "searchNoSuggestions": "Öneri bulunamadı.",
+  "reportProhibitedItem": "Yasaklı ürün veya hizmet",
+  "other": "Diğer",
+  "sellerCall": "Ara",
+  "sellerMessage": "Mesaj yaz",
+  "chatSelectedDeleteCount": "{count} mesaj silinecek.",
+  "@chatSelectedDeleteCount": {"placeholders": {"count": {"type": "int"}}},
+  "chatNoTextToCopy": "Kopyalanacak mesaj metni yok.",
+  "chatSelectOneToReply": "Yanıtlamak için yalnızca bir mesaj seçin.",
+  "chatReplyDeletedMessage": "Silinmiş bir mesaja yanıt veremezsiniz.",
+  "chatImagePlaceholder": "[Görsel]",
+  "chatCleared": "Sohbet temizlendi",
+  "unblockUser": "Kullanıcının engelini kaldır",
+  "blockUser": "Kullanıcıyı engelle",
+  "enableNotifications": "Bildirimleri aç",
+  "disableNotifications": "Bildirimleri kapat",
+  "userBlocked": "Kullanıcı engellendi",
+  "userUnblocked": "Kullanıcının engeli kaldırıldı",
+  "userReportSubmitted": "Şikâyetiniz gönderildi.",
+  "notificationsDisabled": "Bildirimler kapatıldı",
+  "notificationsEnabled": "Bildirimler açıldı",
+  "chatMessageSeller": "Satıcıya mesaj yazın",
+  "chatMessageSellerAboutListing": "Bu ilan hakkında satıcıya mesaj yazın",
+  "sortByDate": "Tarihe göre",
+  "sortByUnread": "Okunmamışlar önce",
+  "chatSortRecent": "En yeni",
+  "mockBabyStroller": "Chicco bebek arabası",
+  "mockStoreDescriptionHome": "Ev ve yaşam ürünlerinden kaliteli bir seçki.",
+  "mockStoreDescriptionTech": "Telefon, dizüstü bilgisayar, bilgisayar ve elektronik ürünler.",
+  "mockStoreDescriptionFashion": "Kadın, erkek ve çocuk giyim ürünleri.",
+  "mockStoreDescriptionAuto": "Otomobil yedek parçaları, yağlar ve aksesuarlar.",
+  "mockStoreDescriptionGarden": "Çiçekler, süs bitkileri ve bahçe ürünleri.",
+  "mockStoreDescriptionTools": "Profesyonel ve amatör kullanıcılar için aletler.",
+  "mockStoreDescriptionBaby": "Bebek kıyafetleri, oyuncaklar ve bebek arabaları.",
+  "mockStoreDescriptionBooks": "Romanlar, bilgi kitapları ve okul malzemeleri.",
+  "istanbulDistrictAddress": "Kadıköy, İstanbul",
+  "storeShowLess": "Daha az göster",
+  "storeShowMore": "Daha fazla göster",
+  "savedSearchesEmptyDescription": "Yeni ilanları kaçırmamak için aramalarınızı kaydedin.",
+  "productCategory": "Kategori",
+  "productSubcategory": "Alt kategori",
+  "productBrand": "Marka",
+  "productModel": "Model",
+  "productMemory": "Hafıza",
+  "productSimCard": "SIM kart",
+  "productDelivery": "Teslimat",
+  "listingViewCount": "Görüntülenme",
+  "todayAt": "Bugün, saat {time}",
+  "@todayAt": {"placeholders": {"time": {"type": "String"}}},
+  "reportSpam": "Spam",
+  "reportListingNotCurrent": "İlan güncel değil",
+  "reportDuplicate": "Yinelenen ilan",
+  "reportWrongCategory": "Yanlış kategori",
+  "reportFraud": "Dolandırıcılık",
+  "chooseCategory": "Kategori seçin",
+  "startSearching": "Aramaya başlayın",
+  "allStores": "Tüm mağazalar",
+  "messageFilterAll": "Tümü",
+  "messageFilterSales": "Satış",
+  "messageFilterPurchases": "Alış",
+  "messageFilterBlocked": "Engellenenler",
+  "messageSortByDate": "Tarihe göre",
+  "messageSortUnread": "Okunmamışlar önce",
+  "mockWomenShoes": "Kadın Nike spor ayakkabısı",
+  "mockBabyStrollerListing": "Chicco bebek arabası",
+  "mockIphoneListingTitle": "Apple iPhone 17 Pro 256GB Cosmic Orange",
+  "chatCopiedMessageCount": "{count} mesaj kopyalandı",
+  "@chatCopiedMessageCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityBaku": "Bakü",
+  "categoryElectronics": "Elektronik",
+  "categoryPhones": "Telefonlar",
+  "allCategoryItems": "Tüm {category}",
+  "@allCategoryItems": {"placeholders": {"category": {"type": "String"}}},
+  "storeDescriptionPlaceholder": "Bu mağazadaki ürün ve hizmetleri keşfedin.",
+  "storeLocationPlaceholder": "İstanbul",
+  "nearby": "Yakınlarda",
+  "listingCount": "İlanlar",
+  "followers": "Takipçi",
+  "views": "Görüntülenme",
+  "discoverTab": "Keşfet",
+  "storeSloganLabel": "Slogan",
+  "listingVideoSection": "Ürün videosu",
+  "directions": "Yol tarifi",
+  "allCategories": "Tüm kategoriler",
+  "mockNotificationTitle": "Yeni etkinlik",
+  "mockNotificationDescription": "Bir satıcı size mesaj gönderdi.",
+  "mockMessagePreview": "Bu ilanla ilgileniyorum."
+  ,"requiredName": "Adınızı ve soyadınızı girin"
+  ,"invalidEmail": "Lütfen geçerli bir e-posta adresi girin"
+  ,"passwordMinLength": "Şifre en az {count} karakter olmalıdır"
+  ,"@passwordMinLength": {"placeholders": {"count": {"type": "int"}}}
+  ,"passwordsMismatch": "Şifreler eşleşmiyor"
+  ,"passwordUnchangedHint": "Değiştirmek istemiyorsanız boş bırakın"
+  ,"confirm": "Onayla"
+  ,"profileUpdateFailed": "Profil güncellenemedi: {error}"
+  ,"@profileUpdateFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"shortNumber": "Dahili numara"
+  ,"addContact": "Ekle"
+  ,"invalidContactPhone": "Geçerli bir iletişim telefonu girin."
+  ,"contactEmailAndPhoneRequired": "E-posta adresi ve iletişim telefonu girin."
+  ,"smsCodeSend": "SMS kodu gönder"
+  ,"notAdded": "Eklenmedi"
+  ,"storeStatusUpdateFailed": "Mağaza durumu değiştirilemedi: {error}"
+  ,"@storeStatusUpdateFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"storeDeleteFailed": "Mağaza silinemedi: {error}"
+  ,"@storeDeleteFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"storeApproved": "Onaylandı"
+  ,"storeStatusApplication": "Onay bekliyor"
+  ,"storeStatusInactive": "Pasif"
+  ,"storeStatusSuspended": "Askıya alındı"
+  ,"storeStatusRejected": "Reddedildi"
+  ,"storePendingApproval": "Onay bekliyor"
+  ,"storePanelActive": "Mağaza paneliniz etkin. İstediğiniz zaman geri dönebilirsiniz."
+  ,"storeUnderReview": "Mağazanız inceleniyor. Onaylandıktan sonra mağaza paneline erişebilirsiniz."
+  ,"paymentAwaiting": "Ödeme bekliyor ({count})"
+  ,"@paymentAwaiting": {"placeholders": {"count": {"type": "int"}}}
+  ,"listingRejectedTab": "Reddedildi ({count})"
+  ,"@listingRejectedTab": {"placeholders": {"count": {"type": "int"}}}
+  ,"sortPriceLowest": "En düşük fiyat"
+  ,"paymentError": "Ödeme hatası"
+  ,"profileViewCount": "Görüntülenme"
+  ,"edit": "Düzenle"
+  ,"copy": "Kopyala"
+  ,"reply": "Yanıtla"
+  ,"noMessages": "Henüz mesaj yok"
+  ,"regionAzerbaijan": "Azerbaycan"
+  ,"regionTurkey": "Türkiye"
+  ,"lastSevenDays": "Son 7 gün"
+  ,"lastThirtyDays": "Son 30 gün"
+  ,"searches": "Aramalar"
+  ,"messageSingular": "Mesaj"
+  ,"activeListingsCount": "Aktif ({count})"
+  ,"@activeListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"inactiveListingsCount": "Aktif değil ({count})"
+  ,"@inactiveListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"moderationListingsCount": "İncelemede ({count})"
+  ,"@moderationListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"storeDeactivate": "Devre dışı bırak"
+  ,"sellerLabel": "Satıcı"
+  ,"taxId": "Vergi kimlik numarası"
+  ,"continueAction": "Devam et"
+  ,"listingStateActive": "Aktif"
+  ,"listingStateInactive": "Aktif değil"
+  ,"listingStateRejected": "Reddedildi"
+  ,"listingStateModeration": "İncelemede"
+  ,"openingAt": "Saat {time}'de açılır"
+  ,"@openingAt": {"placeholders": {"time": {"type": "String"}}}
+  ,"categoryCatalog": "Katalog"
+  ,"categoryVehicles": "Araçlar"
+  ,"categoryHomeAppliances": "Ev ve beyaz eşya"
+  ,"categorySpecialClothing": "Özel gün kıyafetleri"
+  ,"categoryRealEstate": "Emlak"
+  ,"categoryCosmetics": "Kozmetik"
+  ,"subcategoryComputers": "Bilgisayarlar"
+  ,"subcategoryTablets": "Tabletler"
+  ,"subcategorySmartWatches": "Akıllı saatler"
+  ,"subcategoryHeadphones": "Kulaklıklar"
+  ,"subcategoryTvAudio": "TV ve ses sistemleri"
+  ,"subcategoryGameConsoles": "Oyun konsolları"
+  ,"subcategoryAccessories": "Aksesuarlar"
+  ,"subcategoryCars": "Otomobiller"
+  ,"subcategoryMotorcycles": "Motosikletler"
+  ,"subcategoryBicycles": "Bisikletler"
+  ,"subcategorySpareParts": "Yedek parçalar"
+  ,"subcategoryAutoParts": "Oto parçaları"
+  ,"subcategoryFurniture": "Mobilya"
+  ,"subcategoryHomeAppliances": "Ev aletleri"
+  ,"subcategoryKitchenware": "Mutfak eşyaları"
+  ,"subcategoryGardenLifestyle": "Bahçe ve yaşam"
+  ,"subcategoryDecor": "Dekorasyon"
+  ,"subcategoryWomenClothing": "Kadın giyim"
+  ,"subcategoryMenClothing": "Erkek giyim"
+  ,"subcategoryChildrenClothing": "Çocuk giyim"
+  ,"subcategoryShoes": "Ayakkabılar"
+  ,"subcategoryBags": "Çantalar"
+  ,"subcategoryJewelry": "Takılar"
+  ,"subcategoryWatches": "Saatler"
+  ,"subcategoryToys": "Oyuncaklar"
+  ,"subcategoryStrollers": "Bebek arabaları"
+  ,"subcategoryChildFurniture": "Çocuk mobilyaları"
+  ,"subcategoryEducationBooks": "Eğitim ve kitaplar"
+  ,"subcategoryApartments": "Daireler"
+  ,"subcategoryHouses": "Evler"
+  ,"subcategoryLand": "Arsalar"
+  ,"subcategoryCommercialProperty": "İş yerleri"
+  ,"subcategoryRent": "Kiralık"
+  ,"subcategoryCosmetics": "Kozmetik ve parfüm"
+  ,"subcategoryRepairServices": "Tamir hizmetleri"
+  ,"subcategoryEducationServices": "Eğitim hizmetleri"
+  ,"subcategoryBeautyServices": "Güzellik hizmetleri"
+  ,"subcategoryOtherServices": "Diğer hizmetler"
+  ,"subcategorySportsShoes": "Spor ayakkabıları"
+  ,"subcategoryMusicalInstruments": "Müzik aletleri"
+  ,"subcategoryBooks": "Kitaplar"
+  ,"subcategoryCollectibles": "Koleksiyon ürünleri"
+  ,"subcategoryVideoGames": "Video oyunları"
+  ,"cityGanja": "Gence"
+  ,"citySumqayit": "Sumgayıt"
+  ,"cityMingachevir": "Mingəçevir"
+  ,"cityLankaran": "Lenkeran"
+  ,"sortPriceHighest": "En yüksek fiyat"
+  ,"sortNewest": "En yeni"
+  ,"weekdayMondayShort": "Pzt"
+  ,"weekdayTuesdayShort": "Sal"
+  ,"weekdayWednesdayShort": "Çar"
+  ,"weekdayThursdayShort": "Per"
+  ,"weekdayFridayShort": "Cum"
+  ,"weekdaySaturdayShort": "Cmt"
+  ,"weekdaySundayShort": "Paz"
+  ,"rejectedListingsCount": "Reddedildi ({count})"
+  ,"@rejectedListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"loginIdentifierRequired": "Telefon numaranızı veya e-posta adresinizi girin"
+  ,"loginIdentifierInvalid": "Lütfen geçerli bir telefon numarası veya e-posta adresi girin",
+  "invalidOtpCode": "Doğrulama kodu geçersiz.",
+  "accountAlreadyRegistered": "Bu bilgilerle kayıtlı bir hesap zaten var.",
+  "authRequestFailed": "İşleminiz tamamlanamadı. Lütfen tekrar deneyin.",
+  "serverTimeout": "Sunucudan yanıt alınamadı. Lütfen tekrar deneyin.",
+  "serverUnavailable": "Sunucuya bağlanılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+  "requestFailed": "İstek tamamlanamadı. Lütfen tekrar deneyin."
+  ,"storeNameLabel": "Mağaza adı"
+  ,"goToStore": "Mağazaya geç"
+  ,"backToPersonalAccount": "Kişisel hesaba dön"
+  ,"myStore": "Mağazam"
+  ,"listingStatusPendingPayment": "Ödeme bekliyor"
+  ,"listingStatusInactive": "Aktif değil"
+  ,"listingStatusRejected": "Reddedildi"
+  ,"listingStatusExpired": "Süresi doldu"
+  ,"listingStatusSold": "Satıldı"
+  ,"listingStatusDeleted": "Silindi"
+  ,"listingStatusDraft": "Taslak"
+  ,"listingStatusUnknown": "Bilinmiyor"
+  ,"listingStatusUnderReview": "İncelemede"
+  ,"emptyActiveListings": "Aktif ilanınız yok"
+  ,"emptyPendingPaymentListings": "Ödeme bekleyen ilanınız yok"
+  ,"emptyInactiveListings": "Aktif olmayan ilanınız yok"
+  ,"emptyRejectedListings": "Reddedilen ilanınız yok"
+  ,"emptyReviewListings": "İncelemede olan ilanınız yok"
+  ,"postListingAction": "İlan verin"
+  ,"storeDisableTemporarily": "Mağazanızı geçici olarak devre dışı bırakın"
+  ,"storeEnableAgain": "Mağazanızı yeniden etkinleştirin"
+  ,"storeHiddenDescription": "Mağazanız ve ilanlarınız müşterilere görünmez. İstediğiniz zaman yeniden etkinleştirebilirsiniz."
+  ,"storeVisibleDescription": "Mağazanız ve ilanlarınız müşterilere yeniden görünür."
+  ,"storeDisableAction": "Mağazayı devre dışı bırak"
+  ,"storeEnableAction": "Mağazayı etkinleştir"
+  ,"storeVisibilityHelp": "Müşterilerin mağazanızı nasıl gördüğünü önizleyin."
+  ,"viewMyStore": "Mağazamı görüntüle"
+  ,"storeEnableConfirm": "Mağazanız yeniden etkinleştirilsin mi?"
+  ,"storeDisableConfirm": "Mağazanız devre dışı bırakılsın mı?"
+  ,"storeEnableConfirmDescription": "Mağazanız müşteriler tarafından yeniden görüntülenebilir."
+  ,"storeDisableConfirmDescription": "Mağazanız ve ilanlarınız geçici olarak gizlenecek."
+  ,"shareListingTitle": "{seller} kullanıcısının ilanını paylaş"
+  ,"@shareListingTitle": {"placeholders": {"seller": {"type": "String"}}}
+  ,"shareAction": "Paylaş"
+  ,"copyLinkAction": "Bağlantıyı kopyala"
+  ,"shareListingText": "{seller} kullanıcısının ilanına göz at: {link}"
+  ,"@shareListingText": {"placeholders": {"seller": {"type": "String"}, "link": {"type": "String"}}}
+  ,"all": "Tümü"
+  ,"dayAgo": "{count} gün önce"
+  ,"@dayAgo": {"placeholders": {"count": {"type": "int"}}}
+  ,"savedListingsTab": "İlanlar"
+  ,"savedSearchesTab": "Aramalar"
+  ,"followedStoresTab": "Mağazalar"
+  ,"sortRecommended": "Önerilen"
+  ,"price": "Fiyat"
+  ,"minimumPrice": "Minimum fiyat"
+  ,"maximumPrice": "Maksimum fiyat"
+  ,"applyFilters": "Filtreleri uygula"
+  ,"resetFilters": "Sıfırla"
+  ,"businessStoreName": "Mağaza adı"
+  ,"storeLogoTitle": "Mağaza logosu"
+  ,"storeBannerTitle": "Mağaza banner'ı"
+  ,"businessEditAddress": "Adres"
+  ,"businessContactNumber": "İletişim numarası"
+  ,"saveChanges": "Değişiklikleri kaydet"
+  ,"storeInfo": "Mağaza profili"
+  ,"businessWallet": "Cüzdan"
+  ,"businessEditProfile": "Profili düzenle"
+  ,"businessSettings": "Ayarlar"
+  ,"storeUnderReviewEmpty": "İncelemede olan ilanınız yok"
+  ,"openNow": "Şu anda açık"
+  ,"active": "Aktif"
+  ,"sortLowestPrice": "En düşük fiyat"
+  ,"sortHighestPrice": "En yüksek fiyat"
+  ,"sortNewestListings": "En yeni ilanlar"
+  ,"hoursAgo": "{count} saat önce"
+  ,"@hoursAgo": {"placeholders": {"count": {"type": "int"}}}
+  ,"storeLogoHint": "Mağaza sayfasında ve katalogda gösterilecek PNG, 500 × 500 px"
+  ,"storeBannerHint": "Mağaza sayfasında ve katalogda gösterilecek PNG, 2000 × 532 px"
+  ,"slogan": "Slogan"
+  ,"blockUser": "Kullanıcıyı engelle"
+  ,"unblockUser": "Kullanıcının engelini kaldır"
+  ,"cityIstanbul": "İstanbul"
+  ,"districtNarimanov": "Nərimanov"
+  ,"districtSahil": "Sahil"
+  ,"districtYasamal": "Yasamal"
+  ,"districtGanjlik": "Gənclik"
+}
