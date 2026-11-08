@@ -28,12 +28,14 @@ void main() {
   });
 
   test('Product parses an example generated from ProductResponse', () {
-    final product = Product.fromJson(_example('ProductResponse'));
+    final json = _example('ProductResponse')..['phoneNumber'] = '+15555550123';
+    final product = Product.fromJson(json);
 
     expect(product.id, _exampleId);
     expect(product.title, 'example');
     expect(product.imageUrls, ['https://example.test/image.jpg']);
     expect(product.sellerName, 'example');
+    expect(product.sellerPhone, isNull);
   });
 
   test('FeedItem parses FeedItemResponse and its product items', () {

@@ -238,17 +238,19 @@ class MapListingCard extends StatelessWidget {
           7.height,
           Row(
             children: [
-              Expanded(
-                child: _buildActionButton(
-                  iconPath: 'assets/icons/phone_icon.svg',
-                  iconColor: Colors.white,
-                  bgColor: AppColor.activeColor,
-                  label: context.l10n.call,
-                  filled: true,
-                  onTap: onCall,
+              if (listing.sellerPhone?.isNotEmpty == true) ...[
+                Expanded(
+                  child: _buildActionButton(
+                    iconPath: 'assets/icons/phone_icon.svg',
+                    iconColor: Colors.white,
+                    bgColor: AppColor.activeColor,
+                    label: context.l10n.call,
+                    filled: true,
+                    onTap: onCall,
+                  ),
                 ),
-              ),
-              8.width,
+                8.width,
+              ],
               Expanded(
                 child: _buildActionButton(
                   iconPath: 'assets/icons/direction.svg',

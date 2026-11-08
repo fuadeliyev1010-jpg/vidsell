@@ -205,8 +205,10 @@ class _ProductDetailsSheetState extends State<ProductDetailsSheet> {
                       _buildInfoList(),
                       32.height,
                       _buildDescription(),
-                      32.height,
-                      _buildShowNumberButton(),
+                      if (_listing?.sellerPhone?.isNotEmpty == true) ...[
+                        32.height,
+                        _buildShowNumberButton(),
+                      ],
                       32.height,
                       _buildStatsList(),
                       32.height,
@@ -355,22 +357,24 @@ class _ProductDetailsSheetState extends State<ProductDetailsSheet> {
             side: const BorderSide(color: AppColor.activeColor),
           ),
         ),
-        10.width,
-        Expanded(
-          child: AppButton(
-            height: 48.h,
-            text: context.l10n.sellerCall,
-            onPressed: () {
-              if (widget.onCall != null) {
-                widget.onCall!();
-              } else {
-                callSeller(context, _listing?.sellerPhone);
-              }
-            },
-            color: AppColor.activeColor,
-            textColor: Colors.white,
+        if (_listing?.sellerPhone?.isNotEmpty == true) ...[
+          10.width,
+          Expanded(
+            child: AppButton(
+              height: 48.h,
+              text: context.l10n.sellerCall,
+              onPressed: () {
+                if (widget.onCall != null) {
+                  widget.onCall!();
+                } else {
+                  callSeller(context, _listing?.sellerPhone);
+                }
+              },
+              color: AppColor.activeColor,
+              textColor: Colors.white,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -724,21 +728,23 @@ class _ProductDetailsSheetState extends State<ProductDetailsSheet> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        GestureDetector(
-          onTap: () {
-            callSeller(context, _listing?.sellerPhone);
-          },
-          child: Container(
-            width: 44.w,
-            height: 44.h,
-            decoration: BoxDecoration(
-              color: AppColor.success,
-              borderRadius: BorderRadius.circular(14.r),
+        if (_listing?.sellerPhone?.isNotEmpty == true) ...[
+          GestureDetector(
+            onTap: () {
+              callSeller(context, _listing?.sellerPhone);
+            },
+            child: Container(
+              width: 44.w,
+              height: 44.h,
+              decoration: BoxDecoration(
+                color: AppColor.success,
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+              child: Icon(Icons.call, color: Colors.white, size: 20.sp),
             ),
-            child: Icon(Icons.call, color: Colors.white, size: 20.sp),
           ),
-        ),
-        10.width,
+          10.width,
+        ],
         Expanded(
           // SpecialTextField only positions itself (see its own docs) —
           // give it a fixed height here, same as elsewhere it's used.

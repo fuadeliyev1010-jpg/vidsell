@@ -159,10 +159,6 @@ class Product {
     sellerHandle: json['sellerHandle'] as String?,
     sellerAvatarUrl:
         json['sellerAvatarUrl'] as String? ?? json['sellerAvatar'] as String?,
-    sellerPhone:
-        json['sellerPhone'] as String? ??
-        json['phoneNumber'] as String? ??
-        json['phone'] as String?,
     businessId: json['businessId']?.toString(),
     categoryId: json['categoryId']?.toString(),
     subcategoryId: json['subcategoryId']?.toString(),
