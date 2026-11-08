@@ -120,7 +120,7 @@ class _HomeFeedMediaState extends State<HomeFeedMedia> {
     if (!mounted || controller != _controller || _videoFailed) return;
     if (kDebugMode) {
       debugPrint(
-        'HomeListingMedia video error: '
+        'HomeFeedMedia video error: '
         '${controller.value.errorDescription}; caught: $error',
       );
     }

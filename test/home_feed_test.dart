@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vidsell/features/home/bloc/home_bloc.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/mock_home_repository.dart';
 import 'package:vidsell/features/home/widgets/home_listing_media.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
-import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/video/feed_item.dart';
 
 void main() {
@@ -14,10 +11,7 @@ void main() {
     final repository = MockHomeRepository();
 
     final firstPage = await repository.fetchListings(page: 1, size: 5);
-    final secondPage = await repository.fetchListings(
-      page: 2,
-      size: 5,
-    );
+    final secondPage = await repository.fetchListings(page: 2, size: 5);
 
     expect(firstPage.page, 0);
     expect(secondPage.page, 1);
@@ -43,128 +37,59 @@ void main() {
     expect(item.ownerName, 'TechStore');
   });
 
-  test('missing product coordinates remain unavailable for map placement', () {
-    const product = Product(id: 'without-coordinates', price: 100, title: '');
-    final homeListing = HomeListing.fromJson({
-      'id': 'listing-default-city',
-      'price': 100,
-      'currency': 'AZN',
-      'sellerId': 'seller-default',
-      'categoryId': 'electronics',
-      'subcategoryId': 'phones',
-      'cityId': 'istanbul',
-      'status': 'active',
-      'createdAt': '2026-01-01T00:00:00Z',
-      'sellerName': 'Seller',
-      'sellerHandle': '@seller',
-      'title': 'Phone',
-      'shareUrl': 'https://vidsell.example/listing/1',
-    });
+  test(
+    'feed item uses the first Product and leaves absent coordinates null',
+    () {
+      final item = FeedItem.fromJson({
+        'videoId': 'listing-7',
+        'products': [
+          {
+            'id': 'listing-7',
+            'title': 'Phone',
+            'price': 1250,
+            'currency': 'AZN',
+            'imageUrls': ['https://cdn.example.com/listing-7.jpg'],
+            'sellerId': 'seller-7',
+            'sellerName': 'Seller',
+            'sellerAvatarUrl': 'https://cdn.example.com/seller.jpg',
+            'categoryId': 'electronics',
+            'subcategoryId': 'phones',
+            'cityId': 'baku',
+          },
+        ],
+        'hlsUrl': 'https://cdn.example.com/listing-video.m3u8',
+        'thumbnailUrl': 'https://cdn.example.com/listing-poster.jpg',
+        'createdAt': '2026-01-01T00:00:00Z',
+        'ownerId': 'seller-7',
+        'ownerName': 'Seller',
+        'ownerAvatarUrl': 'https://cdn.example.com/seller.jpg',
+      });
 
-    expect(product.city, isNull);
-    expect(product.latitude, isNull);
-    expect(product.longitude, isNull);
-    expect(homeListing.city, 'İstanbul');
-    expect(homeListing.currency, 'AZN');
+      expect(item.product?.id, 'listing-7');
+      expect(
+        item.product?.imageUrls.single,
+        'https://cdn.example.com/listing-7.jpg',
+      );
+      expect(item.product?.sellerPhone, isNull);
+      expect(item.product?.latitude, isNull);
+      expect(item.product?.longitude, isNull);
+      expect(item.videoUrl, 'https://cdn.example.com/listing-video.m3u8');
+    },
+  );
 
-    const listingWithFallbackCurrency = HomeListing(
-      id: 'listing-default-currency',
-      sellerName: 'Seller',
-      sellerHandle: '@seller',
-      price: '100',
-      title: 'Phone',
-      shareLink: '',
-    );
-    expect(listingWithFallbackCurrency.currency, 'TRY');
-  });
+  test(
+    'feed item without a Product keeps its video playable without crashing',
+    () {
+      final item = FeedItem.fromJson({
+        'videoId': 'video-only',
+        'products': [],
+        'hlsUrl': 'https://cdn.example.com/video-only.m3u8',
+      });
 
-  test('listing JSON accepts backend media and numeric price fields', () {
-    final listing = HomeListing.fromJson({
-      'id': 'listing-7',
-      'imageUrl': 'https://cdn.example.com/listing-7.jpg',
-      'sellerName': 'Seller',
-      'sellerHandle': '@seller',
-      'sellerAvatar': 'https://cdn.example.com/seller.jpg',
-      'price': 1250,
-      'currency': 'AZN',
-      'title': 'Phone',
-      'shareUrl': 'https://vidsell.az/listing/7',
-      'sellerId': 'seller-7',
-      'categoryId': 'electronics',
-      'subcategoryId': 'phones',
-      'cityId': 'istanbul',
-      'status': 'active',
-      'createdAt': '2026-01-01T00:00:00Z',
-    });
-
-    expect(listing.imagePath, startsWith('https://'));
-    expect(listing.isNetworkMedia, isTrue);
-    expect(listing.price, '1250 ₼');
-    expect(listing.sellerAvatar, 'https://cdn.example.com/seller.jpg');
-  });
-
-  test('listing JSON keeps detail fields and video with the feed item', () {
-    final listing = HomeListing.fromJson({
-      'id': 'listing-video',
-      'imageUrl': 'https://cdn.example.com/listing-poster.jpg',
-      'videoUrl': 'https://cdn.example.com/listing-video.mp4',
-      'sellerName': 'Seller',
-      'sellerHandle': '@seller',
-      'price': 1250,
-      'currency': 'AZN',
-      'title': 'Phone',
-      'shareUrl': 'https://vidsell.az/listing/video',
-      'sellerId': 'seller-video',
-      'categoryId': 'electronics',
-      'subcategoryId': 'phones',
-      'cityId': 'istanbul',
-      'status': 'active',
-      'createdAt': '2026-01-01T00:00:00Z',
-      'phoneNumber': '+994501234567',
-      'description': 'Listing details',
-      'city': 'Bakı',
-      'brand': 'Apple',
-      'model': 'iPhone 16',
-      'storage': '128GB',
-      'simCard': 'eSIM',
-      'condition': 'New',
-      'delivery': 'Pickup',
-      'listingNumber': 123,
-      'viewCount': 42,
-      'updatedAt': '2026-01-01T00:00:00Z',
-    });
-
-    expect(listing.videoUrl, 'https://cdn.example.com/listing-video.mp4');
-    expect(listing.phoneNumber, '+994501234567');
-    expect(listing.description, 'Listing details');
-    expect(listing.model, 'iPhone 16');
-    expect(listing.listingNumber, '123');
-    expect(listing.viewCount, 42);
-    expect(
-      listing
-          .copyWith(videoUrl: 'https://cdn.example.com/updated.mp4')
-          .videoUrl,
-      'https://cdn.example.com/updated.mp4',
-    );
-  });
-
-  test('video-only listing can be loaded without a poster image', () {
-    final listing = HomeListing.fromJson({
-      'id': 'video-only',
-      'price': 100,
-      'currency': 'AZN',
-      'sellerId': 'seller-video',
-      'categoryId': 'electronics',
-      'subcategoryId': 'phones',
-      'cityId': 'istanbul',
-      'status': 'active',
-      'createdAt': '2026-01-01T00:00:00Z',
-      'video_url': 'https://cdn.example.com/video-only.mp4',
-    });
-
-    expect(listing.imagePath, isEmpty);
-    expect(listing.videoUrl, 'https://cdn.example.com/video-only.mp4');
-  });
+      expect(item.product, isNull);
+      expect(item.videoUrl, 'https://cdn.example.com/video-only.m3u8');
+    },
+  );
 
   testWidgets('inactive home video shows its poster without initializing', (
     tester,
@@ -177,9 +102,7 @@ void main() {
 
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(
-          body: HomeFeedMedia(listing: listing, playing: false),
-        ),
+        home: Scaffold(body: HomeFeedMedia(listing: listing, playing: false)),
       ),
     );
 
@@ -216,32 +139,6 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
-  });
-
-  test('Product converts into the shared home listing model', () {
-    final listing = ProductLegacyAdapter.toHomeListing(
-      const Product(
-        id: 'discover-1',
-        imageUrls: ['poster.jpg'],
-        price: 100,
-        currency: 'AZN',
-        title: 'Product',
-        brand: 'Brand',
-        city: 'Bakı',
-        sellerPhone: '+994501234567',
-        sellerName: 'Seller',
-        sellerId: 'seller-1',
-        sellerAvatarUrl: 'https://cdn.example.com/seller.jpg',
-      ),
-    );
-
-    expect(listing.id, 'discover-1');
-    expect(listing.phoneNumber, '+994501234567');
-    expect(listing.city, 'Bakı');
-    expect(listing.sellerName, 'Seller');
-    expect(listing.sellerId, 'seller-1');
-    expect(listing.sellerAvatar, 'https://cdn.example.com/seller.jpg');
-    expect(listing.imagePath, 'poster.jpg');
   });
 
   test('home bloc loads and appends the next page', () async {

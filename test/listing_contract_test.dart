@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
-import 'package:vidsell/features/home/models/listing_detail.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
 import 'package:vidsell/models/product/product.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 
 void main() {
   const listingResponse = {
@@ -65,67 +63,85 @@ void main() {
     expect(Listing.fromJson(listing.toJson()).id, listing.id);
   });
 
-  test(
-    'feed, detail and cabinet models preserve canonical listing identity',
-    () {
-      final listing = Listing.fromJson(listingResponse);
-      final homeListing = HomeListing.fromJson(listingResponse);
-      final detail = ListingDetail.fromListing(listing);
+  test('feed item keeps canonical Product identity and video metadata', () {
+    final item = FeedItem.fromJson({
+      'videoId': 'video-42',
+      'createdAt': '2026-10-01T10:00:00Z',
+      'hlsUrl': 'https://cdn.example.com/video.m3u8',
+      'rawUrl': 'https://cdn.example.com/video.mp4',
+      'thumbnailUrl': 'https://cdn.example.com/thumb.jpg',
+      'durationSeconds': 12,
+      'contentType': 'RECENT',
+      'ownerId': 'seller-7',
+      'ownerName': 'Seller',
+      'ownerAvatarUrl': 'https://cdn.example.com/seller.jpg',
+      'products': [
+        {
+          'id': 'listing-42',
+          'title': 'Phone',
+          'price': 1250,
+          'currency': 'AZN',
+          'description': 'Good condition',
+          'imageUrls': ['https://cdn.example.com/photo.jpg'],
+          'sellerId': 'seller-7',
+          'businessId': 'business-3',
+          'categoryId': 'electronics',
+          'subcategoryId': 'phones',
+          'cityId': 'baku',
+          'latitude': 40.4093,
+          'longitude': 49.8671,
+          'brand': 'Brand',
+          'model': 'Model',
+          'color': 'Black',
+          'storage': '256 GB',
+          'simCard': 'Dual SIM',
+          'status': 'active',
+          'createdAt': '2026-10-01T10:00:00Z',
+        },
+      ],
+    });
 
-      expect(homeListing.id, listing.id);
-      expect(homeListing.priceAmount, listing.price);
-      expect(homeListing.subcategoryId, listing.subcategoryId);
-      expect(homeListing.cityId, listing.cityId);
-      expect(homeListing.status, listing.status);
-      expect(homeListing.color, listing.color);
-      expect(homeListing.storage, listing.storage);
-      expect(homeListing.simCard, listing.simCard);
-      expect(homeListing.latitude, listing.latitude);
-      expect(homeListing.longitude, listing.longitude);
-      expect(detail.id, listing.id);
-      expect(detail.color, listing.color);
-      expect(detail.storage, listing.storage);
-      expect(detail.simCard, listing.simCard);
-      expect(detail.mediaUrls, listing.media.map((item) => item.url).toList());
-    },
-  );
-
-  test('discover display listing does not mislabel brand as subcategory', () {
-    final homeListing = ProductLegacyAdapter.toHomeListing(
-      const Product(
-        id: 'listing-42',
-        imageUrls: ['photo.jpg'],
-        price: 1250,
-        currency: 'AZN',
-        title: 'Phone',
-        brand: 'Brand',
-        subcategoryId: 'phones',
-        cityId: 'baku',
-        categoryId: 'electronics',
-      ),
-    );
-
-    expect(homeListing.brand, 'Brand');
-    expect(homeListing.subcategoryName, isEmpty);
-    expect(homeListing.subcategoryId, 'phones');
-    expect(homeListing.cityId, 'baku');
+    expect(item.product?.id, 'listing-42');
+    expect(item.product?.price, 1250);
+    expect(item.product?.subcategoryId, 'phones');
+    expect(item.product?.cityId, 'baku');
+    expect(item.product?.brand, 'Brand');
+    expect(item.product?.color, 'Black');
+    expect(item.product?.latitude, 40.4093);
+    expect(item.createdAt, DateTime.parse('2026-10-01T10:00:00Z'));
+    expect(item.hlsUrl, 'https://cdn.example.com/video.m3u8');
+    expect(item.rawUrl, 'https://cdn.example.com/video.mp4');
+    expect(item.thumbnailUrl, 'https://cdn.example.com/thumb.jpg');
+    expect(item.ownerId, 'seller-7');
   });
 
-  test('video-only listings use their thumbnail as the card image', () {
-    final videoOnlyResponse = Map<String, dynamic>.from(listingResponse)
-      ..['media'] = [
-        {
-          'url': 'https://cdn.example.com/video.mp4',
-          'type': 'video',
-          'sortOrder': 0,
-          'thumbnailUrl': 'https://cdn.example.com/video-thumb.jpg',
-        },
-      ];
-
-    expect(
-      HomeListing.fromJson(videoOnlyResponse).imagePath,
-      'https://cdn.example.com/video-thumb.jpg',
+  test('Product keeps brand separate from subcategory identity', () {
+    const product = Product(
+      id: 'listing-42',
+      title: 'Phone',
+      price: 1250,
+      brand: 'Brand',
+      subcategoryId: 'phones',
+      cityId: 'baku',
+      categoryId: 'electronics',
     );
+
+    expect(product.brand, 'Brand');
+    expect(product.subcategoryId, 'phones');
+    expect(product.cityId, 'baku');
+  });
+
+  test('video-only feed items keep poster and playback without a Product', () {
+    final item = FeedItem.fromJson({
+      'videoId': 'video-only',
+      'products': [],
+      'hlsUrl': 'https://cdn.example.com/video.m3u8',
+      'thumbnailUrl': 'https://cdn.example.com/video-thumb.jpg',
+    });
+
+    expect(item.product, isNull);
+    expect(item.thumbnailUrl, 'https://cdn.example.com/video-thumb.jpg');
+    expect(item.videoUrl, 'https://cdn.example.com/video.m3u8');
   });
 
   test('listing parser rejects missing relationship IDs and timestamps', () {
