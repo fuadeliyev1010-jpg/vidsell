@@ -13,9 +13,8 @@ class MockHomeRepository implements HomeRepository {
 
   final UserListingRepository? userListingRepository;
 
-  static const _videoUrl =
-      'assets/images/SnapTikZ.App_7570346552519101726_hd.mp4';
-  static const _thumbnailUrl = 'assets/images/SnapTikZ_thumb.jpg';
+  static const _videoUrl = 'assets/images/mock_listing.mp4';
+  static const _thumbnailUrl = 'assets/images/mock_listing_thumb.jpg';
 
   static const _listings = [
     HomeListing(

@@ -180,7 +180,7 @@ void main() {
       price: '100 AZN',
       title: 'Video listing',
       shareLink: '',
-      videoUrl: 'assets/images/SnapTikZ.App_7570346552519101726_hd.mp4',
+      videoUrl: 'assets/images/mock_listing.mp4',
     );
 
     await tester.pumpWidget(
