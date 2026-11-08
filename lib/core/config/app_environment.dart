@@ -27,7 +27,7 @@ class AppConfig {
     );
     const apiBaseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://api.example.com/api',
+      defaultValue: 'https://api.example.com/api/v1',
     );
     if (backendMode != 'api' && backendMode != 'mock') {
       throw StateError('BACKEND_MODE must be either "api" or "mock".');
@@ -63,19 +63,19 @@ class AppConfig {
 
   static const development = AppConfig(
     environment: AppEnvironment.development,
-    apiBaseUrl: 'http://10.0.2.2:8080/api',
+    apiBaseUrl: 'http://10.0.2.2:8080/api/v1',
     useMockBackend: true,
   );
 
   static const staging = AppConfig(
     environment: AppEnvironment.staging,
-    apiBaseUrl: 'https://staging-api.vidsell.az/api',
+    apiBaseUrl: 'https://staging-api.vidsell.az/api/v1',
     useMockBackend: false,
   );
 
   static const production = AppConfig(
     environment: AppEnvironment.production,
-    apiBaseUrl: 'https://api.vidsell.az/api',
+    apiBaseUrl: 'https://api.vidsell.az/api/v1',
     useMockBackend: false,
   );
 }
