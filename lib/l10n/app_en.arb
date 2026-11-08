@@ -1,0 +1,785 @@
+{
+  "@@locale": "en",
+  "appError": "Something went wrong while loading this page.",
+  "offlineMessage": "There is no internet connection. Some features may be unavailable.",
+  "close": "Close",
+  "retry": "Retry",
+  "loading": "Loading...",
+  "languageEnglish": "English",
+  "languageTurkish": "Turkish",
+  "language": "Language",
+  "settingsTitle": "Settings",
+  "support": "Support",
+  "contactUs": "Contact us",
+  "aboutApp": "About the app",
+  "userAgreement": "User agreement",
+  "rules": "Rules",
+  "offerAgreement": "Offer agreement",
+  "privacyPolicy": "Privacy policy",
+  "logout": "Log out",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "save": "Save",
+  "change": "Change",
+  "searchProduct": "Search for a product or service",
+  "searchCategory": "Search categories",
+  "searchCity": "Search cities",
+  "category": "Category",
+  "allListings": "All listings",
+  "showListings": "Show listings",
+  "filters": "Filters",
+  "reset": "Reset",
+  "noResults": "No results found",
+  "loadFailed": "Could not load",
+  "locationPermissionTitle": "Location access",
+  "locationPermissionDescription": "VidSell needs location access to accurately show nearby listings, stores, and search results on the map.",
+  "allow": "Allow",
+  "later": "Later",
+  "newListing": "New listing",
+  "createListing": "Post a listing",
+  "myListings": "My listings",
+  "listingDescription": "Description",
+  "listingTitle": "Title",
+  "reportListing": "Report listing",
+  "selectReason": "Select a reason",
+  "describeReport": "Describe your report",
+  "send": "Send",
+  "nameAndSurname": "First and last name",
+  "email": "Email",
+  "phone": "Phone",
+  "password": "Password",
+  "repeatPassword": "Repeat password",
+  "loginOrRegister": "Log in or create an account",
+  "phoneOrEmail": "Phone number or email",
+  "verifyIdentity": "Verify your identity",
+  "resendCode": "Resend code",
+  "or": "or",
+  "registerIntro": "Let's create your account",
+  "registerDescription": "Post listings and start buying and selling.",
+  "termsLead": "By continuing, you agree to the",
+  "termsJoin": "and",
+  "termsAccept": ".",
+  "searchHistoryEmpty": "No recent searches",
+  "recentSearches": "Recent searches",
+  "clear": "Clear",
+  "savedSearch": "Saved search",
+  "noSavedListings": "You have no saved listings yet",
+  "noSavedSearches": "You have no saved searches yet",
+  "noFollowedStores": "You are not following any stores yet",
+  "stores": "Stores",
+  "vipListings": "VIP listings",
+  "noMatchingListings": "No listings match these criteria",
+  "minimumPriceError": "The minimum price must be lower than the maximum price",
+  "mapRouteError": "Could not open the route",
+  "homeEmpty": "There are no listings right now",
+  "homeLoadError": "Could not load listings",
+  "describePlaceholder": "Describe it...",
+  "contactSeller": "Contact the seller",
+  "call": "Call",
+  "whatsappMessage": "Message on WhatsApp",
+  "openDirectChat": "Open a direct chat",
+  "copyNumber": "Copy number",
+  "inAppMessage": "Send a message in the app",
+  "chatWithVidsell": "Contact the seller through VidSell chat",
+  "whatsappUnavailable": "Could not open WhatsApp",
+  "mapUnavailable": "Could not open the maps app",
+  "linkCopied": "Link copied",
+  "linkCopiedInstagram": "Link copied. You can share it on Instagram.",
+  "appCouldNotOpen": "Could not open the app",
+  "storeAddress": "Store address",
+  "navigateGoogleMaps": "Get directions in Google Maps",
+  "message": "Message",
+  "deleteSelectedMessages": "Delete the selected messages?",
+  "deleteConversation": "Delete this conversation?",
+  "messagesDeletedPermanently": "All messages will be permanently deleted.",
+  "reportUser": "Report user",
+  "actionNotAvailable": "This action is not available yet.",
+  "conversationDeleted": "Delete conversation",
+  "aboutListing": "About the listing",
+  "deletedMessage": "You deleted this message",
+  "messages": "Messages",
+  "notifications": "Notifications",
+  "noNotifications": "No notifications",
+  "markAllRead": "Mark all as read",
+  "pleaseWait": "Please wait",
+  "boostListing": "Boost listing",
+  "vipActivate": "VIP service activated for free.",
+  "boostActivate": "Boost service activated for free.",
+  "paymentUnavailable": "The payment service is not available yet.",
+  "premiumActivate": "Premium service activated for free.",
+  "videoAdd": "Add a video",
+  "videoAddHint": "Add a short video in 9:16 format",
+  "videoFrameError": "Could not create a video frame: {error}",
+  "videoOnlyOne": "You can add only one video.",
+  "videoAddFailed": "Could not add the video.",
+  "listingSubmitted": "Listing submitted",
+  "listingModeration": "Your listing was sent for review.",
+  "listingWillPublish": "Your listing will be published after it has been reviewed.",
+  "freeServicesMonthly": "Free services (per month)",
+  "freeListingLimit": "Free listing limit · this month",
+  "postOnly": "Post only",
+  "premium": "Premium",
+  "vip": "VIP",
+  "boost": "Boost",
+  "included": "Included",
+  "accountDelete": "Delete account",
+  "accountDeleteConfirm": "Delete the store account?",
+  "storeDelete": "Delete store",
+  "storeUnavailable": "Store editing is not supported yet.",
+  "profileViews": "Profile views",
+  "howOthersSeeProfile": "See how other users view your profile",
+  "socialLinks": "Social media links",
+  "additionalPhone": "Additional phone",
+  "workHours": "Working hours",
+  "photoGallery": "Photo gallery",
+  "welcomeMessages": "Welcome messages",
+  "greetNewCustomers": "Automatically greet new customers",
+  "changePassword": "Change password",
+  "profilePhotoDelete": "Delete profile photo?",
+  "profilePhotoDeleteDescription": "Your profile photo will be deleted. You can add a new photo at any time.",
+  "wallet": "Wallet",
+  "walletBalance": "Your wallet balance",
+  "topUpBalance": "Top up balance",
+  "amountAzn": "Amount (AZN)",
+  "amountRangeError": "Enter an amount between 1 and 5000 AZN",
+  "cardholderName": "First and last name",
+  "cardNumber": "Card number",
+  "month": "Month",
+  "year": "Year",
+  "cvv": "CVV",
+  "profileEdit": "Edit profile",
+  "basicInfo": "Basic information",
+  "aboutYou": "Tell us about yourself",
+  "categories": "Categories",
+  "noCategoryFound": "No categories found",
+  "subcategoryNotFound": "No subcategories found",
+  "storeProfile": "Store profile",
+  "storeSearch": "Search stores",
+  "storeClosed": "Closed",
+  "showMore": "Show more",
+  "routeOpenFailed": "Could not open the route",
+  "contactLinkFailed": "Could not open the link",
+  "questionUnanswered": "Couldn't find an answer to your question?",
+  "callUs": "Call us",
+  "messageUs": "Message us",
+  "profileEditUnavailable": "Profile editing is not supported yet.",
+  "businessLogin": "Sign in to your business account",
+  "businessAccount": "Business account",
+  "businessNoStore": "You don't have a store",
+  "createStoreDescription": "Create a dedicated store page for your business. Switch between accounts without signing out.",
+  "createStore": "Create a store",
+  "businessStatsEmpty": "No daily data for this period",
+  "businessStatsError": "Could not load statistics.",
+  "fillRequiredFields": "Please fill in the required fields.",
+  "applicationLinkUnavailable": "Could not open the link.",
+  "imageCropError": "There was an error cropping the image.",
+  "stepOfThree": "Step {step} of 3",
+  "storeLogoDescription": "Shown on your store page and in the catalog. PNG, 500×500 px",
+  "storeBannerDescription": "Shown on your store page and in the catalog. PNG, 2000×532 px",
+  "storeCategoryReady": "Ready",
+  "storeCategory": "Store category",
+  "businessBenefits": "Highlight benefits and important details",
+  "storeDescription": "About the store",
+  "businessContact": "Contact information",
+  "applicationAccepted": "Your application has been received",
+  "applicationAcceptedDescription": "Our team has received your application.",
+  "sort": "Sort",
+  "activate": "Activate",
+  "pauseListing": "Deactivate listing",
+  "listingIdLabel": "Listing ID",
+  "deleteAccountWarning": "This action will delete your store account and its profile information. Your personal account will not be deleted.",
+  "dismiss": "Dismiss",
+  "favorites": "Favorites",
+  "englishMenu": "English",
+  "businesses": "For businesses",
+  "map": "Map",
+  "filterListingsError": "Could not update favorites: {error}",
+  "favoritesUpdateFailed": "Could not update favorites. Please try again.",
+  "genericError": "Something went wrong.",
+  "otpCodePrefix": "We sent the code to ",
+  "otpCodeSuffix": ".",
+  "termsAndConditions": "Terms of use",
+  "privacy": "Privacy policy",
+  "searchPlaceholder": "Search",
+  "storeListings": "All listings from this user",
+  "blockedSeller": "This user is blocked. Unblock them to see their listings.",
+  "sellerHours": "Working hours",
+  "storeProfileTab": "Profile",
+  "listingNoSellerEmail": "No email address provided",
+  "listingVerified": "Verified",
+  "listingAccount": "Account",
+  "listingDetails": "Details",
+  "askSeller": "Ask the seller",
+  "mapSearchEmpty": "No results found",
+  "imageAdd": "Add",
+  "listingMore": "More listings",
+  "listingNoStore": "No store found",
+  "listingNoUser": "No user found",
+  "openHours247": "Open 24/7",
+  "openHours247Description": "The store is open all day, every day",
+  "selectWorkDays": "Select working days",
+  "listingDetailLoadError": "Could not load listing details.",
+  "loginTitle": "Sign in",
+  "loginPhonePlaceholder": "Phone number",
+  "registerPhone": "Phone",
+  "listingFormAgreement": "By posting a listing, you confirm that you will communicate directly with interested buyers.",
+  "resetForm": "Reset",
+  "listingEdit": "Edit listing",
+  "listingDelete": "Delete listing",
+  "shareLinkCopied": "Link copied to clipboard",
+  "reportSubmitted": "Your report has been submitted.",
+  "reportFailed": "Could not submit your report.",
+  "subscriptionMethod": "Payment method",
+  "pay": "Pay",
+  "subscriptionTerms": "By tapping “Pay”, you confirm that you accept VidSell's User Agreement and Rules.",
+  "subscriptionRemaining": "{count} remaining",
+  "subscriptionRenewal": "The limit resets on the 1st of each month · next: {date}",
+  "serviceDuration": "Service duration",
+  "amountDue": "Amount due",
+  "subscriptionBefore": "Before",
+  "subscriptionNow": "Now",
+  "free": "Free",
+  "bonus": "Bonus",
+  "and": "and",
+  "businessProfileUnavailable": "This profile is not available.",
+  "socialContact": "Social media",
+  "banner": "Banner",
+  "storeLogo": "Store logo",
+  "storeBanner": "Store banner",
+  "statistics": "Statistics",
+  "registerDetailsPrompt": "Enter your information to post listings and start buying and selling.",
+  "applicationReviewMessage": "Our team has received your application. We will contact you after the review.",
+  "callUnavailable": "Could not place the call.",
+  "logoutConfirmation": "Do you want to log out?",
+  "logoutDescription": "You will need to sign in again after logging out.",
+  "discardDataTitle": "Discard the entered information?",
+  "discardDataDescription": "If you go back, the information you entered will be deleted.",
+  "stayOnForm": "Stay on the form",
+  "businessListingsPrompt": "Add a product or service you want to sell.",
+  "profileEmailMissing": "No email address provided",
+  "storeDeleteDescription": "This action will delete your store account and its profile information. Your personal account will remain.",
+  "noDailyStats": "There is no daily data for this period.",
+  "retryAgain": "Try again",
+  "accountAbout": "About",
+  "sellerOtherListings": "All listings from this user",
+  "readMore": "Read more",
+  "report": "Report",
+  "block": "Block",
+  "videoLimit": "You can add only one video.",
+  "videoAddFailure": "Could not add the video.",
+  "open247": "Open 24/7",
+  "open247Description": "The store is open all day, every day.",
+  "workDays": "Working days",
+  "workDaysAndHours": "Working days and hours",
+  "stepOneOfThree": "Step 1 of 3",
+  "stepTwoOfThree": "Step 2 of 3",
+  "storeLogoInfo": "Shown on your store page and in the catalog. PNG, 500×500 px.",
+  "storeBannerInfo": "Shown on your store page and in the catalog. PNG, 2000×532 px.",
+  "businessLoginTitle": "Sign in to the cabinet",
+  "subscriptionAccepted": "By tapping “Pay”, you confirm that you accept VidSell's User Agreement and Rules.",
+  "remainingListingCount": "{count} remaining",
+  "remainingListingMessage": "After this listing, you will have {count} free listing remaining.",
+  "genericRetry": "Try again",
+  "newListings": "New listings",
+  "subscriptionPremium": "Activate Premium",
+  "subscriptionVip": "Activate VIP",
+  "sellerAsk": "Ask the seller",
+  "termsAgreementLead": "By continuing, you agree to the",
+  "termsAgreementEnd": ".",
+  "distanceSalesAgreement": "Distance sales agreement",
+  "personalLink": "Personal link",
+  "newListingVideoTitle": "New listing > Add a video",
+  "inStock": "In stock",
+  "profileSummary": "Profile photo, name, description",
+  "catalog": "Catalog",
+  "contactDetails": "Address, contact details",
+  "generalInfo": "General information",
+  "noStore": "You don't have a store",
+  "createStorePrompt": "Create a dedicated store page for your business. Switch between accounts without signing out.",
+  "accountIdLabel": "ID: {id}",
+  "zeroBalance": "0 AZN",
+  "efficiency": "Performance",
+  "clearFilter": "Clear filter",
+  "sellProductPrompt": "Add a product or service you want to sell.",
+  "userProfile": "Profile",
+  "storeOpensAt": "Opens at {time}",
+  "askAboutProduct": "Ask the seller about this product",
+  "listingsTab": "Listings",
+  "applicationIdLabel": "Application ID: {id}",
+  "videoFrameGenerationError": "Could not generate a video frame: {error}",
+  "videoFrameCreationFailed": "Could not create a video frame. Please try again.",
+  "listingRulesText": "By posting a listing, you confirm that you will communicate directly with interested buyers.",
+  "storeLogoHelp": "Shown on your store page and in the catalog. PNG, 500×500 px.",
+  "storeBannerHelp": "Shown on your store page and in the catalog. PNG, 2000×532 px.",
+  "openUntil": "Open until {time}",
+  "generalSchedule": "General",
+  "individualSchedule": "Individual",
+  "scheduleTitle": "Work schedule",
+  "scheduleSummary": "Your schedule",
+  "noWorkingDaysSelected": "No working days selected",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday",
+  "bankCard": "Bank card",
+  "terminalPayment": "Terminal payment",
+  "personalAccountPayment": "Personal account ({balance})",
+  "activateFree": "Activate for free",
+  "activateNow": "Activate",
+  "threeDays": "3 days",
+  "showCategoryListings": "Show listings in {category}",
+  "quotaRemaining": "{remaining} / {total} remaining",
+  "freeListingsAfter": "After this listing, you will have {count} free listing remaining.",
+  "submitting": "Submitting...",
+  "listingStockLocation": "In stock · {location}",
+  "listingSuccessDescription": "Your listing will be published after it has been reviewed. The selected service will activate once the listing is approved. If the listing is rejected, the payment will be refunded.",
+  "listingPromotionVipDescription": "Featured on the home page and shown with a larger map marker",
+  "listingPromotionPremiumDescription": "A listing with a frame and badge",
+  "listingPromotionBoostDescription": "Moves your listing higher in the list",
+  "listingBoostButton": "Boost",
+  "vipSubscriptionDescription": "Your listing will be promoted in search results, shown randomly among VIP listings in its category, and highlighted with a larger map marker.",
+  "premiumSubscriptionDescription": "Your listing will be promoted in search results, shown randomly among VIP listings in its category, and remain on the home page until the service expires.",
+  "boostSubscriptionDescription": "Your listing will move to the top of all search results.",
+  "vipFreeLimit": "VIP free limit · this month",
+  "premiumFreeLimit": "Premium free limit · this month",
+  "boostFreeLimit": "Boost free limit · this month",
+  "planDays": "{count} days",
+  "@planDays": {"placeholders": {"count": {"type": "int"}}},
+  "planTimes": "{count} times",
+  "@planTimes": {"placeholders": {"count": {"type": "int"}}},
+  "everyHours": "every {count} hours",
+  "@everyHours": {"placeholders": {"count": {"type": "int"}}},
+  "boostDailyBenefit": "BOOST EVERY DAY",
+  "makeVip": "MAKE VIP",
+  "boostServiceFree": "Boost · {count} time (free)",
+  "@boostServiceFree": {"placeholders": {"count": {"type": "int"}}},
+  "vipServiceFree": "VIP · {duration} (free)",
+  "@vipServiceFree": {"placeholders": {"duration": {"type": "String"}}},
+  "premiumServiceFree": "Premium · {duration} (free)",
+  "@premiumServiceFree": {"placeholders": {"duration": {"type": "String"}}},
+  "listingCondition": "Condition",
+  "listingDelivery": "Delivery",
+  "freeDelivery": "Free delivery",
+  "deliveryToRegions": "Delivery to regions",
+  "pickupAtAddress": "Pickup from address",
+  "listingContent": "Content",
+  "listingDescriptionHint": "Add the benefits and important details",
+  "listingContactMethod": "Contact method",
+  "callsAndMessages": "Calls and messages",
+  "callsOnly": "Calls only",
+  "messagesOnlyHiddenNumber": "Messages only (your number will be hidden)",
+  "usedCondition": "Used",
+  "fillListingFields": "Please complete these fields: {fields}.",
+  "@fillListingFields": {"placeholders": {"fields": {"type": "String"}}},
+  "listingFieldPrice": "price",
+  "listingFieldCity": "city",
+  "listingCityNotFound": "Choose a city from the available city list.",
+  "listingFieldCondition": "condition",
+  "listingFieldModel": "model",
+  "listingFieldDelivery": "delivery option",
+  "listingFieldTitle": "title",
+  "listingFieldName": "name",
+  "listingFieldEmail": "email",
+  "listingFieldPhone": "phone number",
+  "listingFieldDescription": "description",
+  "listingFieldMedia": "at least one photo or video",
+  "listingMediaRequired": "Add at least one photo or video to your listing.",
+  "listingService": "Service",
+  "amountToPay": "Amount due",
+  "listingHome": "Home",
+  "listingSummary": "Listing",
+  "listingPriceLabel": "Price",
+  "newCondition": "New",
+  "moderationStatus": "UNDER REVIEW",
+  "zeroAmountAzn": "0.00 AZN",
+  "activateVip": "Activate VIP",
+  "activatePremium": "Activate Premium",
+  "standardService": "Standard",
+  "listingStatusLabel": "Status",
+  "aboutWhatTitle": "What is Vidsell?",
+  "aboutWhatBody": "Vidsell is a marketplace platform that lets users create listings, search for products, and contact sellers.",
+  "aboutFeaturesTitle": "Key features",
+  "aboutFeaturesBody": "Discover listings by category, search and filter, save listings, and message sellers.",
+  "aboutVersionTitle": "Version",
+  "aboutVersionBody": "This version of the app uses mock data sources in preparation for backend integration. Data storage and account synchronization will be enabled when the backend is connected.",
+  "privacyDataCollectedTitle": "Data we collect",
+  "privacyDataCollectedBody": "An account uses your phone number, name, and, when required, email address. Listing, message, saved-item, and followed-store data may be associated with your account.",
+  "privacyDataUseTitle": "How we use your data",
+  "privacyDataUseBody": "Data is used to manage your account, display listings, provide messaging, maintain security, and deliver support services.",
+  "privacyRetentionTitle": "Data retention and security",
+  "privacyRetentionBody": "Access to data should be limited according to account permissions. During real backend integration, retention periods, deletion requests, and security measures will be defined in the backend policy.",
+  "privacyRightsTitle": "Your rights",
+  "privacyRightsBody": "You can update your profile and contact support with questions about deleting account data or handling personal information.",
+  "agreementUseTitle": "Use of the service",
+  "agreementUseBody": "Only lawful and truthful listings that do not violate others' rights may be posted on Vidsell. You are responsible for keeping your account information confidential.",
+  "agreementListingsTitle": "Listings and transactions",
+  "agreementListingsBody": "The seller is responsible for a listing's content, price, photos, and contact details. Vidsell may moderate listings and restrict content that does not follow the rules.",
+  "agreementMessagesTitle": "Messaging",
+  "agreementMessagesBody": "Abuse, spam, fraud, and misuse of personal information are prohibited in messages. Report suspicious activity to support.",
+  "agreementRestrictionsTitle": "Account restrictions",
+  "agreementRestrictionsBody": "Accounts and listings may be restricted temporarily or permanently if the rules are violated. You can contact support about a decision.",
+  "offerPartiesTitle": "Parties to the agreement",
+  "offerPartiesBody": "This offer sets out the terms for using Vidsell services and the main conditions between the user and the platform.",
+  "offerPlatformRoleTitle": "The platform's role",
+  "offerPlatformRoleBody": "Vidsell provides listing, search, contact, and account services. The buyer and seller are responsible for their product and payment arrangements.",
+  "offerPaidServicesTitle": "Paid services",
+  "offerPaidServicesBody": "Paid services are provided at the prices and under the terms shown in the app. Payment confirmation and refunds will follow the rules of the production payment provider and backend.",
+  "offerChangesTitle": "Changes",
+  "offerChangesBody": "These terms may be updated when the service or laws change. Updated terms take effect when published in the app.",
+  "rulesProhibitedTitle": "Prohibited listings",
+  "rulesProhibitedBody": "Listings for illegal products, counterfeit goods, weapons, drugs, stolen items, and products dangerous to human health are prohibited.",
+  "rulesQualityTitle": "Listing quality",
+  "rulesQualityBody": "The title, description, price, and photos must accurately represent the product. Duplicate listings, misleading prices, and spam are not accepted.",
+  "rulesCommunicationTitle": "Communication",
+  "rulesCommunicationBody": "Treat other users respectfully. Report abuse, threats, spam, attempted fraud, or requests for risky off-platform payments.",
+  "rulesComplaintsTitle": "Reporting",
+  "rulesComplaintsBody": "Use the listing or user report feature when you see a rule violation. In urgent safety situations, contact local law enforcement.",
+  "supportPopularQuestions": "Popular questions",
+  "supportListing": "Listings",
+  "supportPersonalCabinet": "Account",
+  "supportPostingListing": "Posting a listing",
+  "faqCreateAccount": "How do I create an account?",
+  "faqEditListing": "How do I edit a listing?",
+  "faqFindMessages": "Where can I find my messages?",
+  "faqReportListing": "How do I report a listing?",
+  "faqPostListing": "How do I post a listing?",
+  "faqPublishTime": "When will my listing be published?",
+  "faqDeleteListing": "How do I delete a listing?",
+  "faqListingRejected": "Why was my listing rejected?",
+  "faqEditProfile": "How do I change my profile information?",
+  "faqVerifyPhone": "How is my phone number verified?",
+  "faqForgotPassword": "I forgot my password",
+  "faqDeleteAccount": "How do I delete my account?",
+  "faqAddMedia": "How do I add photos and videos?",
+  "faqSetPrice": "How should I set the price?",
+  "faqChooseCategory": "How do I choose a category?",
+  "faqModeration": "What is listing moderation?",
+  "faqAccountAnswer": "Manage your account information from your profile. Phone verification is required to keep your account secure.",
+  "faqListingAnswer": "Complete the listing form, add media, and submit it. Your listing will be activated after review.",
+  "faqProfileAnswer": "You can update your details, change your password, and send account-related requests from your profile and account pages.",
+  "faqQualityAnswer": "Add an accurate title, description, price, and clear media. Listings that follow the rules are published after moderation.",
+  "homeForYou": "For you",
+  "followingTab": "Following",
+  "follow": "Follow",
+  "followingStatus": "Following",
+  "followerCount": "{count} followers",
+  "@followerCount": {"placeholders": {"count": {"type": "int"}}},
+  "productDetails": "Product details",
+  "productCity": "City",
+  "productColor": "Color",
+  "productCondition": "Condition",
+  "productDescriptionMissing": "No description provided.",
+  "productPhoneReveal": "Show number",
+  "listingNumber": "Listing number",
+  "listingUpdated": "Updated",
+  "sampleProductDescription": "📱 Modern technology and premium design at a great price!\n\n🔒 Includes a one-year official international warranty.\n\n🔹 Official sale with quality guaranteed.",
+  "sellerGreetingCurrent": "Hello, is this still available?",
+  "sellerGreetingInterest": "Hello, I'm interested!",
+  "sellerNumberCopied": "Number copied: {number}",
+  "@sellerNumberCopied": {"placeholders": {"number": {"type": "String"}}},
+  "followingListTitle": "Saved",
+  "savedListingsEmptyDescription": "Browse listings, tap the save icon, and they will appear here.",
+  "followedStoresEmptyDescription": "Follow stores to keep up with their new listings.",
+  "searchSuggestionsLoadError": "Could not load suggestions.",
+  "searchResultsLoadError": "Could not load search results.",
+  "searchNoResults": "No results found.",
+  "searchNoSuggestions": "No suggestions found.",
+  "reportProhibitedItem": "Prohibited item or service",
+  "other": "Other",
+  "sellerCall": "Call",
+  "sellerMessage": "Message",
+  "chatSelectedDeleteCount": "{count, plural, =1{1 message will be deleted.} other{{count} messages will be deleted.}}",
+  "@chatSelectedDeleteCount": {"placeholders": {"count": {"type": "int"}}},
+  "chatNoTextToCopy": "There is no message text to copy.",
+  "chatSelectOneToReply": "Select only one message to reply to.",
+  "chatReplyDeletedMessage": "You can't reply to a deleted message.",
+  "chatImagePlaceholder": "[Image]",
+  "chatCleared": "Conversation cleared",
+  "unblockUser": "Unblock user",
+  "blockUser": "Block user",
+  "enableNotifications": "Turn on notifications",
+  "disableNotifications": "Turn off notifications",
+  "userBlocked": "User blocked",
+  "userUnblocked": "User unblocked",
+  "userReportSubmitted": "Your report has been sent.",
+  "notificationsDisabled": "Notifications turned off",
+  "notificationsEnabled": "Notifications turned on",
+  "chatMessageSeller": "Message the seller",
+  "chatMessageSellerAboutListing": "Message the seller about this listing",
+  "sortByDate": "By date",
+  "sortByUnread": "Unread first",
+  "chatSortRecent": "Most recent",
+  "mockBabyStroller": "Chicco baby stroller",
+  "mockStoreDescriptionHome": "A quality selection of home and household products.",
+  "mockStoreDescriptionTech": "Phones, laptops, computers, and electronics.",
+  "mockStoreDescriptionFashion": "Clothing for women, men, and children.",
+  "mockStoreDescriptionAuto": "Car parts, oils, and accessories.",
+  "mockStoreDescriptionGarden": "Flowers, decorative plants, and gardening supplies.",
+  "mockStoreDescriptionTools": "Tools for professionals and home users.",
+  "mockStoreDescriptionBaby": "Baby clothes, toys, and strollers.",
+  "mockStoreDescriptionBooks": "Fiction, non-fiction, and school supplies.",
+  "istanbulDistrictAddress": "Kadıköy, Istanbul",
+  "storeShowLess": "Show less",
+  "storeShowMore": "Show more",
+  "savedSearchesEmptyDescription": "Save searches to keep up with new listings.",
+  "productCategory": "Category",
+  "productSubcategory": "Subcategory",
+  "productBrand": "Brand",
+  "productModel": "Model",
+  "productMemory": "Storage",
+  "productSimCard": "SIM card",
+  "productDelivery": "Delivery",
+  "listingViewCount": "Views",
+  "todayAt": "Today, {time}",
+  "@todayAt": {"placeholders": {"time": {"type": "String"}}},
+  "reportSpam": "Spam",
+  "reportListingNotCurrent": "Listing is no longer available",
+  "reportDuplicate": "Duplicate listing",
+  "reportWrongCategory": "Wrong category",
+  "reportFraud": "Fraud",
+  "chooseCategory": "Choose a category",
+  "startSearching": "Start searching",
+  "allStores": "All stores",
+  "messageFilterAll": "All",
+  "messageFilterSales": "Sales",
+  "messageFilterPurchases": "Purchases",
+  "messageFilterBlocked": "Blocked",
+  "messageSortByDate": "By date",
+  "messageSortUnread": "Unread first",
+  "mockWomenShoes": "Women's Nike sneakers",
+  "mockBabyStrollerListing": "Chicco baby stroller",
+  "mockIphoneListingTitle": "Apple iPhone 17 Pro 256GB Cosmic Orange",
+  "chatCopiedMessageCount": "{count, plural, =1{1 message copied} other{{count} messages copied}}",
+  "@chatCopiedMessageCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityBaku": "Baku",
+  "categoryElectronics": "Electronics",
+  "categoryPhones": "Phones",
+  "allCategoryItems": "All {category}",
+  "@allCategoryItems": {"placeholders": {"category": {"type": "String"}}},
+  "storeDescriptionPlaceholder": "Discover products and services from this store.",
+  "storeLocationPlaceholder": "Istanbul",
+  "nearby": "Nearby",
+  "listingCount": "Listings",
+  "followers": "Followers",
+  "views": "Views",
+  "discoverTab": "Discover",
+  "storeSloganLabel": "Slogan",
+  "listingVideoSection": "Product video",
+  "directions": "Directions",
+  "allCategories": "All categories",
+  "mockNotificationTitle": "New activity",
+  "mockNotificationDescription": "A seller sent you a message.",
+  "mockMessagePreview": "I’m interested in this listing."
+  ,"requiredName": "Enter your first and last name"
+  ,"invalidEmail": "Please enter a valid email address"
+  ,"passwordMinLength": "Password must be at least {count} characters long"
+  ,"@passwordMinLength": {"placeholders": {"count": {"type": "int"}}}
+  ,"passwordsMismatch": "Passwords do not match"
+  ,"passwordUnchangedHint": "Leave blank if you don't want to change it"
+  ,"confirm": "Confirm"
+  ,"profileUpdateFailed": "Profile could not be updated: {error}"
+  ,"@profileUpdateFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"shortNumber": "Extension"
+  ,"addContact": "Add"
+  ,"invalidContactPhone": "Enter a valid contact phone number."
+  ,"contactEmailAndPhoneRequired": "Enter an email address and contact phone number."
+  ,"smsCodeSend": "Send SMS code"
+  ,"notAdded": "Not added"
+  ,"storeStatusUpdateFailed": "Store status could not be changed: {error}"
+  ,"@storeStatusUpdateFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"storeDeleteFailed": "Store could not be deleted: {error}"
+  ,"@storeDeleteFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"storeApproved": "Approved"
+  ,"storeStatusApplication": "Awaiting approval"
+  ,"storeStatusInactive": "Inactive"
+  ,"storeStatusSuspended": "Suspended"
+  ,"storeStatusRejected": "Rejected"
+  ,"storePendingApproval": "Awaiting approval"
+  ,"storePanelActive": "Your store panel is active. You can return to it at any time."
+  ,"storeUnderReview": "Your store is being reviewed. You can access the store panel after approval."
+  ,"paymentAwaiting": "Awaiting payment ({count})"
+  ,"@paymentAwaiting": {"placeholders": {"count": {"type": "int"}}}
+  ,"listingRejectedTab": "Rejected ({count})"
+  ,"@listingRejectedTab": {"placeholders": {"count": {"type": "int"}}}
+  ,"sortPriceLowest": "Lowest price"
+  ,"paymentError": "Payment error"
+  ,"profileViewCount": "Views"
+  ,"edit": "Edit"
+  ,"copy": "Copy"
+  ,"reply": "Reply"
+  ,"noMessages": "No messages yet"
+  ,"regionAzerbaijan": "Azerbaijan"
+  ,"regionTurkey": "Türkiye"
+  ,"lastSevenDays": "Last 7 days"
+  ,"lastThirtyDays": "Last 30 days"
+  ,"searches": "Searches"
+  ,"messageSingular": "Message"
+  ,"activeListingsCount": "Active ({count})"
+  ,"@activeListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"inactiveListingsCount": "Inactive ({count})"
+  ,"@inactiveListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"moderationListingsCount": "Under review ({count})"
+  ,"@moderationListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"storeDeactivate": "Deactivate"
+  ,"sellerLabel": "Seller"
+  ,"taxId": "Tax ID"
+  ,"continueAction": "Continue"
+  ,"listingStateActive": "Active"
+  ,"listingStateInactive": "Inactive"
+  ,"listingStateRejected": "Rejected"
+  ,"listingStateModeration": "Under review"
+  ,"openingAt": "Opens at {time}"
+  ,"@openingAt": {"placeholders": {"time": {"type": "String"}}}
+  ,"categoryCatalog": "Catalog"
+  ,"categoryVehicles": "Vehicles"
+  ,"categoryHomeAppliances": "Home and appliances"
+  ,"categorySpecialClothing": "Special occasion clothing"
+  ,"categoryRealEstate": "Real estate"
+  ,"categoryCosmetics": "Cosmetics"
+  ,"subcategoryComputers": "Computers"
+  ,"subcategoryTablets": "Tablets"
+  ,"subcategorySmartWatches": "Smart watches"
+  ,"subcategoryHeadphones": "Headphones"
+  ,"subcategoryTvAudio": "TV and audio"
+  ,"subcategoryGameConsoles": "Game consoles"
+  ,"subcategoryAccessories": "Accessories"
+  ,"subcategoryCars": "Cars"
+  ,"subcategoryMotorcycles": "Motorcycles"
+  ,"subcategoryBicycles": "Bicycles"
+  ,"subcategorySpareParts": "Spare parts"
+  ,"subcategoryAutoParts": "Auto parts"
+  ,"subcategoryFurniture": "Furniture"
+  ,"subcategoryHomeAppliances": "Home appliances"
+  ,"subcategoryKitchenware": "Kitchenware"
+  ,"subcategoryGardenLifestyle": "Garden and lifestyle"
+  ,"subcategoryDecor": "Decor"
+  ,"subcategoryWomenClothing": "Women's clothing"
+  ,"subcategoryMenClothing": "Men's clothing"
+  ,"subcategoryChildrenClothing": "Children's clothing"
+  ,"subcategoryShoes": "Shoes"
+  ,"subcategoryBags": "Bags"
+  ,"subcategoryJewelry": "Jewelry"
+  ,"subcategoryWatches": "Watches"
+  ,"subcategoryToys": "Toys"
+  ,"subcategoryStrollers": "Strollers"
+  ,"subcategoryChildFurniture": "Children's furniture"
+  ,"subcategoryEducationBooks": "Education and books"
+  ,"subcategoryApartments": "Apartments"
+  ,"subcategoryHouses": "Houses"
+  ,"subcategoryLand": "Land"
+  ,"subcategoryCommercialProperty": "Commercial properties"
+  ,"subcategoryRent": "Rent"
+  ,"subcategoryCosmetics": "Cosmetics and perfumes"
+  ,"subcategoryRepairServices": "Repair services"
+  ,"subcategoryEducationServices": "Education services"
+  ,"subcategoryBeautyServices": "Beauty services"
+  ,"subcategoryOtherServices": "Other services"
+  ,"subcategorySportsShoes": "Sports shoes"
+  ,"subcategoryMusicalInstruments": "Musical instruments"
+  ,"subcategoryBooks": "Books"
+  ,"subcategoryCollectibles": "Collectibles"
+  ,"subcategoryVideoGames": "Video games"
+  ,"cityGanja": "Ganja"
+  ,"citySumqayit": "Sumqayit"
+  ,"cityMingachevir": "Mingachevir"
+  ,"cityLankaran": "Lankaran"
+  ,"sortPriceHighest": "Highest price"
+  ,"sortNewest": "Newest"
+  ,"weekdayMondayShort": "Mon"
+  ,"weekdayTuesdayShort": "Tue"
+  ,"weekdayWednesdayShort": "Wed"
+  ,"weekdayThursdayShort": "Thu"
+  ,"weekdayFridayShort": "Fri"
+  ,"weekdaySaturdayShort": "Sat"
+  ,"weekdaySundayShort": "Sun"
+  ,"rejectedListingsCount": "Rejected ({count})"
+  ,"@rejectedListingsCount": {"placeholders": {"count": {"type": "int"}}}
+  ,"loginIdentifierRequired": "Enter your phone number or email address"
+  ,"loginIdentifierInvalid": "Please enter a valid phone number or email address",
+  "invalidOtpCode": "The verification code is invalid.",
+  "accountAlreadyRegistered": "An account with these details already exists.",
+  "authRequestFailed": "We couldn't complete this request. Please try again.",
+  "serverTimeout": "The server took too long to respond. Please try again.",
+  "serverUnavailable": "Unable to connect to the server. Check your connection and try again.",
+  "requestFailed": "The request could not be completed. Please try again."
+  ,"storeNameLabel": "Store name"
+  ,"goToStore": "Go to store"
+  ,"backToPersonalAccount": "Back to personal account"
+  ,"myStore": "My store"
+  ,"listingStatusPendingPayment": "Awaiting payment"
+  ,"listingStatusInactive": "Inactive"
+  ,"listingStatusRejected": "Rejected"
+  ,"listingStatusExpired": "Expired"
+  ,"listingStatusSold": "Sold"
+  ,"listingStatusDeleted": "Deleted"
+  ,"listingStatusDraft": "Draft"
+  ,"listingStatusUnknown": "Unknown"
+  ,"listingStatusUnderReview": "Under review"
+  ,"emptyActiveListings": "You have no active listings"
+  ,"emptyPendingPaymentListings": "You have no listings awaiting payment"
+  ,"emptyInactiveListings": "You have no inactive listings"
+  ,"emptyRejectedListings": "You have no rejected listings"
+  ,"emptyReviewListings": "You have no listings under review"
+  ,"postListingAction": "Post a listing"
+  ,"storeDisableTemporarily": "Temporarily deactivate your store"
+  ,"storeEnableAgain": "Reactivate your store"
+  ,"storeHiddenDescription": "Customers won't be able to see your store or listings. You can reactivate them at any time."
+  ,"storeVisibleDescription": "Your store and listings will be visible to customers again."
+  ,"storeDisableAction": "Deactivate store"
+  ,"storeEnableAction": "Activate store"
+  ,"storeVisibilityHelp": "Preview how customers see your store."
+  ,"viewMyStore": "View my store"
+  ,"storeEnableConfirm": "Reactivate your store?"
+  ,"storeDisableConfirm": "Deactivate your store?"
+  ,"storeEnableConfirmDescription": "Customers will be able to see your store again."
+  ,"storeDisableConfirmDescription": "Your store and listings will be hidden temporarily."
+  ,"shareListingTitle": "Share {seller}'s listing"
+  ,"@shareListingTitle": {"placeholders": {"seller": {"type": "String"}}}
+  ,"shareAction": "Share"
+  ,"copyLinkAction": "Copy link"
+  ,"shareListingText": "Check out {seller}'s listing: {link}"
+  ,"@shareListingText": {"placeholders": {"seller": {"type": "String"}, "link": {"type": "String"}}}
+  ,"all": "All"
+  ,"dayAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}"
+  ,"@dayAgo": {"placeholders": {"count": {"type": "int"}}}
+  ,"savedListingsTab": "Listings"
+  ,"savedSearchesTab": "Searches"
+  ,"followedStoresTab": "Stores"
+  ,"sortRecommended": "Recommended"
+  ,"price": "Price"
+  ,"minimumPrice": "Minimum price"
+  ,"maximumPrice": "Maximum price"
+  ,"applyFilters": "Apply filters"
+  ,"resetFilters": "Reset"
+  ,"businessStoreName": "Store name"
+  ,"storeLogoTitle": "Store logo"
+  ,"storeBannerTitle": "Store banner"
+  ,"businessEditAddress": "Address"
+  ,"businessContactNumber": "Contact number"
+  ,"saveChanges": "Save changes"
+  ,"storeInfo": "Store profile"
+  ,"businessWallet": "Wallet"
+  ,"businessEditProfile": "Edit profile"
+  ,"businessSettings": "Settings"
+  ,"storeUnderReviewEmpty": "You have no listings under review"
+  ,"openNow": "Open now"
+  ,"active": "Active"
+  ,"sortLowestPrice": "Lowest price"
+  ,"sortHighestPrice": "Highest price"
+  ,"sortNewestListings": "Newest listings"
+  ,"hoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}"
+  ,"@hoursAgo": {"placeholders": {"count": {"type": "int"}}}
+  ,"storeLogoHint": "PNG displayed on your store page and catalog, 500 × 500 px"
+  ,"storeBannerHint": "PNG displayed on your store page and catalog, 2000 × 532 px"
+  ,"slogan": "Slogan"
+  ,"blockUser": "Block user"
+  ,"unblockUser": "Unblock user"
+  ,"cityIstanbul": "Istanbul"
+  ,"districtNarimanov": "Narimanov"
+  ,"districtSahil": "Sahil"
+  ,"districtYasamal": "Yasamal"
+  ,"districtGanjlik": "Ganjlik"
+}
