@@ -24,7 +24,10 @@ class FavoritesCubit extends Cubit<Map<String, EngagementItem>> {
         .fetchFavorites()
         .then((favorites) {
           if (isClosed || loadVersion != _loadVersion) return;
-          emit({for (final item in favorites) item.id: item});
+          emit({
+            for (final item in state.values) item.id: item,
+            for (final item in favorites) item.id: item,
+          });
           _isLoaded = true;
         })
         .whenComplete(() {

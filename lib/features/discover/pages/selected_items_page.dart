@@ -118,7 +118,7 @@ class _SelectedItemsPageState extends State<SelectedItemsPage> {
 
   Future<Object> _loadFavorites() async {
     final cubit = context.read<FavoritesCubit>();
-    if (!cubit.isLoaded && cubit.state.isEmpty) await cubit.load();
+    if (!cubit.isLoaded) await cubit.load();
     return cubit.state.values.toList(growable: false).reversed.toList();
   }
 

@@ -25,7 +25,7 @@ void main() {
         visibilityUpdateInterval;
   });
 
-  testWidgets('a recent like is not replaced by a stale empty fetch', (
+  testWidgets('an empty favorites response preserves a recent in-memory like', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(375, 1024);
@@ -56,7 +56,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Recently liked video'), findsOneWidget);
-    expect(repository.favoriteFetchCount, 0);
+    expect(repository.favoriteFetchCount, 1);
   });
 
   testWidgets(
