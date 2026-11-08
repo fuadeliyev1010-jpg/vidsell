@@ -13,8 +13,8 @@ class ApiHomeRepository implements HomeRepository {
 
   @override
   Future<PageResponse<FeedItem>> fetchListings({
-    String? cursor,
-    int limit = 5,
+    int page = 1,
+    int size = 5,
     String? categoryId,
     String? subcategoryId,
     String? cityId,
@@ -27,8 +27,8 @@ class ApiHomeRepository implements HomeRepository {
     final data = await _client.get(
       '/listings',
       queryParameters: {
-        'cursor': ?cursor,
-        'limit': limit,
+        'page': page,
+        'size': size,
         'categoryId': ?categoryId,
         'subcategoryId': ?subcategoryId,
         'cityId': ?cityId,
@@ -39,17 +39,18 @@ class ApiHomeRepository implements HomeRepository {
         'sellerType': ?sellerType?.code,
       },
     );
-    final page = parsePage(data, FeedItem.fromJson);
+    final responsePage = parsePage(
+      data,
+      FeedItem.fromJson,
+      requestedPage: page,
+    );
     return PageResponse(
-      items: page.items,
-      page: page.page,
-      size: page.size,
-      totalElements: page.totalElements,
-      totalPages: page.totalPages,
-      last: page.last,
-      nextCursor: data is Map<String, dynamic>
-          ? data['nextCursor'] as String?
-          : null,
+      items: responsePage.items,
+      page: responsePage.page,
+      size: responsePage.size,
+      totalElements: responsePage.totalElements,
+      totalPages: responsePage.totalPages,
+      last: responsePage.last,
     );
   }
 }

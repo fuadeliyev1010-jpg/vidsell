@@ -202,14 +202,19 @@ class _HomePageState extends State<HomePage> {
                       : keepFeedChoicesVisible;
                 });
                 if (index >= state.listings.length - 2 &&
-                    state.nextCursor != null) {
+                    state.nextPage != null) {
                   context.read<HomeBloc>().add(
                     const HomeMoreListingsRequested(),
                   );
                 }
               },
               itemBuilder: (context, index) =>
-                  _buildListingPage(state.listings[index], index),
+                  _buildListingPage(
+                    ProductLegacyAdapter.toHomeListingFromFeedItem(
+                      state.listings[index],
+                    ),
+                    index,
+                  ),
             );
           },
         ),

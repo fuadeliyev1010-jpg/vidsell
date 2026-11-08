@@ -7,17 +7,20 @@ import 'package:vidsell/features/home/widgets/home_listing_media.dart';
 import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/models/product/product.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 
 void main() {
-  test('mock home repository returns cursor-paginated listings', () async {
+  test('mock home repository returns page-indexed listings', () async {
     final repository = MockHomeRepository();
 
-    final firstPage = await repository.fetchListings(limit: 5);
+    final firstPage = await repository.fetchListings(page: 1, size: 5);
     final secondPage = await repository.fetchListings(
-      cursor: firstPage.nextCursor,
-      limit: 5,
+      page: 2,
+      size: 5,
     );
 
+    expect(firstPage.page, 0);
+    expect(secondPage.page, 1);
     expect(firstPage.listings, hasLength(5));
     expect(firstPage.hasMore, isTrue);
     expect(secondPage.listings, hasLength(5));
@@ -29,7 +32,7 @@ void main() {
   });
 
   test('mock repository builds feed items with canonical products', () async {
-    final page = await MockHomeRepository().fetchListings(limit: 1);
+    final page = await MockHomeRepository().fetchListings(size: 1);
     final item = page.items.single;
 
     expect(item.products, hasLength(1));
@@ -256,11 +259,13 @@ void main() {
     addTearDown(bloc.close);
 
     final firstStateFuture = bloc.stream.firstWhere(
-      (state) => state.status == HomeStatus.success && state.nextCursor != null,
+      (state) => state.status == HomeStatus.success && state.nextPage != null,
     );
     bloc.add(const HomeListingsRequested());
     final firstState = await firstStateFuture;
     expect(firstState.listings, hasLength(5));
+    expect(firstState.listings.first, isA<FeedItem>());
+    expect(firstState.nextPage, 2);
 
     final secondStateFuture = bloc.stream.firstWhere(
       (state) =>
@@ -312,7 +317,7 @@ void main() {
       'listing-1',
       'listing-4',
     });
-    expect(state.nextCursor, isNull);
+    expect(state.nextPage, isNull);
   });
 
   test('For You returns different videos from liked categories', () async {
@@ -345,7 +350,7 @@ void main() {
     'mock video products reuse video URL across Turkish locations',
     () async {
       final repository = MockHomeRepository();
-      final page = await repository.fetchListings(limit: 50);
+      final page = await repository.fetchListings(size: 50);
 
       expect(page.listings.length, greaterThan(10));
       expect(

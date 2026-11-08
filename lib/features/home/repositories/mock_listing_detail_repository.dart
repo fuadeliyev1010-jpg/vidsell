@@ -11,7 +11,7 @@ class MockListingDetailRepository implements ListingDetailRepository {
 
   @override
   Future<Product> fetchListing(String listingId) async {
-    final page = await _homeRepository.fetchListings(limit: 50);
+    final page = await _homeRepository.fetchListings(size: 50);
     for (final item in page.items) {
       final listing = item.product;
       if (listing?.id == listingId) {

@@ -11,7 +11,7 @@ void main() {
         homeRepository: homeRepository,
       );
 
-      final feed = await homeRepository.fetchListings(limit: 50);
+      final feed = await homeRepository.fetchListings(size: 50);
       final results = await searchRepository.search('Samsung');
 
       expect(feed.listings.map((listing) => listing.id), contains('listing-2'));

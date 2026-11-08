@@ -3,7 +3,7 @@ import 'package:vidsell/features/home/repositories/mock_home_repository.dart';
 
 void main() {
   test('mock listings include coordinates for map markers', () async {
-    final page = await MockHomeRepository().fetchListings(limit: 50);
+    final page = await MockHomeRepository().fetchListings(size: 50);
 
     expect(page.listings, isNotEmpty);
     expect(

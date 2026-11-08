@@ -5,8 +5,8 @@ import 'package:vidsell/models/video/feed_item.dart';
 
 abstract interface class HomeRepository {
   Future<PageResponse<FeedItem>> fetchListings({
-    String? cursor,
-    int limit = 5,
+    int page = 1,
+    int size = 5,
     String? categoryId,
     String? subcategoryId,
     String? cityId,

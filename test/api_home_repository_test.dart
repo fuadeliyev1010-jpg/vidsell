@@ -27,7 +27,8 @@ void main() {
       });
 
       final page = await ApiHomeRepository(client).fetchListings(
-        limit: 50,
+        page: 1,
+        size: 50,
         categoryId: 'category-1',
         subcategoryId: 'subcategory-1',
         cityId: 'city-1',
@@ -35,8 +36,10 @@ void main() {
       );
 
       expect(page.listings, isEmpty);
+      expect(page.page, 0);
       expect(adapter.request!.queryParameters, {
-        'limit': 50,
+        'page': 1,
+        'size': 50,
         'categoryId': 'category-1',
         'subcategoryId': 'subcategory-1',
         'cityId': 'city-1',
@@ -58,7 +61,14 @@ class _HomeResponseAdapter implements HttpClientAdapter {
   ) async {
     request = options;
     return ResponseBody.fromString(
-      jsonEncode({'items': [], 'nextCursor': null}),
+      jsonEncode({
+        'items': [],
+        'page': 0,
+        'size': 50,
+        'totalElements': 0,
+        'totalPages': 0,
+        'last': true,
+      }),
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],

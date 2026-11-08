@@ -13,20 +13,23 @@ class MockSearchRepository implements SearchRepository {
     final normalizedQuery = query.trim().toLowerCase();
     if (normalizedQuery.isEmpty) return const [];
     final listings = <Product>[];
-    String? cursor;
+    var pageNumber = 1;
+    var isLastPage = false;
     do {
       final page = await homeRepository.fetchListings(
-        cursor: cursor,
-        limit: 50,
+        page: pageNumber,
+        size: 50,
       );
       listings.addAll(
         page.items.map((item) => item.product).whereType<Product>(),
       );
-      if (page.nextCursor == cursor && page.nextCursor != null) {
-        throw StateError('Mock listings feed returned a repeated cursor.');
+      isLastPage = page.last;
+      if (!isLastPage &&
+          (page.page != pageNumber - 1 || pageNumber >= page.totalPages)) {
+        throw StateError('Mock search pagination returned an invalid page.');
       }
-      cursor = page.nextCursor;
-    } while (cursor != null);
+      pageNumber++;
+    } while (!isLastPage);
 
     return listings
         .where(

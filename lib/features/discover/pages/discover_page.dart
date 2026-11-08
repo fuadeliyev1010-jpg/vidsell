@@ -75,7 +75,7 @@ class _DiscoverPageState extends State<DiscoverPage>
       _listingsError = null;
     });
     try {
-      final page = await _homeRepository.fetchListings(limit: 50);
+      final page = await _homeRepository.fetchListings(size: 50);
       if (!mounted) return;
       setState(() {
         _listings = page.items

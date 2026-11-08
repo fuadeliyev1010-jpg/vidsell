@@ -39,6 +39,20 @@ class FeedItem {
   String? get videoUrl =>
       VideoUrlResolver.selectPlaybackUrl(hlsUrl: hlsUrl, rawUrl: rawUrl);
 
+  FeedItem copyWith({List<Product>? products}) => FeedItem(
+    videoId: videoId,
+    thumbnailUrl: thumbnailUrl,
+    hlsUrl: hlsUrl,
+    rawUrl: rawUrl,
+    durationSeconds: durationSeconds,
+    contentType: contentType,
+    products: products ?? this.products,
+    createdAt: createdAt,
+    ownerId: ownerId,
+    ownerName: ownerName,
+    ownerAvatarUrl: ownerAvatarUrl,
+  );
+
   factory FeedItem.fromJson(Map<String, dynamic> json) => FeedItem(
     videoId: '${json['videoId'] ?? json['id'] ?? ''}',
     thumbnailUrl: json['thumbnailUrl'] as String?,

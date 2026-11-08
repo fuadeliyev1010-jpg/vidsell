@@ -54,7 +54,7 @@ void main() {
       expect(pending.single.status, ProductStatus.underReview);
 
       await ownerListings.updateListingStatus(created.id, ProductStatus.active);
-      final discovered = await homeRepository.fetchListings(limit: 50);
+      final discovered = await homeRepository.fetchListings(size: 50);
       final visibleListing = discovered.listings.singleWhere(
         (listing) => listing.id == created.id,
       );
@@ -75,7 +75,7 @@ void main() {
       expect(await ownerListings.fetchMyListings(), isEmpty);
       expect(
         (await homeRepository.fetchListings(
-          limit: 50,
+          size: 50,
         )).listings.any((listing) => listing.id == created.id),
         isFalse,
       );

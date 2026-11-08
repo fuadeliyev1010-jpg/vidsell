@@ -74,7 +74,7 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
     final activeFilter = filter ?? _activeFilter;
     try {
       final page = await _homeRepository.fetchListings(
-        limit: 50,
+        size: 50,
         categoryId: activeFilter?.categoryId ?? widget.categoryId,
         subcategoryId: activeFilter?.subcategoryId ?? widget.subcategoryId,
         cityId: activeFilter?.cityId,

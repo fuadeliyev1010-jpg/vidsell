@@ -88,21 +88,24 @@ class _StorePageState extends State<StorePage> {
     });
     try {
       final listings = <Product>[];
-      String? cursor;
+      var pageNumber = 1;
+      var isLastPage = false;
       do {
         final page = await _homeRepository.fetchListings(
-          cursor: cursor,
-          limit: 50,
+          page: pageNumber,
+          size: 50,
           sellerId: sellerId,
         );
         listings.addAll(
           page.items.map((item) => item.product).whereType<Product>(),
         );
-        if (page.nextCursor == cursor && page.nextCursor != null) {
-          throw StateError('Seller listings returned a repeated cursor.');
+        isLastPage = page.last;
+        if (!isLastPage &&
+            (page.page != pageNumber - 1 || pageNumber >= page.totalPages)) {
+          throw StateError('Seller listing pagination returned an invalid page.');
         }
-        cursor = page.nextCursor;
-      } while (cursor != null);
+        pageNumber++;
+      } while (!isLastPage);
 
       if (!mounted) return;
       setState(() {

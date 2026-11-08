@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
 import 'package:vidsell/features/home/repositories/mock_home_repository.dart';
 import 'package:vidsell/models/enums/feed_tab.dart';
 import 'package:vidsell/models/enums/seller_type.dart';
-import 'package:vidsell/core/adapters/product_legacy_adapter.dart';
+import 'package:vidsell/models/product/product.dart';
+import 'package:vidsell/models/video/feed_item.dart';
 
 enum HomeStatus { initial, loading, loadingMore, success, failure }
 
@@ -64,32 +64,30 @@ final class HomeFeedQuery {
 
 final class HomeState {
   final HomeStatus status;
-  final List<HomeListing> listings;
-  final String? nextCursor;
+  final List<FeedItem> listings;
+  final int? nextPage;
   final String? errorMessage;
 
   const HomeState({
     this.status = HomeStatus.initial,
     this.listings = const [],
-    this.nextCursor,
+    this.nextPage,
     this.errorMessage,
   });
 
   HomeState copyWith({
     HomeStatus? status,
-    List<HomeListing>? listings,
+    List<FeedItem>? listings,
     String? errorMessage,
-    String? nextCursor,
+    int? nextPage,
     bool clearError = false,
-    bool clearCursor = false,
-  }) {
-    return HomeState(
-      status: status ?? this.status,
-      listings: listings ?? this.listings,
-      nextCursor: clearCursor ? null : nextCursor ?? this.nextCursor,
-      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
-    );
-  }
+    bool clearNextPage = false,
+  }) => HomeState(
+    status: status ?? this.status,
+    listings: listings ?? this.listings,
+    nextPage: clearNextPage ? null : nextPage ?? this.nextPage,
+    errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+  );
 }
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
@@ -109,13 +107,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeListingFavoriteChanged event,
     Emitter<HomeState> emit,
   ) {
-    final listings = state.listings
-        .map(
-          (listing) => listing.id == event.listingId
-              ? listing.copyWith(isFavorite: event.isFavorite)
-              : listing,
-        )
-        .toList(growable: false);
+    final listings = state.listings.map((item) {
+      final products = item.products.map((product) {
+        if (product.id != event.listingId) return product;
+        return Product.fromJson({
+          ...product.toJson(),
+          'isFavorite': event.isFavorite,
+        });
+      }).toList(growable: false);
+      return item.copyWith(products: products);
+    }).toList(growable: false);
     emit(state.copyWith(listings: listings));
   }
 
@@ -129,8 +130,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       state.copyWith(
         status: HomeStatus.loading,
         listings: event.refresh ? const [] : state.listings,
-        nextCursor: event.refresh ? null : state.nextCursor,
-        clearCursor: event.refresh,
+        clearNextPage: event.refresh,
         clearError: true,
       ),
     );
@@ -142,8 +142,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         state.copyWith(
           status: HomeStatus.success,
           listings: List.unmodifiable(page.listings),
-          nextCursor: page.nextCursor,
-          clearCursor: page.nextCursor == null,
+          nextPage: page.nextPage,
+          clearNextPage: page.nextPage == null,
         ),
       );
     } catch (error) {
@@ -161,28 +161,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeMoreListingsRequested event,
     Emitter<HomeState> emit,
   ) async {
+    final pageNumber = state.nextPage;
     if (state.status == HomeStatus.loadingMore ||
         state.status == HomeStatus.loading ||
-        state.nextCursor == null) {
+        pageNumber == null) {
       return;
     }
 
     final requestVersion = _requestVersion;
     emit(state.copyWith(status: HomeStatus.loadingMore, clearError: true));
     try {
-      final page = await _fetchPage(_query, cursor: state.nextCursor);
+      final page = await _fetchPage(_query, page: pageNumber);
       if (requestVersion != _requestVersion) return;
-      final listings = _uniqueVideoListings([
-        ...state.listings,
-        ...page.listings,
-      ]);
-      final sortedListings = _sortByDistance(listings, _query);
+      final listings = _sortByDistance(
+        _uniqueVideoListings([...state.listings, ...page.listings]),
+        _query,
+      );
       emit(
         state.copyWith(
           status: HomeStatus.success,
-          listings: List.unmodifiable(sortedListings),
-          nextCursor: page.nextCursor,
-          clearCursor: page.nextCursor == null,
+          listings: List.unmodifiable(listings),
+          nextPage: page.nextPage,
+          clearNextPage: page.nextPage == null,
         ),
       );
     } catch (error) {
@@ -194,35 +194,33 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     }
-
   }
 
-  Future<_VideoListingPage> _fetchPage(
+  Future<_VideoFeedPage> _fetchPage(
     HomeFeedQuery query, {
-    String? cursor,
+    int page = 1,
   }) async {
     final sellerIds = query.sellerIds;
     if (sellerIds != null) {
-      if (sellerIds.isEmpty || cursor != null) {
-        return const _VideoListingPage(listings: [], nextCursor: null);
+      if (sellerIds.isEmpty || page > 1) {
+        return const _VideoFeedPage(listings: [], nextPage: null);
       }
-
       final pages = await Future.wait(
         sellerIds.map((sellerId) => _fetchAllListings(sellerId: sellerId)),
       );
-      final listings = _uniqueVideoListings(pages.expand((page) => page));
-      return _VideoListingPage(
-        listings: List.unmodifiable(_sortByCreatedAt(listings)),
-        nextCursor: null,
+      return _VideoFeedPage(
+        listings: List.unmodifiable(
+          _sortByCreatedAt(_uniqueVideoListings(pages.expand((items) => items))),
+        ),
+        nextPage: null,
       );
     }
 
     final categoryIds = query.categoryIds;
     if (categoryIds != null) {
-      if (categoryIds.isEmpty || cursor != null) {
-        return const _VideoListingPage(listings: [], nextCursor: null);
+      if (categoryIds.isEmpty || page > 1) {
+        return const _VideoFeedPage(listings: [], nextPage: null);
       }
-
       final pages = await Future.wait(
         categoryIds.map(
           (categoryId) => _fetchAllListings(
@@ -232,10 +230,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           ),
         ),
       );
-      final listings = _uniqueVideoListings(pages.expand((page) => page));
-      return _VideoListingPage(
-        listings: List.unmodifiable(_sortByCreatedAt(listings)),
-        nextCursor: null,
+      return _VideoFeedPage(
+        listings: List.unmodifiable(
+          _sortByCreatedAt(_uniqueVideoListings(pages.expand((items) => items))),
+        ),
+        nextPage: null,
       );
     }
 
@@ -247,33 +246,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         longitude: query.longitude,
         sellerType: query.sellerType,
       );
-      return _VideoListingPage(
+      return _VideoFeedPage(
         listings: List.unmodifiable(
           _sortByDistance(_uniqueVideoListings(allListings), query),
         ),
-        nextCursor: null,
+        nextPage: null,
       );
     }
 
-    final page = await _repository.fetchListings(
-      cursor: cursor,
-      limit: query.pageSize,
+    final response = await _repository.fetchListings(
+      page: page,
+      size: query.pageSize,
       cityId: query.cityId,
       tab: query.tab,
       latitude: query.latitude,
       longitude: query.longitude,
       sellerType: query.sellerType,
     );
-    final listings = page.items
-        .map(ProductLegacyAdapter.toHomeListingFromFeedItem)
-        .where((listing) => listing.hasVideo);
-    return _VideoListingPage(
-      listings: List.unmodifiable(_sortByDistance(listings.toList(), query)),
-      nextCursor: page.nextCursor,
+    final listings = _sortByDistance(
+      _uniqueVideoListings(response.items),
+      query,
+    );
+    return _VideoFeedPage(
+      listings: List.unmodifiable(listings),
+      nextPage: response.last ? null : response.page + 2,
     );
   }
 
-  Future<List<HomeListing>> _fetchAllListings({
+  Future<List<FeedItem>> _fetchAllListings({
     String? categoryId,
     String? cityId,
     String? sellerId,
@@ -282,13 +282,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     double? longitude,
     SellerType? sellerType,
   }) async {
-    final listings = <HomeListing>[];
-    final visitedCursors = <String>{};
-    String? cursor;
-    do {
-      final page = await _repository.fetchListings(
-        cursor: cursor,
-        limit: 50,
+    final listings = <FeedItem>[];
+    var requestPage = 1;
+    while (true) {
+      final response = await _repository.fetchListings(
+        page: requestPage,
+        size: 50,
         categoryId: categoryId,
         cityId: cityId,
         sellerId: sellerId,
@@ -297,26 +296,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         longitude: longitude,
         sellerType: sellerType,
       );
-      listings.addAll(
-        page.items.map(ProductLegacyAdapter.toHomeListingFromFeedItem),
-      );
-      final nextCursor = page.nextCursor;
-      if (nextCursor == null || !visitedCursors.add(nextCursor)) break;
-      cursor = nextCursor;
-    } while (true);
+      listings.addAll(response.items);
+      if (response.last) break;
+      if (response.page != requestPage - 1 ||
+          requestPage >= response.totalPages) {
+        throw StateError(
+          'Invalid feed pagination response for request page $requestPage.',
+        );
+      }
+      requestPage++;
+    }
     return listings;
   }
 
-  List<HomeListing> _uniqueVideoListings(Iterable<HomeListing> listings) {
-    final unique = <String, HomeListing>{};
-    for (final listing in listings) {
-      if (listing.hasVideo) unique.putIfAbsent(listing.id, () => listing);
+  List<FeedItem> _uniqueVideoListings(Iterable<FeedItem> listings) {
+    final unique = <String, FeedItem>{};
+    for (final item in listings) {
+      if (item.videoUrl?.trim().isNotEmpty == true) {
+        unique.putIfAbsent(item.videoId, () => item);
+      }
     }
     return unique.values.toList(growable: false);
   }
 
-  List<HomeListing> _sortByDistance(
-    List<HomeListing> listings,
+  List<FeedItem> _sortByDistance(
+    List<FeedItem> listings,
     HomeFeedQuery query,
   ) {
     final latitude = query.latitude;
@@ -333,7 +337,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     return sorted;
   }
 
-  List<HomeListing> _sortByCreatedAt(List<HomeListing> listings) {
+  List<FeedItem> _sortByCreatedAt(List<FeedItem> listings) {
     final sorted = [...listings];
     sorted.sort((a, b) {
       final aDate = a.createdAt;
@@ -345,19 +349,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     return sorted;
   }
 
-  double _distanceKm(HomeListing listing, double latitude, double longitude) {
-    final listingLatitude = listing.latitude;
-    final listingLongitude = listing.longitude;
-    if (listingLatitude == null || listingLongitude == null) {
+  double _distanceKm(FeedItem item, double latitude, double longitude) {
+    final itemLatitude = item.latitude;
+    final itemLongitude = item.longitude;
+    if (itemLatitude == null || itemLongitude == null) {
       return double.infinity;
     }
     const earthRadiusKm = 6371.0;
-    final latitudeDelta = _radians(listingLatitude - latitude);
-    final longitudeDelta = _radians(listingLongitude - longitude);
+    final latitudeDelta = _radians(itemLatitude - latitude);
+    final longitudeDelta = _radians(itemLongitude - longitude);
     final haversine =
         math.pow(math.sin(latitudeDelta / 2), 2) +
         math.cos(_radians(latitude)) *
-            math.cos(_radians(listingLatitude)) *
+            math.cos(_radians(itemLatitude)) *
             math.pow(math.sin(longitudeDelta / 2), 2);
     return earthRadiusKm * 2 * math.asin(math.sqrt(haversine));
   }
@@ -365,9 +369,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   double _radians(double degrees) => degrees * math.pi / 180;
 }
 
-class _VideoListingPage {
-  const _VideoListingPage({required this.listings, required this.nextCursor});
+class _VideoFeedPage {
+  const _VideoFeedPage({required this.listings, required this.nextPage});
 
-  final List<HomeListing> listings;
-  final String? nextCursor;
+  final List<FeedItem> listings;
+  final int? nextPage;
 }

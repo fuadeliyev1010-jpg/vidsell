@@ -362,8 +362,8 @@ class MockHomeRepository implements HomeRepository {
 
   @override
   Future<PageResponse<FeedItem>> fetchListings({
-    String? cursor,
-    int limit = 5,
+    int page = 1,
+    int size = 5,
     String? categoryId,
     String? subcategoryId,
     String? cityId,
@@ -373,7 +373,7 @@ class MockHomeRepository implements HomeRepository {
     double? longitude,
     SellerType? sellerType,
   }) async {
-    final start = int.tryParse(cursor ?? '0') ?? 0;
+    final start = (page - 1) * size;
     final userListings =
         await userListingRepository?.fetchMyListings(
           status: ProductStatus.active,
@@ -399,16 +399,15 @@ class MockHomeRepository implements HomeRepository {
       if (sellerId != null && product.sellerId != sellerId) return false;
       return true;
     }).toList(growable: false);
-    final end = (start + limit).clamp(0, listings.length);
+    final end = (start + size).clamp(0, listings.length);
     final items = listings.sublist(start, end);
     return PageResponse(
       items: items,
-      page: 1,
+      page: page - 1,
       size: items.length,
       totalElements: listings.length,
-      totalPages: 1,
+      totalPages: (listings.length / size).ceil(),
       last: end >= listings.length,
-      nextCursor: end < listings.length ? '$end' : null,
     );
   }
 
