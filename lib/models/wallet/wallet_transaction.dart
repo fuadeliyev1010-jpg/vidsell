@@ -1,3 +1,4 @@
+import '../../core/utils/currency_formatter.dart';
 import '../enums/transaction_type.dart';
 
 enum WalletTransactionStatus { pending, completed, failed }
@@ -9,7 +10,7 @@ class WalletTransaction {
     required this.amount,
     required this.description,
     required this.createdAt,
-    this.currency = 'AZN',
+    this.currency = fallbackCurrencyCode,
     this.status = WalletTransactionStatus.completed,
   });
 

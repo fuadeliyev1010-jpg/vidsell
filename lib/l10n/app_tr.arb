@@ -140,8 +140,15 @@
   "wallet": "Cüzdan",
   "walletBalance": "Cüzdan bakiyeniz",
   "topUpBalance": "Bakiye yükle",
-  "amountAzn": "Tutar (AZN)",
-  "amountRangeError": "1-5000 AZN arasında bir tutar girin",
+  "amountAzn": "Tutar",
+  "amountRangeError": "1-5000 {currency} arasında bir tutar girin",
+  "@amountRangeError": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "cardholderName": "Ad, soyad",
   "cardNumber": "Kart numarası",
   "month": "Ay",
@@ -297,7 +304,7 @@
   "noStore": "Mağazanız yok",
   "createStorePrompt": "İşletmeniz için özel bir mağaza sayfası oluşturun. Çıkış yapmadan hesaplar arasında geçiş yapabilirsiniz.",
   "accountIdLabel": "ID: {id}",
-  "zeroBalance": "0 AZN",
+  "zeroBalance": "0",
   "efficiency": "Performans",
   "clearFilter": "Filtreyi temizle",
   "sellProductPrompt": "Satmak istediğiniz ürün veya hizmeti ekleyin.",
@@ -394,7 +401,7 @@
   "listingPriceLabel": "Fiyat",
   "newCondition": "Yeni",
   "moderationStatus": "İNCELEMEDE",
-  "zeroAmountAzn": "0,00 AZN",
+  "zeroAmountAzn": "0,00",
   "activateVip": "VIP'yi etkinleştir",
   "activatePremium": "Premium'u etkinleştir",
   "standardService": "Standart",

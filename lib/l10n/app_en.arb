@@ -140,8 +140,15 @@
   "wallet": "Wallet",
   "walletBalance": "Your wallet balance",
   "topUpBalance": "Top up balance",
-  "amountAzn": "Amount (AZN)",
-  "amountRangeError": "Enter an amount between 1 and 5000 AZN",
+  "amountAzn": "Amount",
+  "amountRangeError": "Enter an amount between 1 and 5000 {currency}",
+  "@amountRangeError": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "cardholderName": "First and last name",
   "cardNumber": "Card number",
   "month": "Month",
@@ -297,7 +304,7 @@
   "noStore": "You don't have a store",
   "createStorePrompt": "Create a dedicated store page for your business. Switch between accounts without signing out.",
   "accountIdLabel": "ID: {id}",
-  "zeroBalance": "0 AZN",
+  "zeroBalance": "0",
   "efficiency": "Performance",
   "clearFilter": "Clear filter",
   "sellProductPrompt": "Add a product or service you want to sell.",
@@ -394,7 +401,7 @@
   "listingPriceLabel": "Price",
   "newCondition": "New",
   "moderationStatus": "UNDER REVIEW",
-  "zeroAmountAzn": "0.00 AZN",
+  "zeroAmountAzn": "0.00",
   "activateVip": "Activate VIP",
   "activatePremium": "Activate Premium",
   "standardService": "Standard",

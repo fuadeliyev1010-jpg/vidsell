@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
@@ -94,7 +95,11 @@ class InactiveListingCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: Text(
-                      '${listing.price.toStringAsFixed(2)} ${listing.currency}',
+                      CurrencyFormatter.formatPrice(
+                        listing.price,
+                        listing.currency,
+                        decimalDigits: 2,
+                      ),
                       style: TextStyle(
                         color: AppColor.activeColor,
                         fontSize: 11.sp,

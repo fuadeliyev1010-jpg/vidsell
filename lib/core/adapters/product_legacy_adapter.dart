@@ -1,3 +1,4 @@
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/features/home/models/home_listing.dart';
 import 'package:vidsell/models/video/feed_item.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
@@ -76,9 +77,7 @@ class ProductLegacyAdapter {
     sellerName: product.sellerName ?? '',
     sellerHandle: product.sellerHandle ?? '',
     sellerAvatar: product.sellerAvatarUrl,
-    price:
-        '${product.price % 1 == 0 ? product.price.toInt() : product.price} '
-        '${product.currency}',
+    price: CurrencyFormatter.formatPrice(product.price, product.currency),
     title: product.title,
     shareLink: product.shareUrl ?? '',
     categoryId: product.categoryId,
@@ -192,6 +191,8 @@ class ProductLegacyAdapter {
     final trimmed = price.trim();
     final match = RegExp(r'^[\d.,]+\s*(.*)$').firstMatch(trimmed);
     final currency = match?.group(1)?.trim();
-    return currency == null || currency.isEmpty ? 'TRY' : currency;
+    return currency == null || currency.isEmpty
+        ? fallbackCurrencyCode
+        : currency;
   }
 }

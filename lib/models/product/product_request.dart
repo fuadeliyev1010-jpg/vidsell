@@ -4,6 +4,8 @@ import '../enums/product_condition.dart';
 import '../enums/seller_type.dart';
 import '../enums/product_subcategory.dart';
 
+import '../../core/utils/currency_formatter.dart';
+
 class ProductRequest {
   const ProductRequest({
     required this.title,
@@ -21,7 +23,7 @@ class ProductRequest {
     this.brand = '',
     this.model = '',
     this.modelName,
-    this.currency = 'TRY',
+    this.currency = fallbackCurrencyCode,
     this.contact,
     this.contactMethod,
     this.sellerType,

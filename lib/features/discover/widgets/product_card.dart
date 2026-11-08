@@ -10,6 +10,7 @@ import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/utils/video_slot_pool.dart';
 import 'package:vidsell/features/discover/utils/product_localization.dart';
@@ -456,8 +457,7 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   String _formattedPrice(Product product) =>
-      '${product.price % 1 == 0 ? product.price.toInt() : product.price} '
-      '${product.currency}';
+      CurrencyFormatter.formatPrice(product.price, product.currency);
 
   String _localizedTimeAgo(Product product, AppLocalizations l10n) {
     final updatedAt = product.updatedAt;

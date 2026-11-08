@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
@@ -101,10 +102,10 @@ class SubscriptionPlansList extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelect,
     this.freePlanLabel,
-    this.priceSuffix = ' AZN',
+    this.currency = fallbackCurrencyCode,
   });
 
-  final String priceSuffix;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +149,7 @@ class SubscriptionPlansList extends StatelessWidget {
                             isFreePlan
                                 ? freePlanLabel!
                                 : '${plan!['duration']} / '
-                                      '${plan['price']}$priceSuffix',
+                                      '${CurrencyFormatter.formatPriceText(plan['price']!, plan['currency'] ?? currency)}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyle.primaryText.copyWith(
@@ -615,7 +616,7 @@ class SubscriptionPurchasePage extends StatefulWidget {
     required this.onPaidActivate,
     this.benefits,
     this.freePlanLabel,
-    this.priceSuffix = ' AZN',
+    this.currency = fallbackCurrencyCode,
   });
 
   final String title;
@@ -629,7 +630,7 @@ class SubscriptionPurchasePage extends StatefulWidget {
   final VoidCallback onFreeActivate;
   final VoidCallback onPaidActivate;
   final String? freePlanLabel;
-  final String priceSuffix;
+  final String currency;
 
   @override
   State<SubscriptionPurchasePage> createState() =>
@@ -640,7 +641,9 @@ class _SubscriptionPurchasePageState extends State<SubscriptionPurchasePage> {
   List<String> _paymentMethods(BuildContext context) => [
     context.l10n.bankCard,
     context.l10n.terminalPayment,
-    context.l10n.personalAccountPayment('0.00 AZN'),
+    context.l10n.personalAccountPayment(
+      CurrencyFormatter.formatPrice(0, widget.currency, decimalDigits: 2),
+    ),
   ];
 
   int _selectedPlanIndex = 0;
@@ -650,6 +653,9 @@ class _SubscriptionPurchasePageState extends State<SubscriptionPurchasePage> {
 
   String get _selectedPlanPrice =>
       _isFreePlan ? '0,00' : widget.plans[_selectedPlanIndex - 1]['price']!;
+  String get _selectedPlanCurrency => _isFreePlan
+      ? widget.currency
+      : widget.plans[_selectedPlanIndex - 1]['currency'] ?? widget.currency;
 
   @override
   Widget build(BuildContext context) {
@@ -703,7 +709,7 @@ class _SubscriptionPurchasePageState extends State<SubscriptionPurchasePage> {
                       selectedIndex: _selectedPlanIndex,
                       freePlanLabel:
                           widget.freePlanLabel ?? context.l10n.threeDays,
-                      priceSuffix: widget.priceSuffix,
+                      currency: widget.currency,
                       onSelect: (index) =>
                           setState(() => _selectedPlanIndex = index),
                     ),
@@ -740,7 +746,10 @@ class _SubscriptionPurchasePageState extends State<SubscriptionPurchasePage> {
                     ),
                   ),
                   Text(
-                    '$_selectedPlanPrice AZN',
+                    CurrencyFormatter.formatPriceText(
+                      _selectedPlanPrice,
+                      _selectedPlanCurrency,
+                    ),
                     style: AppTextStyle.primaryText.copyWith(
                       color: AppColor.success,
                       fontSize: 14.sp,
@@ -832,6 +841,7 @@ class SubscriptionPlanSection extends StatelessWidget {
   final int selectedPaymentIndex;
   final ValueChanged<int> onPaymentSelect;
   final VoidCallback onPayTap;
+  final String currency;
 
   const SubscriptionPlanSection({
     super.key,
@@ -842,6 +852,7 @@ class SubscriptionPlanSection extends StatelessWidget {
     required this.selectedPaymentIndex,
     required this.onPaymentSelect,
     required this.onPayTap,
+    this.currency = fallbackCurrencyCode,
   });
 
   @override
@@ -862,6 +873,7 @@ class SubscriptionPlanSection extends StatelessWidget {
           SubscriptionPlansList(
             plans: plans,
             selectedIndex: selectedPlanIndex,
+            currency: currency,
             onSelect: onPlanSelect,
           ),
           24.height,

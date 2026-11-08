@@ -1,3 +1,4 @@
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/models/enums/seller_type.dart';
 
 enum ListingCondition { newItem, used }
@@ -28,7 +29,7 @@ class ListingDraft {
     required this.imagePaths,
     required this.videoPaths,
     this.sellerType = SellerType.individual,
-    this.currency = 'AZN',
+    this.currency = fallbackCurrencyCode,
     this.videoCoverPaths = const [],
   });
 

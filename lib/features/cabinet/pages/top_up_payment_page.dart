@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/features/cabinet/repositories/payment_provider.dart';
@@ -13,8 +14,13 @@ import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 class TopUpPaymentPage extends StatefulWidget {
   final double amount;
+  final String currency;
 
-  const TopUpPaymentPage({super.key, required this.amount});
+  const TopUpPaymentPage({
+    super.key,
+    required this.amount,
+    this.currency = fallbackCurrencyCode,
+  });
 
   @override
   State<TopUpPaymentPage> createState() => _TopUpPaymentPageState();
@@ -90,7 +96,11 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
         children: [
           _buildSummaryRow(
             context.l10n.amountToPay,
-            '${widget.amount.toStringAsFixed(2)} AZN',
+            CurrencyFormatter.formatPrice(
+              widget.amount,
+              widget.currency,
+              decimalDigits: 2,
+            ),
           ),
           10.height,
           _buildSummaryRow(

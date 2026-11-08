@@ -941,14 +941,14 @@ abstract class AppLocalizations {
   /// No description provided for @amountAzn.
   ///
   /// In en, this message translates to:
-  /// **'Amount (AZN)'**
+  /// **'Amount'**
   String get amountAzn;
 
   /// No description provided for @amountRangeError.
   ///
   /// In en, this message translates to:
-  /// **'Enter an amount between 1 and 5000 AZN'**
-  String get amountRangeError;
+  /// **'Enter an amount between 1 and 5000 {currency}'**
+  String amountRangeError(String currency);
 
   /// No description provided for @cardholderName.
   ///
@@ -1883,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @zeroBalance.
   ///
   /// In en, this message translates to:
-  /// **'0 AZN'**
+  /// **'0'**
   String get zeroBalance;
 
   /// No description provided for @efficiency.
@@ -2423,7 +2423,7 @@ abstract class AppLocalizations {
   /// No description provided for @zeroAmountAzn.
   ///
   /// In en, this message translates to:
-  /// **'0.00 AZN'**
+  /// **'0.00'**
   String get zeroAmountAzn;
 
   /// No description provided for @activateVip.

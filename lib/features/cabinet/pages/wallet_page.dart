@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/cabinet/pages/top_up_payment_page.dart';
@@ -126,7 +127,11 @@ class _WalletPageState extends State<WalletPage> {
               Text(
                 isLoading
                     ? '...'
-                    : '${wallet?.balance.toStringAsFixed(2) ?? '0.00'} ${wallet?.currency ?? 'AZN'}',
+                    : CurrencyFormatter.formatPrice(
+                        wallet?.balance ?? 0,
+                        wallet?.currency ?? fallbackCurrencyCode,
+                        decimalDigits: 2,
+                      ),
                 style: AppTextStyle.primaryText.copyWith(
                   color: Colors.white,
                   fontSize: 18.sp,
@@ -235,23 +240,31 @@ class _WalletPageState extends State<WalletPage> {
             height: 48.h,
             child: ElevatedButton(
               onPressed: () async {
+                final l10n = context.l10n;
+                final messenger = ScaffoldMessenger.of(context);
+                final walletRepository = context.read<WalletRepository>();
                 final amount = double.tryParse(
                   _amountController.text.replaceAll(',', '.'),
                 );
+                final wallet = await _walletFuture;
+                if (!context.mounted) return;
                 if (amount == null || amount < 1 || amount > 5000) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.amountRangeError)),
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.amountRangeError(
+                          CurrencyFormatter.formatCurrency(wallet.currency),
+                        ),
+                      ),
+                    ),
                   );
                   return;
                 }
-                await context.goTo(TopUpPaymentPage(amount: amount));
-                if (mounted) {
-                  setState(() {
-                    _walletFuture = context
-                        .read<WalletRepository>()
-                        .fetchWallet();
-                  });
-                }
+                await context.goTo(
+                  TopUpPaymentPage(amount: amount, currency: wallet.currency),
+                );
+                if (!mounted) return;
+                setState(() => _walletFuture = walletRepository.fetchWallet());
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.activeColor,

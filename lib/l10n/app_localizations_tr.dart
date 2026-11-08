@@ -442,10 +442,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get topUpBalance => 'Bakiye yükle';
 
   @override
-  String get amountAzn => 'Tutar (AZN)';
+  String get amountAzn => 'Tutar';
 
   @override
-  String get amountRangeError => '1-5000 AZN arasında bir tutar girin';
+  String amountRangeError(String currency) {
+    return '1-5000 $currency arasında bir tutar girin';
+  }
 
   @override
   String get cardholderName => 'Ad, soyad';
@@ -946,7 +948,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get zeroBalance => '0 AZN';
+  String get zeroBalance => '0';
 
   @override
   String get efficiency => 'Performans';
@@ -1261,7 +1263,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get moderationStatus => 'İNCELEMEDE';
 
   @override
-  String get zeroAmountAzn => '0,00 AZN';
+  String get zeroAmountAzn => '0,00';
 
   @override
   String get activateVip => 'VIP\'yi etkinleştir';

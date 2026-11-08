@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../core/utils/currency_formatter.dart';
 import '../enums/delivery_type.dart';
 import '../enums/product_category.dart';
 import '../enums/product_condition.dart';
@@ -15,7 +16,7 @@ class Product {
     required this.price,
     this.originalPrice,
     this.discountPercent,
-    this.currency = 'TRY',
+    this.currency = fallbackCurrencyCode,
     this.description = '',
     this.category,
     this.categoryLabel,
@@ -125,7 +126,7 @@ class Product {
     price: _double(json['price']),
     originalPrice: _doubleOrNull(json['originalPrice']),
     discountPercent: _doubleOrNull(json['discountPercent']),
-    currency: '${json['currency'] ?? 'TRY'}',
+    currency: '${json['currency'] ?? fallbackCurrencyCode}',
     description: '${json['description'] ?? ''}',
     category: _category(json['category']),
     categoryLabel: json['categoryLabel'] as String?,

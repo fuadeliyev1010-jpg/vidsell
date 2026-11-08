@@ -1,3 +1,4 @@
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/network/page_response_parser.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
@@ -19,7 +20,7 @@ class ApiWalletRepository implements WalletRepository {
     }
     return WalletBalance(
       balance: (data['balance'] as num?)?.toDouble() ?? 0,
-      currency: data['currency'] as String? ?? 'AZN',
+      currency: data['currency'] as String? ?? fallbackCurrencyCode,
       updatedAt: DateTime.parse(data['updatedAt'] as String),
     );
   }
@@ -89,7 +90,7 @@ class ApiWalletRepository implements WalletRepository {
       WalletTransaction(
         id: data['id'].toString(),
         amount: (data['amount'] as num?)?.toDouble() ?? 0,
-        currency: data['currency'] as String? ?? 'AZN',
+        currency: data['currency'] as String? ?? fallbackCurrencyCode,
         type:
             TransactionType.fromCode(data['type'] as String?) ??
             TransactionType.topUp,

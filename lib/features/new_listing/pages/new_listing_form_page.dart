@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/discover/models/city.dart';
@@ -508,7 +509,11 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
           : '';
       await context.goToListingPromotion(
         title: draft.title,
-        price: '${draft.price.toStringAsFixed(2)} ₼',
+        price: CurrencyFormatter.formatPrice(
+          draft.price,
+          draft.currency,
+          decimalDigits: 2,
+        ),
         city: draft.city,
         category: draft.categoryName,
         subcategory: draft.subcategoryName,

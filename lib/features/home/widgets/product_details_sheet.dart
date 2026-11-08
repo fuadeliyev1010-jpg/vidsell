@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/pager/context_go.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/utils/call_seller.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
@@ -21,7 +22,7 @@ class ProductDetailsSheet extends StatefulWidget {
   const ProductDetailsSheet({
     super.key,
     this.listing,
-    this.price = '2890.24 ₼',
+    this.price,
     this.title = 'Apple iPhone 17 Pro 256GB Cosmic Orange MG7L4LL/A',
     this.categoryLabel,
     this.city,
@@ -36,7 +37,7 @@ class ProductDetailsSheet extends StatefulWidget {
   });
 
   final Product? listing;
-  final String price;
+  final String? price;
   final String title;
   final String? categoryLabel;
   final String? city;
@@ -66,11 +67,11 @@ class _ProductDetailsSheetState extends State<ProductDetailsSheet> {
 
   String get _price {
     final listing = _listing;
-    if (listing == null) return widget.price;
-    final price = listing.price % 1 == 0
-        ? listing.price.toInt().toString()
-        : listing.price.toString();
-    return '$price ${listing.currency}';
+    if (listing == null) {
+      return widget.price ??
+          CurrencyFormatter.formatPrice(2890.24, fallbackCurrencyCode);
+    }
+    return CurrencyFormatter.formatPrice(listing.price, listing.currency);
   }
 
   String get _title => _listing?.title ?? widget.title;
@@ -642,14 +643,14 @@ class _ProductDetailsSheetState extends State<ProductDetailsSheet> {
       id: 'sample-1',
       imageUrls: ['assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif'],
       price: 2980,
-      currency: '₼',
+      currency: 'AZN',
       title: 'Smartfon Apple iPhone 17 Pro 256GB Cosmic Orange...',
     ),
     Product(
       id: 'sample-2',
       imageUrls: ['assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif'],
       price: 2980,
-      currency: '₼',
+      currency: 'AZN',
       title: 'Smartfon Apple iPhone 17 Pro 256GB Cosmic Orange...',
     ),
   ];
@@ -794,8 +795,8 @@ Future<void> showProductDetailsSheet(
       price:
           price ??
           (listing == null
-              ? '2890.24 ₼'
-              : '${listing.price} ${listing.currency}'),
+              ? CurrencyFormatter.formatPrice(2890.24, fallbackCurrencyCode)
+              : CurrencyFormatter.formatPrice(listing.price, listing.currency)),
       title:
           title ??
           listing?.title ??

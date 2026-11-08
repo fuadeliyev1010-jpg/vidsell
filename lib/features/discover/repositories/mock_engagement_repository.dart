@@ -1,3 +1,4 @@
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/features/discover/models/engagement_item.dart';
 import 'package:vidsell/features/discover/models/saved_search.dart';
 import 'package:vidsell/features/discover/repositories/engagement_repository.dart';
@@ -144,47 +145,47 @@ class MockEngagementRepository implements EngagementRepository {
     required ReportRequest request,
   }) async {}
 
-  static const Map<String, EngagementItem> _knownListingMeta = {
+  static final Map<String, EngagementItem> _knownListingMeta = {
     'listing-1': EngagementItem(
       id: 'listing-1',
       title: 'Smartfon Apple iPhone 17 Pro 256GB Cosmic Orange MG7L4LL/A',
       imageUrl: 'assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif',
-      subtitle: '2890.24 ₼',
+      subtitle: CurrencyFormatter.formatPrice(2890.24, 'AZN'),
       categoryId: 'electronics',
     ),
     'listing-2': EngagementItem(
       id: 'listing-2',
       title: 'Samsung Galaxy S24 Ultra 512GB',
       imageUrl: 'assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif',
-      subtitle: '1749.00 ₼',
+      subtitle: CurrencyFormatter.formatPrice(1749, 'AZN', decimalDigits: 2),
       categoryId: 'electronics',
     ),
     'listing-3': EngagementItem(
       id: 'listing-3',
       title: 'Sony WH-1000XM5 simsiz qulaqlıq',
       imageUrl: 'assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif',
-      subtitle: '420.00 ₼',
+      subtitle: CurrencyFormatter.formatPrice(420, 'AZN', decimalDigits: 2),
       categoryId: 'electronics',
     ),
     'listing-4': EngagementItem(
       id: 'listing-4',
       title: 'Apple MacBook Air M2',
       imageUrl: 'assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif',
-      subtitle: '899.00 ₼',
+      subtitle: CurrencyFormatter.formatPrice(899, 'AZN', decimalDigits: 2),
       categoryId: 'electronics',
     ),
     'listing-5': EngagementItem(
       id: 'listing-5',
       title: 'PlayStation 5 Slim',
       imageUrl: 'assets/images/e67668b0c9a2fc774625fba8ecf0c43e8360420b.gif',
-      subtitle: '1250.00 ₼',
+      subtitle: CurrencyFormatter.formatPrice(1250, 'AZN', decimalDigits: 2),
       categoryId: 'electronics',
     ),
     'listing-6': EngagementItem(
       id: 'listing-6',
       title: 'Google Pixel 9 Pro',
       imageUrl: 'https://cdn.example.com/listings/6.jpg',
-      subtitle: '649.00 ₼',
+      subtitle: CurrencyFormatter.formatPrice(649, 'AZN', decimalDigits: 2),
       categoryId: 'electronics',
     ),
   };

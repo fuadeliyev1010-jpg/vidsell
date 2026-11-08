@@ -1,5 +1,7 @@
 import '../enums/product_category.dart';
 
+import '../../core/utils/currency_formatter.dart';
+
 class ProductSummary {
   const ProductSummary({
     required this.id,
@@ -33,7 +35,7 @@ class ProductSummary {
     id: '${json['id'] ?? ''}',
     title: '${json['title'] ?? ''}',
     price: json['price'] is num ? (json['price'] as num).toDouble() : 0,
-    currency: '${json['currency'] ?? 'TRY'}',
+    currency: '${json['currency'] ?? fallbackCurrencyCode}',
     city: '${json['city'] ?? ''}',
     imageUrl: json['imageUrl'] as String?,
     category: json['category'] == null

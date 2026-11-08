@@ -1,3 +1,4 @@
+import '../../core/utils/currency_formatter.dart';
 import '../product/product_summary.dart';
 import '../user/user.dart';
 
@@ -26,8 +27,9 @@ class Conversation {
   String? get listingId => product?.id;
   String? get listingTitle => product?.title;
   String? get listingImage => product?.imageUrl;
-  String? get listingPrice =>
-      product == null ? null : '${product!.price} ${product!.currency}';
+  String? get listingPrice => product == null
+      ? null
+      : CurrencyFormatter.formatPrice(product!.price, product!.currency);
 
   factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
     id: '${json['id'] ?? ''}',

@@ -49,6 +49,17 @@ void main() {
     expect(product.latitude, isNull);
     expect(product.longitude, isNull);
     expect(homeListing.city, 'İstanbul');
+    expect(homeListing.currency, 'AZN');
+
+    const listingWithFallbackCurrency = HomeListing(
+      id: 'listing-default-currency',
+      sellerName: 'Seller',
+      sellerHandle: '@seller',
+      price: '100',
+      title: 'Phone',
+      shareLink: '',
+    );
+    expect(listingWithFallbackCurrency.currency, 'TRY');
   });
 
   test('listing JSON accepts backend media and numeric price fields', () {
@@ -72,7 +83,7 @@ void main() {
 
     expect(listing.imagePath, startsWith('https://'));
     expect(listing.isNetworkMedia, isTrue);
-    expect(listing.price, '1250 AZN');
+    expect(listing.price, '1250 ₼');
     expect(listing.sellerAvatar, 'https://cdn.example.com/seller.jpg');
   });
 
@@ -326,6 +337,16 @@ void main() {
         page.listings.map((listing) => listing.categoryId).toSet().length,
         greaterThan(1),
       );
+      final azerbaijanProduct = page.listings
+          .firstWhere((item) => item.id == 'listing-1')
+          .product!;
+      expect(azerbaijanProduct.price, 2890.24);
+      expect(azerbaijanProduct.currency, 'AZN');
+      final turkishProduct = page.listings
+          .firstWhere((item) => item.id == 'listing-7')
+          .product!;
+      expect(turkishProduct.price, 1250000);
+      expect(turkishProduct.currency, 'TRY');
     },
   );
 }

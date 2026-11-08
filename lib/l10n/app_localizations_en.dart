@@ -439,10 +439,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topUpBalance => 'Top up balance';
 
   @override
-  String get amountAzn => 'Amount (AZN)';
+  String get amountAzn => 'Amount';
 
   @override
-  String get amountRangeError => 'Enter an amount between 1 and 5000 AZN';
+  String amountRangeError(String currency) {
+    return 'Enter an amount between 1 and 5000 $currency';
+  }
 
   @override
   String get cardholderName => 'First and last name';
@@ -943,7 +945,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get zeroBalance => '0 AZN';
+  String get zeroBalance => '0';
 
   @override
   String get efficiency => 'Performance';
@@ -1259,7 +1261,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moderationStatus => 'UNDER REVIEW';
 
   @override
-  String get zeroAmountAzn => '0.00 AZN';
+  String get zeroAmountAzn => '0.00';
 
   @override
   String get activateVip => 'Activate VIP';

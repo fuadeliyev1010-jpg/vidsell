@@ -1,4 +1,5 @@
 import 'package:vidsell/l10n/app_localizations.dart';
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/models/product/product.dart';
 
 extension ProductLocalization on Product {
@@ -19,7 +20,6 @@ extension ProductLocalization on Product {
     if (price == 0 && currency.isEmpty && sellerName?.isNotEmpty == true) {
       return sellerName!;
     }
-    final amount = price % 1 == 0 ? price.toInt().toString() : price.toString();
-    return '$amount $currency'.trim();
+    return CurrencyFormatter.formatPrice(price, currency);
   }
 }

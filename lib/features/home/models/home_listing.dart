@@ -1,3 +1,4 @@
+import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/features/new_listing/models/listing.dart';
 
 class HomeListing {
@@ -74,13 +75,23 @@ class HomeListing {
     this.isFavorite = false,
     this.isVip = false,
     this.priceAmount,
-    this.currency = 'AZN',
+    this.currency = fallbackCurrencyCode,
     this.status = ListingStatus.unknown,
     this.createdAt,
   });
 
-  factory HomeListing.fromJson(Map<String, dynamic> json) =>
-      HomeListing.fromListing(Listing.fromJson(json));
+  factory HomeListing.fromJson(Map<String, dynamic> json) {
+    final listing = Listing.fromJson(json);
+    final currency = json['currency'];
+    if (currency is String && currency.trim().isNotEmpty) {
+      return HomeListing.fromListing(listing);
+    }
+    return HomeListing.fromListing(listing).copyWith(
+      price: CurrencyFormatter.formatPrice(listing.price, fallbackCurrencyCode),
+      priceAmount: listing.price,
+      currency: fallbackCurrencyCode,
+    );
+  }
 
   factory HomeListing.fromListing(Listing listing) {
     final image = _firstMedia(
@@ -97,10 +108,7 @@ class HomeListing {
       sellerName: listing.sellerName,
       sellerHandle: listing.sellerHandle,
       sellerAvatar: listing.sellerAvatarUrl,
-      price:
-          '${listing.price % 1 == 0 ? listing.price.toInt() : listing.price} '
-                  '${listing.currency}'
-              .trim(),
+      price: CurrencyFormatter.formatPrice(listing.price, listing.currency),
       title: listing.title,
       shareLink: listing.shareUrl,
       videoUrl: video?.url,
@@ -138,6 +146,7 @@ class HomeListing {
   HomeListing copyWith({
     String? id,
     String? imagePath,
+    String? price,
     String? cityId,
     String? subcategoryId,
     String? businessId,
@@ -173,7 +182,7 @@ class HomeListing {
       sellerName: sellerName,
       sellerHandle: sellerHandle,
       sellerAvatar: sellerAvatar ?? this.sellerAvatar,
-      price: price,
+      price: price ?? this.price,
       title: title,
       shareLink: shareLink,
       videoUrl: videoUrl ?? this.videoUrl,
