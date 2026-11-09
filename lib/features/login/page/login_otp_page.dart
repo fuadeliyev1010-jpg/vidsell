@@ -130,7 +130,7 @@ class _OtpPageState extends State<OtpPage> {
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           context.goAndClear(const HomePage());
-        } else if (state.status == AuthStatus.otpSent &&
+        } else if (state.operation == AuthOperation.otpSent &&
             state.verificationCode != null) {
           context.goTo(
             RegisterPage(
@@ -138,7 +138,7 @@ class _OtpPageState extends State<OtpPage> {
               verificationCode: state.verificationCode!,
             ),
           );
-        } else if (state.status == AuthStatus.failure &&
+        } else if (state.operation == AuthOperation.failure &&
             state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

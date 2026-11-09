@@ -147,7 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           context.goAndClear(const HomePage());
-        } else if (state.status == AuthStatus.failure &&
+        } else if (state.operation == AuthOperation.failure &&
             state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/features/home/page/home_page.dart';
@@ -11,19 +12,17 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) {
         switch (state.status) {
           case AuthStatus.authenticated:
+            debugPrint('[AuthGate] ${state.status} -> HomePage');
             return const HomePage();
           case AuthStatus.unknown:
-          case AuthStatus.sendingOtp:
-          case AuthStatus.verifyingOtp:
-          case AuthStatus.registering:
-          case AuthStatus.authenticating:
+            debugPrint('[AuthGate] ${state.status} -> loading page');
             return const _AuthLoadingPage();
           case AuthStatus.unauthenticated:
-          case AuthStatus.otpSent:
-          case AuthStatus.failure:
+            debugPrint('[AuthGate] ${state.status} -> LoginPage');
             return const LoginPage();
         }
       },

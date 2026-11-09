@@ -64,7 +64,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         SendOtpRequest(countryCode: phone.$1, phoneNumber: phone.$2),
       );
       if (mounted) setState(() => _codeSent = true);
-    } on Exception {
+    } catch (_) {
       if (mounted) setState(() => _errorText = context.l10n.genericError);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -107,7 +107,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
       if (mounted) setState(() => _completed = true);
-    } on Exception {
+    } catch (_) {
       if (mounted) setState(() => _errorText = context.l10n.genericError);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

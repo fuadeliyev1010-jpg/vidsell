@@ -178,13 +178,14 @@ class _LoginPageState extends State<LoginPage> {
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated && !_hasOpenedOtpPage) {
           context.goAndClear(const HomePage());
-        } else if (state.status == AuthStatus.otpSent &&
+        } else if (state.operation == AuthOperation.otpSent &&
             state.identifier != null &&
             !_hasOpenedOtpPage) {
           _hasOpenedOtpPage = true;
           context.goTo(OtpPage(phoneNumber: state.identifier!));
-        } else if (state.status == AuthStatus.failure &&
-            state.errorMessage != null) {
+        } else if (state.operation == AuthOperation.failure &&
+            state.errorMessage != null &&
+            !_hasOpenedOtpPage) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(context.l10n.localizedAuthError(state.errorCode)),

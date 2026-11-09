@@ -11,7 +11,7 @@ void main() {
 
       bloc.add(const OtpRequested('+994501112233'));
       await bloc.stream.firstWhere(
-        (state) => state.status == AuthStatus.otpSent,
+        (state) => state.operation == AuthOperation.otpSent,
       );
 
       bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '1234'));
@@ -41,7 +41,9 @@ void main() {
     addTearDown(bloc.close);
 
     bloc.add(const OtpRequested('+994501112244'));
-    await bloc.stream.firstWhere((state) => state.status == AuthStatus.otpSent);
+    await bloc.stream.firstWhere(
+      (state) => state.operation == AuthOperation.otpSent,
+    );
     bloc.add(const OtpSubmitted(identifier: '+994501112244', code: '0000'));
     final otpState = await bloc.stream.firstWhere(
       (state) => state.verificationCode == '0000',
@@ -56,7 +58,7 @@ void main() {
       ),
     );
     final state = await bloc.stream.firstWhere(
-      (state) => state.status == AuthStatus.failure,
+      (state) => state.operation == AuthOperation.failure,
     );
     expect(state.errorMessage, contains('geçersiz'));
     expect(state.errorCode, 'INVALID_OTP');
@@ -67,7 +69,9 @@ void main() {
     addTearDown(bloc.close);
 
     bloc.add(const OtpRequested('+994501112233'));
-    await bloc.stream.firstWhere((state) => state.status == AuthStatus.otpSent);
+    await bloc.stream.firstWhere(
+      (state) => state.operation == AuthOperation.otpSent,
+    );
 
     bloc.add(const AuthFlowCancelled());
     final state = await bloc.stream.firstWhere(

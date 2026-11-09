@@ -46,9 +46,16 @@ void main() {
       expect(state1, equals(state2));
     });
 
-    test('different AuthState status or errorMessage are not equal', () {
-      const state1 = AuthState(status: AuthStatus.sendingOtp);
-      const state2 = AuthState(status: AuthStatus.otpSent);
+    test('auth operation is independent from global auth status', () {
+      const state1 = AuthState(
+        status: AuthStatus.unauthenticated,
+        operation: AuthOperation.sendingOtp,
+      );
+      const state2 = AuthState(
+        status: AuthStatus.unauthenticated,
+        operation: AuthOperation.otpSent,
+      );
+      expect(state1.status, state2.status);
       expect(state1, isNot(equals(state2)));
 
       final errorState1 = state1.copyWith(errorMessage: 'Error A');

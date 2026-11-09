@@ -156,7 +156,7 @@ class _AuthAdapter implements HttpClientAdapter {
   ) async {
     requests.add(options);
     final response = switch (options.path) {
-      '/auth/send-registration-otp' => {'message': 'sent'},
+      '/auth/send-registration-otp' => {'message': 'OTP sent'},
       '/auth/register' => _authResponse('registration'),
       '/auth/forgot-password' => {'message': 'sent'},
       '/auth/verify-otp' => {'resetToken': 'reset-token-fixture'},

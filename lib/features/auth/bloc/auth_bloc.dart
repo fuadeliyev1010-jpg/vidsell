@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
@@ -13,15 +14,15 @@ import 'package:vidsell/models/enums/gender.dart';
 import 'package:vidsell/models/enums/role.dart';
 import 'package:vidsell/models/user/user.dart';
 
-enum AuthStatus {
-  unknown,
-  unauthenticated,
+enum AuthStatus { unknown, unauthenticated, authenticated }
+
+enum AuthOperation {
+  idle,
   sendingOtp,
   otpSent,
   verifyingOtp,
   registering,
   authenticating,
-  authenticated,
   failure,
 }
 
@@ -87,6 +88,7 @@ final class AuthSessionExpired extends AuthEvent {
 class AuthState extends Equatable {
   const AuthState({
     this.status = AuthStatus.unknown,
+    this.operation = AuthOperation.idle,
     this.session,
     this.identifier,
     this.verifiedUser,
@@ -96,6 +98,7 @@ class AuthState extends Equatable {
   });
 
   final AuthStatus status;
+  final AuthOperation operation;
   final AuthSession? session;
   final String? identifier;
   final User? verifiedUser;
@@ -105,6 +108,7 @@ class AuthState extends Equatable {
 
   AuthState copyWith({
     AuthStatus? status,
+    AuthOperation? operation,
     AuthSession? session,
     String? identifier,
     User? verifiedUser,
@@ -117,6 +121,7 @@ class AuthState extends Equatable {
   }) {
     return AuthState(
       status: status ?? this.status,
+      operation: operation ?? this.operation,
       session: clearSession ? null : session ?? this.session,
       identifier: identifier ?? this.identifier,
       verifiedUser: verifiedUser ?? this.verifiedUser,
@@ -131,6 +136,7 @@ class AuthState extends Equatable {
   @override
   List<Object?> get props => [
     status,
+    operation,
     session,
     identifier,
     verifiedUser,
@@ -189,14 +195,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           status: session == null
               ? AuthStatus.unauthenticated
               : AuthStatus.authenticated,
+          operation: AuthOperation.idle,
           session: session,
           clearError: true,
         ),
       );
     } catch (error) {
+      debugPrint('[AuthBloc] Session restore failed: $error');
       emit(
         state.copyWith(
-          status: AuthStatus.failure,
+          status: AuthStatus.unauthenticated,
+          operation: AuthOperation.failure,
           errorMessage: error.toString(),
           errorCode: _errorCode(error),
         ),
@@ -210,7 +219,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(
       state.copyWith(
-        status: AuthStatus.sendingOtp,
+        operation: AuthOperation.sendingOtp,
         identifier: event.identifier,
         clearVerificationCode: true,
         clearError: true,
@@ -220,14 +229,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _repository.sendOtp(_otpRequest(event.identifier));
       emit(
         state.copyWith(
-          status: AuthStatus.otpSent,
+          operation: AuthOperation.otpSent,
           identifier: event.identifier,
         ),
       );
     } catch (error) {
+      debugPrint('[AuthBloc] Sending registration OTP failed: $error');
       emit(
         state.copyWith(
-          status: AuthStatus.failure,
+          operation: AuthOperation.failure,
           errorMessage: error.toString(),
           errorCode: _errorCode(error),
         ),
@@ -241,7 +251,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(
       state.copyWith(
-        status: AuthStatus.otpSent,
+        operation: AuthOperation.otpSent,
         identifier: event.identifier,
         verificationCode: event.code,
         clearError: true,
@@ -253,7 +263,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegistrationSubmitted event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(status: AuthStatus.registering, clearError: true));
+    emit(
+      state.copyWith(operation: AuthOperation.registering, clearError: true),
+    );
     try {
       final session = await _repository.register(
         RegisterRequest(
@@ -271,14 +283,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.authenticated,
+          operation: AuthOperation.idle,
           session: session,
           clearError: true,
         ),
       );
     } catch (error) {
+      debugPrint('[AuthBloc] Registration failed: $error');
       emit(
         state.copyWith(
-          status: AuthStatus.failure,
+          operation: AuthOperation.failure,
           errorMessage: error.toString(),
           errorCode: _errorCode(error),
         ),
@@ -290,7 +304,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     PasswordLoginSubmitted event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(status: AuthStatus.authenticating, clearError: true));
+    emit(
+      state.copyWith(operation: AuthOperation.authenticating, clearError: true),
+    );
     try {
       final session = await _repository.login(
         LoginRequest(
@@ -302,15 +318,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.authenticated,
+          operation: AuthOperation.idle,
           identifier: event.identifier,
           session: session,
           clearError: true,
         ),
       );
     } catch (error) {
+      debugPrint('[AuthBloc] Password login failed: $error');
       emit(
         state.copyWith(
-          status: AuthStatus.failure,
+          operation: AuthOperation.failure,
           errorMessage: error.toString(),
           errorCode: _errorCode(error),
         ),
@@ -338,5 +356,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> close() async {
     await _sessionExpiredSubscription.cancel();
     return super.close();
+  }
+
+  @override
+  void onTransition(Transition<AuthEvent, AuthState> transition) {
+    super.onTransition(transition);
+    debugPrint(
+      '[AuthBloc] ${transition.event.runtimeType}: '
+      '${transition.currentState.status}/${transition.currentState.operation} '
+      '-> ${transition.nextState.status}/${transition.nextState.operation}',
+    );
   }
 }
