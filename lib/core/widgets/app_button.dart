@@ -13,6 +13,7 @@ class AppButton extends StatelessWidget {
   final IconData? icon;
   final bool iconTrailing;
   final BorderSide? side;
+  final bool isLoading;
 
   const AppButton({
     super.key,
@@ -24,6 +25,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.iconTrailing = false,
     this.side,
+    this.isLoading = false,
   });
 
   @override
@@ -56,7 +58,7 @@ class AppButton extends StatelessWidget {
           );
 
     return OutlinedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: OutlinedButton.styleFrom(
         backgroundColor: color ?? AppColor.activeColor,
         minimumSize: Size.fromHeight(height ?? 56.h),
@@ -67,7 +69,15 @@ class AppButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(14.r),
         ),
       ),
-      child: child,
+      child: isLoading
+          ? SizedBox.square(
+              dimension: 20.r,
+              child: CircularProgressIndicator(
+                color: textColor ?? Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : child,
     );
   }
 }

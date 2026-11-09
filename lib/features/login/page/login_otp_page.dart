@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/constants/back_appbar.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/format_phone_number.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
@@ -45,6 +46,8 @@ class _OtpPageState extends State<OtpPage> {
   late final List<FocusNode> _focusNodes;
 
   bool _isFocused = false;
+  bool _isSubmitting = false;
+  bool _hasNavigated = false;
   int _secondsLeft = _resendSeconds;
   Timer? _timer;
 
@@ -123,6 +126,24 @@ class _OtpPageState extends State<OtpPage> {
     setState(() {}); // Rebuild to update button state
   }
 
+  void _submitCode() {
+    if (!_isOtpComplete || _isSubmitting || _hasNavigated) return;
+
+    final code = _controllers.map((controller) => controller.text).join();
+    final authBloc = context.read<AuthBloc>();
+    final isMockBackend = context.read<AppConfig>().useMockBackend;
+    debugPrint(
+      '[OtpPage] Submit pressed; mode=${isMockBackend ? 'mock' : 'api'}, '
+      'codeLength=${code.length}',
+    );
+    setState(() => _isSubmitting = true);
+    if (isMockBackend) {
+      authBloc.add(OtpSubmitted(identifier: widget.phoneNumber, code: code));
+    } else {
+      authBloc.add(RegistrationOtpSubmitted(code));
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -140,26 +161,31 @@ class _OtpPageState extends State<OtpPage> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final authState = context.watch<AuthBloc>().state;
+    final isMockBackend = context.read<AppConfig>().useMockBackend;
+    final isSubmitting =
+        _isSubmitting || authState.operation == AuthOperation.registering;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
+        if (state.status == AuthStatus.authenticated && !_hasNavigated) {
+          _hasNavigated = true;
           context.goAndClear(const HomePage());
-        } else if (state.operation == AuthOperation.otpSent &&
+        } else if (isMockBackend &&
+            state.operation == AuthOperation.otpSent &&
             state.verificationCode != null) {
-          context.goTo(
-            RegisterPage(
-              phoneNumber: widget.phoneNumber,
-              verificationCode: state.verificationCode!,
-            ),
-          );
+          _hasNavigated = true;
+          context
+              .goTo(
+                RegisterPage(
+                  phoneNumber: widget.phoneNumber,
+                  verificationCode: state.verificationCode!,
+                ),
+              )
+              .whenComplete(() => _hasNavigated = false);
         } else if (state.operation == AuthOperation.otpSent) {
           _startResendTimer();
-        } else if (state.operation == AuthOperation.failure) {
-          for (final controller in _controllers) {
-            controller.clear();
-          }
-          setState(() {});
+        } else if (state.operation == AuthOperation.failure && mounted) {
+          setState(() => _isSubmitting = false);
         }
       },
       child: Scaffold(
@@ -252,19 +278,10 @@ class _OtpPageState extends State<OtpPage> {
                       child: AppButton(
                         height: 48.h,
                         text: 'Devam et',
-                        onPressed: _isOtpComplete
-                            ? () {
-                                final code = _controllers
-                                    .map((controller) => controller.text)
-                                    .join();
-                                context.read<AuthBloc>().add(
-                                  OtpSubmitted(
-                                    identifier: widget.phoneNumber,
-                                    code: code,
-                                  ),
-                                );
-                              }
-                            : () {}, // Empty function when disabled
+                        isLoading: isSubmitting,
+                        onPressed: _isOtpComplete && !isSubmitting
+                            ? _submitCode
+                            : () {},
                       ),
                     ),
                   ),

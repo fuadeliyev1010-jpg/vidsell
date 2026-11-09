@@ -49,6 +49,7 @@ class _LoginPageState extends State<LoginPage> {
   String? _errorText;
   String? _passwordErrorText;
   bool _hasOpenedOtpPage = false;
+  bool _hasOpenedRegistrationPage = false;
   bool _isRegistrationMode = false;
 
   // Azerbaijani phone validation regex (accepts +994/994/0 prefixes, or none).
@@ -154,7 +155,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } else if (apiMode) {
-      context.goTo(RegisterPage(phoneNumber: identifier));
+      if (_hasOpenedRegistrationPage) return;
+      _hasOpenedRegistrationPage = true;
+      context
+          .goTo(RegisterPage(phoneNumber: identifier))
+          .whenComplete(() => _hasOpenedRegistrationPage = false);
     } else {
       context.read<AuthBloc>().add(OtpRequested(identifier));
     }

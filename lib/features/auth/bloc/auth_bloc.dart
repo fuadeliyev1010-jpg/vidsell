@@ -48,6 +48,12 @@ final class OtpSubmitted extends AuthEvent {
   final String code;
 }
 
+final class RegistrationOtpSubmitted extends AuthEvent {
+  const RegistrationOtpSubmitted(this.code);
+
+  final String code;
+}
+
 final class RegistrationOtpRequested extends AuthEvent {
   const RegistrationOtpRequested({
     required this.identifier,
@@ -202,6 +208,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<OtpRequested>(_onOtpRequested);
     on<RegistrationOtpRequested>(_onRegistrationOtpRequested);
     on<OtpSubmitted>(_onOtpSubmitted);
+    on<RegistrationOtpSubmitted>(_onRegistrationOtpSubmitted);
     on<RegistrationSubmitted>(_onRegistrationSubmitted);
     on<PasswordLoginSubmitted>(_onPasswordLoginSubmitted);
     on<AuthLoggedOut>(_onLoggedOut);
@@ -348,46 +355,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       return;
     }
-    final pendingRegistration = state.pendingRegistration;
-    if (pendingRegistration != null) {
-      emit(
-        state.copyWith(
-          operation: AuthOperation.registering,
-          identifier: event.identifier,
-          clearError: true,
-        ),
-      );
-      try {
-        final session = await _repository.register(
-          _registrationRequest(
-            identifier: pendingRegistration.identifier,
-            name: pendingRegistration.name,
-            email: pendingRegistration.email,
-            password: pendingRegistration.password,
-            verificationCode: event.code,
-          ),
-        );
-        emit(
-          state.copyWith(
-            status: AuthStatus.authenticated,
-            operation: AuthOperation.idle,
-            session: session,
-            clearError: true,
-            clearPendingRegistration: true,
-          ),
-        );
-      } catch (error) {
-        debugPrint('[AuthBloc] Registration failed: $error');
-        emit(
-          state.copyWith(
-            operation: AuthOperation.failure,
-            errorMessage: error.toString(),
-            errorCode: _errorCode(error),
-          ),
-        );
-      }
-      return;
-    }
     emit(
       state.copyWith(
         operation: AuthOperation.otpSent,
@@ -396,6 +363,76 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         clearError: true,
       ),
     );
+  }
+
+  Future<void> _onRegistrationOtpSubmitted(
+    RegistrationOtpSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    debugPrint(
+      '[AuthBloc] Registration OTP submitted; codeLength=${event.code.length}',
+    );
+    if (event.code.length != authOtpLength) {
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorMessage: 'Enter the complete verification code.',
+          errorCode: 'INVALID_OTP',
+        ),
+      );
+      return;
+    }
+
+    final pendingRegistration = state.pendingRegistration;
+    if (pendingRegistration == null) {
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorMessage: 'Registration details are no longer available.',
+          errorCode: 'REGISTRATION_DATA_MISSING',
+        ),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(operation: AuthOperation.registering, clearError: true),
+    );
+    debugPrint('[AuthBloc] Request POST /auth/register');
+    try {
+      final session = await _repository.register(
+        _registrationRequest(
+          identifier: pendingRegistration.identifier,
+          name: pendingRegistration.name,
+          email: pendingRegistration.email,
+          password: pendingRegistration.password,
+          verificationCode: event.code,
+        ),
+      );
+      debugPrint('[AuthBloc] Response POST /auth/register: success');
+      emit(
+        state.copyWith(
+          status: AuthStatus.authenticated,
+          operation: AuthOperation.idle,
+          session: session,
+          clearError: true,
+          clearPendingRegistration: true,
+        ),
+      );
+    } catch (error) {
+      final statusCode = error is ApiException ? error.statusCode : null;
+      debugPrint(
+        '[AuthBloc] Response POST /auth/register: '
+        'failure status=$statusCode code=${_errorCode(error)} error=$error',
+      );
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorMessage: error.toString(),
+          errorCode: _errorCode(error),
+        ),
+      );
+    }
   }
 
   Future<void> _onRegistrationSubmitted(

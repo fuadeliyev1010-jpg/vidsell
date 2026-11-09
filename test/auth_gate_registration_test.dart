@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -16,6 +17,7 @@ import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/features/auth/repositories/api_auth_repository.dart';
 import 'package:vidsell/features/auth/repositories/mock_auth_repository.dart';
 import 'package:vidsell/features/auth/widgets/auth_gate.dart';
+import 'package:vidsell/features/home/page/home_page.dart';
 import 'package:vidsell/features/login/page/login_otp_page.dart';
 import 'package:vidsell/features/login/widgets/otp_box.dart';
 import 'package:vidsell/features/register/page/register_page.dart';
@@ -34,8 +36,11 @@ void main() {
     final authBloc = AuthBloc(repository: repository);
     final router = GoRouter(
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const AuthGate()),
-        routedPageRoute(),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const _RegistrationTestAuthGate(),
+        ),
+        _registrationTestPageRoute(),
       ],
     );
     addTearDown(() async {
@@ -122,7 +127,7 @@ void main() {
       await bloc.stream.firstWhere(
         (state) => state.operation == AuthOperation.otpSent,
       );
-      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '780423'));
+      bloc.add(const RegistrationOtpSubmitted('780423'));
       final registered = await bloc.stream.firstWhere(
         (state) => state.status == AuthStatus.authenticated,
       );
@@ -147,144 +152,240 @@ void main() {
     },
   );
 
-  testWidgets(
-    '400 registration response returns to OTP with error and resend',
-    (tester) async {
-      tester.view.physicalSize = const Size(375, 812);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final fixture = _RegistrationApiFixture(rejectRegistration: true);
-      final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
-        ..httpClientAdapter = fixture;
-      final client = ApiClient(
-        config: const AppConfig(
-          apiBaseUrl: 'https://api.example.test/api/v1',
-          useMockBackend: false,
+  testWidgets('wrong API code stays on OTP and correct code registers', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final registerGate = Completer<void>();
+    final fixture = _RegistrationApiFixture(
+      rejectFirstRegistration: true,
+      registerGate: registerGate,
+    );
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
+      ..httpClientAdapter = fixture;
+    final client = ApiClient(
+      config: const AppConfig(
+        apiBaseUrl: 'https://api.example.test/api/v1',
+        useMockBackend: false,
+      ),
+      dio: dio,
+    );
+    final repository = ApiAuthRepository(
+      client: client,
+      sessionStore: InMemorySessionStore(),
+    );
+    final authBloc = AuthBloc(repository: repository);
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const _RegistrationTestAuthGate(),
         ),
-        dio: dio,
-      );
-      final repository = ApiAuthRepository(
-        client: client,
-        sessionStore: InMemorySessionStore(),
-      );
-      final authBloc = AuthBloc(repository: repository);
-      final router = GoRouter(
-        routes: [
-          GoRoute(path: '/', builder: (context, state) => const AuthGate()),
-          routedPageRoute(),
-        ],
-      );
-      addTearDown(() async {
-        router.dispose();
-        await authBloc.close();
-        client.dispose();
-        dio.close(force: true);
-      });
+        _registrationTestPageRoute(),
+      ],
+    );
+    addTearDown(() async {
+      router.dispose();
+      await authBloc.close();
+      client.dispose();
+      dio.close(force: true);
+    });
 
-      await tester.pumpWidget(
-        ScreenUtilInit(
-          designSize: const Size(375, 812),
-          minTextAdapt: true,
-          builder: (context, child) => RepositoryProvider<AppConfig>.value(
-            value: const AppConfig(useMockBackend: false),
-            child: BlocProvider<AuthBloc>.value(
-              value: authBloc,
-              child: MaterialApp.router(
-                routerConfig: router,
-                locale: const Locale('en'),
-                supportedLocales: AppLocalizations.supportedLocales,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-              ),
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(375, 812),
+        minTextAdapt: true,
+        builder: (context, child) => RepositoryProvider<AppConfig>.value(
+          value: const AppConfig(useMockBackend: false),
+          child: BlocProvider<AuthBloc>.value(
+            value: authBloc,
+            child: MaterialApp.router(
+              routerConfig: router,
+              locale: const Locale('en'),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
             ),
           ),
         ),
-      );
-      authBloc.add(const AuthStarted());
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.widgetWithText(TextButton, "Let's create your account"),
-      );
-      await tester.pump();
-      await tester.enterText(find.byType(TextField).first, '+994501112233');
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Continue'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump();
+      ),
+    );
+    authBloc.add(const AuthStarted());
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(TextButton, "Let's create your account"),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).first, '+994501112233');
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Continue'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
 
-      expect(find.byType(RegisterPage), findsOneWidget);
-      final registerFields = find.descendant(
-        of: find.byType(RegisterPage),
-        matching: find.byType(TextField),
+    expect(find.byType(RegisterPage), findsOneWidget);
+    final registerFields = find.descendant(
+      of: find.byType(RegisterPage),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(registerFields.at(0), 'Test User');
+    await tester.enterText(registerFields.at(1), 'test@example.test');
+    await tester.enterText(registerFields.at(2), 'password-8');
+    await tester.enterText(registerFields.at(3), 'password-8');
+    final registerButton = find.descendant(
+      of: find.byType(RegisterPage),
+      matching: find.widgetWithText(OutlinedButton, 'Devam et'),
+    );
+    await tester.ensureVisible(registerButton);
+    await tester.tap(registerButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    expect(find.byType(OtpPage), findsOneWidget);
+
+    for (var index = 0; index < 6; index++) {
+      final otpBox = find.byType(OtpBox).at(index);
+      await tester.enterText(
+        find.descendant(of: otpBox, matching: find.byType(TextField)),
+        '780423'[index],
       );
-      await tester.enterText(registerFields.at(0), 'Test User');
-      await tester.enterText(registerFields.at(1), 'test@example.test');
-      await tester.enterText(registerFields.at(2), 'password-8');
-      await tester.enterText(registerFields.at(3), 'password-8');
-      final registerButton = find.descendant(
-        of: find.byType(RegisterPage),
+      await tester.pump();
+    }
+    await tester.tap(
+      find.descendant(
+        of: find.byType(OtpPage),
         matching: find.widgetWithText(OutlinedButton, 'Devam et'),
-      );
-      await tester.ensureVisible(registerButton);
-      await tester.tap(registerButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump();
-      expect(find.byType(OtpPage), findsOneWidget);
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(find.byType(OtpPage), findsOneWidget);
+    registerGate.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    expect(find.byType(OtpPage), findsOneWidget);
+    expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
+    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(authBloc.state.pendingRegistration?.name, 'Test User');
+    expect(authBloc.state.pendingRegistration?.email, 'test@example.test');
+    expect(authBloc.state.pendingRegistration?.password, 'password-8');
+    expect(
+      fixture.requests
+          .firstWhere((request) => request.path == '/auth/register')
+          .data['verificationCode'],
+      '780423',
+    );
 
-      for (var index = 0; index < 6; index++) {
-        final otpBox = find.byType(OtpBox).at(index);
-        await tester.enterText(
-          find.descendant(of: otpBox, matching: find.byType(TextField)),
-          '780423'[index],
-        );
-        await tester.pump();
-      }
-      await tester.tap(
-        find.descendant(
-          of: find.byType(OtpPage),
-          matching: find.widgetWithText(OutlinedButton, 'Devam et'),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump();
-      expect(find.byType(OtpPage), findsOneWidget);
-      expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
-      expect(authBloc.state.pendingRegistration?.name, 'Test User');
-      expect(authBloc.state.pendingRegistration?.email, 'test@example.test');
-      expect(authBloc.state.pendingRegistration?.password, 'password-8');
-      expect(
-        fixture.requests
-            .singleWhere((request) => request.path == '/auth/register')
-            .data['verificationCode'],
-        '780423',
-      );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(OtpPage),
+        matching: find.byIcon(Icons.arrow_back_ios_new),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+    expect(find.byType(OtpPage), findsNothing);
+    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(
+      tester.widget<TextField>(registerFields.at(0)).controller!.text,
+      'Test User',
+    );
+    expect(
+      tester.widget<TextField>(registerFields.at(1)).controller!.text,
+      'test@example.test',
+    );
 
-      tester.testTextInput.hide();
-      await tester.pumpAndSettle();
-      final resendButton = find.widgetWithText(TextButton, 'Resend code');
-      await tester.ensureVisible(resendButton);
-      await tester.pumpAndSettle();
-      await tester.tap(resendButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(
-        fixture.requests
-            .where((request) => request.path == '/auth/send-registration-otp')
-            .length,
-        2,
+    await tester.tap(registerButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    expect(find.byType(OtpPage), findsOneWidget);
+    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(
+      fixture.requests
+          .where((request) => request.path == '/auth/send-registration-otp')
+          .length,
+      2,
+    );
+
+    for (var index = 0; index < 6; index++) {
+      final otpBox = find.byType(OtpBox).at(index);
+      await tester.enterText(
+        find.descendant(of: otpBox, matching: find.byType(TextField)),
+        '654321'[index],
       );
-      expect(authBloc.state.status, AuthStatus.unauthenticated);
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+      await tester.pump();
+    }
+    await tester.tap(
+      find.descendant(
+        of: find.byType(OtpPage),
+        matching: find.widgetWithText(OutlinedButton, 'Devam et'),
+      ),
+    );
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(authBloc.state.status, AuthStatus.authenticated);
+    expect(find.byType(OtpPage), findsNothing);
+    expect(find.byKey(const ValueKey('registered-home')), findsOneWidget);
+    final registrationRequests = fixture.requests.where(
+      (request) => request.path == '/auth/register',
+    );
+    expect(registrationRequests.length, 2);
+    expect(registrationRequests.last.data['verificationCode'], '654321');
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+}
+
+GoRoute _registrationTestPageRoute() => GoRoute(
+  path: '/page/:pageType',
+  redirect: (context, state) {
+    final page = state.extra;
+    if (page is RoutedPage || page is Widget) return null;
+    return '/';
+  },
+  pageBuilder: (context, state) {
+    final extra = state.extra;
+    final widget = extra is RoutedPage
+        ? extra.child
+        : extra is Widget
+        ? extra
+        : const SizedBox.shrink();
+    return MaterialPage<void>(
+      key: state.pageKey,
+      child: widget is HomePage
+          ? const SizedBox(key: ValueKey('registered-home'))
+          : widget,
+    );
+  },
+);
+
+class _RegistrationTestAuthGate extends StatelessWidget {
+  const _RegistrationTestAuthGate();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) => state.status == AuthStatus.authenticated
+          ? const SizedBox(key: ValueKey('auth-gate-home'))
+          : const AuthGate(),
+    );
+  }
 }
 
 class _RegistrationApiFixture implements HttpClientAdapter {
-  _RegistrationApiFixture({this.rejectRegistration = false});
+  _RegistrationApiFixture({
+    this.rejectFirstRegistration = false,
+    this.registerGate,
+  });
 
-  final bool rejectRegistration;
+  final bool rejectFirstRegistration;
+  final Completer<void>? registerGate;
   final requests = <RequestOptions>[];
 
   @override
@@ -294,7 +395,15 @@ class _RegistrationApiFixture implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    if (options.path == '/auth/register' && rejectRegistration) {
+    if (options.path == '/auth/register' &&
+        requests.where((request) => request.path == '/auth/register').length ==
+            1) {
+      await registerGate?.future;
+    }
+    if (options.path == '/auth/register' &&
+        rejectFirstRegistration &&
+        requests.where((request) => request.path == '/auth/register').length ==
+            1) {
       return ResponseBody.fromString(
         jsonEncode({
           'status': 400,

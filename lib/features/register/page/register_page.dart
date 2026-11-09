@@ -168,7 +168,9 @@ class _RegisterPageState extends State<RegisterPage> {
             state.pendingRegistration != null &&
             !_hasOpenedOtpPage) {
           _hasOpenedOtpPage = true;
-          context.goTo(OtpPage(phoneNumber: widget.phoneNumber));
+          context
+              .goTo(OtpPage(phoneNumber: widget.phoneNumber))
+              .whenComplete(() => _hasOpenedOtpPage = false);
         } else if (state.operation == AuthOperation.failure &&
             state.errorMessage != null) {
           if (state.pendingRegistration != null) {
