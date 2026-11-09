@@ -46,7 +46,6 @@ class _OtpPageState extends State<OtpPage> {
   late final List<FocusNode> _focusNodes;
 
   bool _isFocused = false;
-  bool _isSubmitting = false;
   bool _hasNavigated = false;
   int _secondsLeft = _resendSeconds;
   Timer? _timer;
@@ -127,7 +126,11 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   void _submitCode() {
-    if (!_isOtpComplete || _isSubmitting || _hasNavigated) return;
+    if (!_isOtpComplete ||
+        context.read<AuthBloc>().state.operation == AuthOperation.registering ||
+        _hasNavigated) {
+      return;
+    }
 
     final code = _controllers.map((controller) => controller.text).join();
     final authBloc = context.read<AuthBloc>();
@@ -136,7 +139,6 @@ class _OtpPageState extends State<OtpPage> {
       '[OtpPage] Submit pressed; mode=${isMockBackend ? 'mock' : 'api'}, '
       'codeLength=${code.length}',
     );
-    setState(() => _isSubmitting = true);
     if (isMockBackend) {
       authBloc.add(OtpSubmitted(identifier: widget.phoneNumber, code: code));
     } else {
@@ -162,8 +164,7 @@ class _OtpPageState extends State<OtpPage> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final authState = context.watch<AuthBloc>().state;
     final isMockBackend = context.read<AppConfig>().useMockBackend;
-    final isSubmitting =
-        _isSubmitting || authState.operation == AuthOperation.registering;
+    final isSubmitting = authState.operation == AuthOperation.registering;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -184,8 +185,6 @@ class _OtpPageState extends State<OtpPage> {
               .whenComplete(() => _hasNavigated = false);
         } else if (state.operation == AuthOperation.otpSent) {
           _startResendTimer();
-        } else if (state.operation == AuthOperation.failure && mounted) {
-          setState(() => _isSubmitting = false);
         }
       },
       child: Scaffold(

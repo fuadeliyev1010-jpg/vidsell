@@ -81,7 +81,7 @@ void main() {
 
     expect(repository.requests, isEmpty);
     expect(find.byType(AuthGate), findsOneWidget);
-    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(find.byType(RegisterPage, skipOffstage: false), findsOneWidget);
     expect(find.byType(OtpPage), findsNothing);
     expect(authBloc.state.status, AuthStatus.unauthenticated);
     expect(authBloc.state.operation, AuthOperation.idle);
@@ -161,7 +161,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final registerGate = Completer<void>();
     final fixture = _RegistrationApiFixture(
-      rejectFirstRegistration: true,
+      rejectedRegistrationAttempts: 3,
       registerGate: registerGate,
     );
     final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
@@ -244,40 +244,50 @@ void main() {
     await tester.pump();
     expect(find.byType(OtpPage), findsOneWidget);
 
-    for (var index = 0; index < 6; index++) {
-      final otpBox = find.byType(OtpBox).at(index);
-      await tester.enterText(
-        find.descendant(of: otpBox, matching: find.byType(TextField)),
-        '780423'[index],
-      );
-      await tester.pump();
-    }
-    await tester.tap(
-      find.descendant(
-        of: find.byType(OtpPage),
-        matching: find.widgetWithText(OutlinedButton, 'Devam et'),
-      ),
+    final otpSubmitButton = find.descendant(
+      of: find.byType(OtpPage),
+      matching: find.widgetWithText(OutlinedButton, 'Devam et'),
     );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byType(RegisterPage), findsOneWidget);
-    expect(find.byType(OtpPage), findsOneWidget);
-    registerGate.complete();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pump();
-    expect(find.byType(OtpPage), findsOneWidget);
-    expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
-    expect(find.byType(RegisterPage), findsOneWidget);
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final code = attempt == 2 ? '780425' : '780423';
+      for (var index = 0; index < 6; index++) {
+        final otpBox = find.byType(OtpBox).at(index);
+        await tester.enterText(
+          find.descendant(of: otpBox, matching: find.byType(TextField)),
+          code[index],
+        );
+        await tester.pump();
+      }
+      await tester.tap(otpSubmitButton);
+      await tester.pump();
+      if (attempt == 0) {
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.byType(RegisterPage), findsOneWidget);
+        expect(find.byType(OtpPage), findsOneWidget);
+        registerGate.complete();
+      }
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(find.byType(OtpPage), findsOneWidget);
+      expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
+      expect(
+        tester.widget<OutlinedButton>(otpSubmitButton).onPressed,
+        isNotNull,
+        reason: 'Submit must be enabled after failed attempt ${attempt + 1}',
+      );
+    }
+
+    expect(find.byType(RegisterPage, skipOffstage: false), findsOneWidget);
     expect(authBloc.state.pendingRegistration?.name, 'Test User');
     expect(authBloc.state.pendingRegistration?.email, 'test@example.test');
     expect(authBloc.state.pendingRegistration?.password, 'password-8');
     expect(
       fixture.requests
-          .firstWhere((request) => request.path == '/auth/register')
-          .data['verificationCode'],
-      '780423',
+          .where((request) => request.path == '/auth/register')
+          .map((request) => request.data['verificationCode']),
+      ['780423', '780423', '780425'],
     );
 
     await tester.tap(
@@ -335,7 +345,7 @@ void main() {
     final registrationRequests = fixture.requests.where(
       (request) => request.path == '/auth/register',
     );
-    expect(registrationRequests.length, 2);
+    expect(registrationRequests.length, 4);
     expect(registrationRequests.last.data['verificationCode'], '654321');
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -380,11 +390,11 @@ class _RegistrationTestAuthGate extends StatelessWidget {
 
 class _RegistrationApiFixture implements HttpClientAdapter {
   _RegistrationApiFixture({
-    this.rejectFirstRegistration = false,
+    this.rejectedRegistrationAttempts = 0,
     this.registerGate,
   });
 
-  final bool rejectFirstRegistration;
+  final int rejectedRegistrationAttempts;
   final Completer<void>? registerGate;
   final requests = <RequestOptions>[];
 
@@ -395,15 +405,14 @@ class _RegistrationApiFixture implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    if (options.path == '/auth/register' &&
-        requests.where((request) => request.path == '/auth/register').length ==
-            1) {
+    final registerAttempt = requests
+        .where((request) => request.path == '/auth/register')
+        .length;
+    if (options.path == '/auth/register' && registerAttempt == 1) {
       await registerGate?.future;
     }
     if (options.path == '/auth/register' &&
-        rejectFirstRegistration &&
-        requests.where((request) => request.path == '/auth/register').length ==
-            1) {
+        registerAttempt <= rejectedRegistrationAttempts) {
       return ResponseBody.fromString(
         jsonEncode({
           'status': 400,

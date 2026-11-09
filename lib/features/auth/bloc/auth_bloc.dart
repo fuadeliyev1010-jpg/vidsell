@@ -432,6 +432,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           errorCode: _errorCode(error),
         ),
       );
+    } finally {
+      if (!emit.isDone && state.operation == AuthOperation.registering) {
+        debugPrint(
+          '[AuthBloc] Registration request ended without a final state',
+        );
+        emit(
+          state.copyWith(
+            operation: AuthOperation.failure,
+            errorMessage: 'Registration could not be completed.',
+            errorCode: 'REGISTRATION_FAILED',
+          ),
+        );
+      }
     }
   }
 
