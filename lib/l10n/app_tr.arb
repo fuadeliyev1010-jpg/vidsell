@@ -585,6 +585,7 @@
   ,"passwordMinLength": "Şifre en az {count} karakter olmalıdır"
   ,"@passwordMinLength": {"placeholders": {"count": {"type": "int"}}}
   ,"passwordsMismatch": "Şifreler eşleşmiyor"
+  ,"passwordResetComplete": "Şifreniz güncellendi. Artık giriş yapabilirsiniz."
   ,"passwordUnchangedHint": "Değiştirmek istemiyorsanız boş bırakın"
   ,"confirm": "Onayla"
   ,"profileUpdateFailed": "Profil güncellenemedi: {error}"

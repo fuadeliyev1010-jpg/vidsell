@@ -27,11 +27,7 @@ void main() {
                     Text(context.l10n.discoverTab),
                     Text(context.l10n.goToStore),
                     Text(context.l10n.mockIphoneListingTitle),
-                    Text(
-                      context.l10n.localizedAuthError(
-                        'Doğrulama kodu geçersiz.',
-                      ),
-                    ),
+                    Text(context.l10n.localizedAuthError('INVALID_OTP')),
                   ],
                 ),
               ),

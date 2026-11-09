@@ -1,6 +1,7 @@
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/models/enums/app_language.dart';
 import 'package:vidsell/models/settings/app_settings.dart';
+import 'package:vidsell/models/settings/update_settings_request.dart';
 import 'package:vidsell/features/cabinet/repositories/settings_repository.dart';
 
 class ApiSettingsRepository implements SettingsRepository {
@@ -19,13 +20,11 @@ class ApiSettingsRepository implements SettingsRepository {
     AppLanguage? language,
     bool? notificationsEnabled,
   }) async {
-    final data = await _client.patch(
-      '/settings',
-      data: {
-        'language': ?language?.code,
-        'notificationsEnabled': ?notificationsEnabled,
-      },
+    final request = UpdateSettingsRequest(
+      language: language,
+      notificationsEnabled: notificationsEnabled,
     );
+    final data = await _client.put('/settings', data: request.toJson());
     return _parse(data);
   }
 

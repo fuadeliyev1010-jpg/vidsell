@@ -6,6 +6,7 @@ abstract interface class ProfileRepository {
   Future<User> updateProfile({
     required String name,
     required String about,
+    String? avatarUrl,
     String? avatarPath,
     bool removeAvatar = false,
   });

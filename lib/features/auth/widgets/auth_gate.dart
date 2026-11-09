@@ -19,6 +19,7 @@ class AuthGate extends StatelessWidget {
           case AuthStatus.sendingOtp:
           case AuthStatus.verifyingOtp:
           case AuthStatus.registering:
+          case AuthStatus.authenticating:
             return const _AuthLoadingPage();
           case AuthStatus.unauthenticated:
           case AuthStatus.otpSent:

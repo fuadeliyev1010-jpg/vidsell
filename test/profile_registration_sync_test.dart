@@ -3,6 +3,7 @@ import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/auth/repositories/mock_auth_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/mock_profile_repository.dart';
 import 'package:vidsell/models/auth/register_request.dart';
+import 'package:vidsell/models/auth/send_otp_request.dart';
 import 'package:vidsell/models/enums/gender.dart';
 import 'package:vidsell/models/enums/role.dart';
 import 'package:vidsell/models/user/user.dart';
@@ -50,6 +51,9 @@ void main() {
 Future<InMemorySessionStore> _registerTestAccount() async {
   final sessionStore = InMemorySessionStore();
   final authRepository = MockAuthRepository(sessionStore: sessionStore);
+  await authRepository.sendOtp(
+    const SendOtpRequest(countryCode: '+994', phoneNumber: '501112233'),
+  );
   await authRepository.register(
     const RegisterRequest(
       fullName: 'Jane Smith',

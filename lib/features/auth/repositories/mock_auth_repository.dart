@@ -8,7 +8,6 @@ import 'package:vidsell/models/auth/reset_password_request.dart';
 import 'package:vidsell/models/auth/reset_token_response.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 import 'package:vidsell/models/auth/verify_otp_request.dart';
-import 'package:vidsell/models/user/user.dart';
 
 class MockAuthRepository implements AuthRepository {
   MockAuthRepository({MockApiClient? client, SessionStore? sessionStore})
@@ -21,14 +20,15 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendOtp(SendOtpRequest request) =>
-      _client.sendOtp(request.phoneNumber);
+      _client.sendOtp('${request.countryCode}${request.phoneNumber}');
 
   @override
-  Future<User?> verifyOtp(VerifyOtpRequest request) {
-    return _client.verifyOtp(
-      identifier: request.phoneNumber,
+  Future<ResetTokenResponse> verifyOtp(VerifyOtpRequest request) async {
+    await _client.verifyOtp(
+      identifier: '${request.countryCode}${request.phoneNumber}',
       code: request.code,
     );
+    return const ResetTokenResponse(resetToken: 'mock-reset-token');
   }
 
   @override
@@ -38,15 +38,8 @@ class MockAuthRepository implements AuthRepository {
       name: request.fullName,
       email: request.email,
       password: request.password,
+      verificationCode: request.verificationCode,
     );
-  }
-
-  @override
-  Future<AuthSession> loginAfterOtp({
-    required String identifier,
-    required User user,
-  }) {
-    return _client.loginAfterOtp(identifier: identifier, user: user);
   }
 
   @override
@@ -56,9 +49,8 @@ class MockAuthRepository implements AuthRepository {
   );
 
   @override
-  Future<ResetTokenResponse> requestPasswordReset(
-    SendOtpRequest request,
-  ) async => const ResetTokenResponse(resetToken: 'mock-reset-token');
+  Future<void> requestPasswordReset(SendOtpRequest request) =>
+      _client.sendOtp(request.phoneNumber);
 
   @override
   Future<void> resetPassword(ResetPasswordRequest request) async {}

@@ -585,6 +585,7 @@
   ,"passwordMinLength": "Password must be at least {count} characters long"
   ,"@passwordMinLength": {"placeholders": {"count": {"type": "int"}}}
   ,"passwordsMismatch": "Passwords do not match"
+  ,"passwordResetComplete": "Password updated. You can now sign in."
   ,"passwordUnchangedHint": "Leave blank if you don't want to change it"
   ,"confirm": "Confirm"
   ,"profileUpdateFailed": "Profile could not be updated: {error}"

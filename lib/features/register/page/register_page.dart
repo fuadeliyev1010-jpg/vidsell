@@ -15,18 +15,21 @@ import 'package:vidsell/features/login/page/login_page.dart';
 import 'package:vidsell/features/register/widgets/discard_data_dialog.dart';
 import 'package:vidsell/features/register/widgets/field_error.dart';
 import 'package:vidsell/features/register/widgets/register_terms_text.dart';
-import 'package:vidsell/features/register/widgets/verified_badge.dart';
 import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
 /// "Gəlin hesabınızı yaradaq" — final step of the sign-up flow.
-/// The phone number arrives already verified (OTP step happened before
-/// this screen), so it's shown read-only with a "Təsdiqləndi" badge.
+/// The backend validates the OTP code together with the registration request.
 class RegisterPage extends StatefulWidget {
   final String phoneNumber;
+  final String verificationCode;
 
-  const RegisterPage({super.key, required this.phoneNumber});
+  const RegisterPage({
+    super.key,
+    required this.phoneNumber,
+    required this.verificationCode,
+  });
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -85,8 +88,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _emailError = !_emailRegex.hasMatch(email)
           ? context.l10n.invalidEmail
           : null;
-      _passwordError = password.length < 6
-          ? context.l10n.passwordMinLength(6)
+      _passwordError = password.length < 8
+          ? context.l10n.passwordMinLength(8)
           : null;
       _confirmPasswordError = confirmPassword != password
           ? context.l10n.passwordsMismatch
@@ -106,6 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
         name: name,
         email: email,
         password: password,
+        verificationCode: widget.verificationCode,
       ),
     );
   }
@@ -147,9 +151,7 @@ class _RegisterPageState extends State<RegisterPage> {
             state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.localizedAuthError(state.errorMessage),
-              ),
+              content: Text(context.l10n.localizedAuthError(state.errorCode)),
             ),
           );
         }
@@ -212,7 +214,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       const Spacer(),
-                      const VerifiedBadge(),
                     ],
                   ),
                   20.height,

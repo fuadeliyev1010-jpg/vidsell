@@ -1855,6 +1855,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordsMismatch => 'Passwords do not match';
 
   @override
+  String get passwordResetComplete => 'Password updated. You can now sign in.';
+
+  @override
   String get passwordUnchangedHint =>
       'Leave blank if you don\'t want to change it';
 

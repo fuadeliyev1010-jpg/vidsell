@@ -16,16 +16,17 @@ void main() {
 
       bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '1234'));
       final otpState = await bloc.stream.firstWhere(
-        (state) => state.status == AuthStatus.otpSent,
+        (state) => state.verificationCode == '1234',
       );
       expect(otpState.verifiedUser, isNull);
 
       bloc.add(
-        const RegistrationSubmitted(
+        RegistrationSubmitted(
           identifier: '+994501112233',
           name: 'Test User',
           email: 'test@example.com',
           password: 'password',
+          verificationCode: otpState.verificationCode!,
         ),
       );
       final authenticatedState = await bloc.stream.firstWhere(
@@ -35,18 +36,30 @@ void main() {
     },
   );
 
-  test('mock auth rejects an invalid OTP', () async {
+  test('mock registration rejects an invalid OTP code', () async {
     final bloc = AuthBloc(repository: MockAuthRepository());
     addTearDown(bloc.close);
 
     bloc.add(const OtpRequested('+994501112244'));
     await bloc.stream.firstWhere((state) => state.status == AuthStatus.otpSent);
     bloc.add(const OtpSubmitted(identifier: '+994501112244', code: '0000'));
-
+    final otpState = await bloc.stream.firstWhere(
+      (state) => state.verificationCode == '0000',
+    );
+    bloc.add(
+      RegistrationSubmitted(
+        identifier: '+994501112244',
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password',
+        verificationCode: otpState.verificationCode!,
+      ),
+    );
     final state = await bloc.stream.firstWhere(
       (state) => state.status == AuthStatus.failure,
     );
     expect(state.errorMessage, contains('geçersiz'));
+    expect(state.errorCode, 'INVALID_OTP');
   });
 
   test('cancelling the auth flow clears the pending OTP state', () async {

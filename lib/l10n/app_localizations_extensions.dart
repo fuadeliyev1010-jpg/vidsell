@@ -7,18 +7,12 @@ extension AppLocalizationsContext on BuildContext {
 }
 
 extension AppLocalizationsErrorMessages on AppLocalizations {
-  String localizedAuthError(String? message) => switch (message?.trim()) {
-    'Telefon numarası veya e-posta gereklidir.' ||
-    'Enter your phone number or email address' => loginIdentifierRequired,
-    'Please enter a valid phone number or email address' =>
-      loginIdentifierInvalid,
-    'Doğrulama kodu geçersiz.' ||
-    'Invalid verification code.' => invalidOtpCode,
-    'Bu hesap zaten kayıtlıdır.' ||
-    'This account is already registered.' => accountAlreadyRegistered,
-    'The server took too long to respond.' => serverTimeout,
-    'Unable to connect to the server.' => serverUnavailable,
-    'The request could not be completed.' => requestFailed,
+  String localizedAuthError(String? code) => switch (code?.toUpperCase()) {
+    'INVALID_OTP' || 'INVALID_VERIFICATION_CODE' => invalidOtpCode,
+    'ACCOUNT_ALREADY_REGISTERED' => accountAlreadyRegistered,
+    'IDENTIFIER_REQUIRED' => loginIdentifierRequired,
+    'CONNECTIONTIMEOUT' || 'RECEIVETIMEOUT' || 'SENDTIMEOUT' => serverTimeout,
+    'CONNECTIONERROR' => serverUnavailable,
     _ => authRequestFailed,
   };
 }

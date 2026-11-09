@@ -3482,6 +3482,12 @@ abstract class AppLocalizations {
   /// **'Passwords do not match'**
   String get passwordsMismatch;
 
+  /// No description provided for @passwordResetComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated. You can now sign in.'**
+  String get passwordResetComplete;
+
   /// No description provided for @passwordUnchangedHint.
   ///
   /// In en, this message translates to:

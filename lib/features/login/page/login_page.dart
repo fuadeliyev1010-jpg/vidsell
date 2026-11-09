@@ -4,11 +4,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/constants/back_appbar.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/core/widgets/special_text_field.dart';
 import 'package:vidsell/features/login/page/login_otp_page.dart';
+import 'package:vidsell/features/login/page/forgot_password_page.dart';
+import 'package:vidsell/features/home/page/home_page.dart';
 import 'package:vidsell/features/login/widgets/login_terms_text.dart';
 import 'package:vidsell/features/login/widgets/social_login_section.dart';
 import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
@@ -24,6 +27,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
   static const _duration = Duration(milliseconds: 220);
@@ -42,7 +46,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // Validation state for the phone/email field.
   String? _errorText;
+  String? _passwordErrorText;
   bool _hasOpenedOtpPage = false;
+  bool _isRegistrationMode = false;
 
   // Azerbaijani phone validation regex (accepts +994/994/0 prefixes, or none).
   static final RegExp _phoneRegex = RegExp(
@@ -61,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _focusNode.addListener(_handleFocusChange);
     _controller.addListener(_handleTextChange);
+    _passwordController.addListener(_handlePasswordChange);
   }
 
   void _handleFocusChange() {
@@ -78,6 +85,12 @@ class _LoginPageState extends State<LoginPage> {
   void _handleTextChange() {
     if (_errorText != null) {
       setState(() => _errorText = null);
+    }
+  }
+
+  void _handlePasswordChange() {
+    if (_passwordErrorText != null) {
+      setState(() => _passwordErrorText = null);
     }
   }
 
@@ -111,8 +124,11 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleContinuePressed() {
     final value = _controller.text;
+    final apiMode = !context.read<AppConfig>().useMockBackend;
+    final trimmed = value.trim();
+    final isEmail = _emailRegex.hasMatch(trimmed);
 
-    if (!_isValidInput(value)) {
+    if (!_isValidInput(value) || (apiMode && isEmail)) {
       setState(() {
         _errorText = value.trim().isEmpty
             ? context.l10n.loginIdentifierRequired
@@ -124,18 +140,30 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _errorText = null);
     _hasOpenedOtpPage = false;
 
-    final trimmed = value.trim();
-    final isEmail = _emailRegex.hasMatch(trimmed);
-
     final identifier = isEmail ? trimmed : _normalizePhoneNumber(trimmed);
-    context.read<AuthBloc>().add(OtpRequested(identifier));
+    if (apiMode && !_isRegistrationMode) {
+      if (_passwordController.text.isEmpty) {
+        setState(() => _passwordErrorText = context.l10n.passwordMinLength(1));
+        return;
+      }
+      context.read<AuthBloc>().add(
+        PasswordLoginSubmitted(
+          identifier: identifier,
+          password: _passwordController.text,
+        ),
+      );
+    } else {
+      context.read<AuthBloc>().add(OtpRequested(identifier));
+    }
   }
 
   @override
   void dispose() {
     _focusNode.removeListener(_handleFocusChange);
     _controller.removeListener(_handleTextChange);
+    _passwordController.removeListener(_handlePasswordChange);
     _controller.dispose();
+    _passwordController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -144,10 +172,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     // Real keyboard height for this frame.
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final apiMode = !context.read<AppConfig>().useMockBackend;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.otpSent &&
+        if (state.status == AuthStatus.authenticated && !_hasOpenedOtpPage) {
+          context.goAndClear(const HomePage());
+        } else if (state.status == AuthStatus.otpSent &&
             state.identifier != null &&
             !_hasOpenedOtpPage) {
           _hasOpenedOtpPage = true;
@@ -156,9 +187,7 @@ class _LoginPageState extends State<LoginPage> {
             state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.localizedAuthError(state.errorMessage),
-              ),
+              content: Text(context.l10n.localizedAuthError(state.errorCode)),
             ),
           );
         }
@@ -227,12 +256,39 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(
                           height: 64.h,
                           child: SpecialTextField(
-                            hintText: context.l10n.phoneOrEmail,
+                            hintText: apiMode
+                                ? context.l10n.phone
+                                : context.l10n.phoneOrEmail,
                             controller: _controller,
                             focusNode: _focusNode,
                             hasError: _hasError,
                           ),
                         ),
+
+                        if (apiMode && !_isRegistrationMode) ...[
+                          12.height,
+                          SizedBox(
+                            height: 64.h,
+                            child: SpecialTextField(
+                              hintText: context.l10n.password,
+                              controller: _passwordController,
+                              obscureText: true,
+                              showObscureToggle: true,
+                              hasError: _passwordErrorText != null,
+                            ),
+                          ),
+                          if (_passwordErrorText != null)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _passwordErrorText!,
+                                style: AppTextStyle.primaryText.copyWith(
+                                  color: Colors.red,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ),
+                        ],
 
                         if (_hasError)
                           Align(
@@ -250,15 +306,37 @@ class _LoginPageState extends State<LoginPage> {
 
                         AppButton(
                           height: 48.h,
-                          text: 'Devam et',
+                          text: context.l10n.continueAction,
                           onPressed: _handleContinuePressed,
                         ),
+                        if (apiMode) ...[
+                          8.height,
+                          TextButton(
+                            onPressed: () => setState(() {
+                              _isRegistrationMode = !_isRegistrationMode;
+                              _errorText = null;
+                              _passwordErrorText = null;
+                            }),
+                            child: Text(
+                              _isRegistrationMode
+                                  ? context.l10n.loginOrRegister
+                                  : context.l10n.registerIntro,
+                            ),
+                          ),
+                          if (!_isRegistrationMode)
+                            TextButton(
+                              onPressed: () =>
+                                  context.goTo(const ForgotPasswordPage()),
+                              child: Text(context.l10n.faqForgotPassword),
+                            ),
+                        ],
                         14.height,
                         const LoginTermsText(),
 
-                        28.height,
-
-                        const SocialLoginSection(),
+                        if (!apiMode) ...[
+                          28.height,
+                          const SocialLoginSection(),
+                        ],
                       ],
                     ),
                   ),

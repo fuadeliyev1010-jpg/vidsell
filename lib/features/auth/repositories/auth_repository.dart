@@ -5,23 +5,17 @@ import 'package:vidsell/models/auth/reset_password_request.dart';
 import 'package:vidsell/models/auth/reset_token_response.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 import 'package:vidsell/models/auth/verify_otp_request.dart';
-import 'package:vidsell/models/user/user.dart';
 
 abstract interface class AuthRepository {
   Future<void> sendOtp(SendOtpRequest request);
 
-  Future<User?> verifyOtp(VerifyOtpRequest request);
+  Future<ResetTokenResponse> verifyOtp(VerifyOtpRequest request);
 
   Future<AuthSession> register(RegisterRequest request);
 
-  Future<AuthSession> loginAfterOtp({
-    required String identifier,
-    required User user,
-  });
-
   Future<AuthSession> login(LoginRequest request);
 
-  Future<ResetTokenResponse> requestPasswordReset(SendOtpRequest request);
+  Future<void> requestPasswordReset(SendOtpRequest request);
 
   Future<void> resetPassword(ResetPasswordRequest request);
 

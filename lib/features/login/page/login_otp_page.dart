@@ -131,15 +131,18 @@ class _OtpPageState extends State<OtpPage> {
         if (state.status == AuthStatus.authenticated) {
           context.goAndClear(const HomePage());
         } else if (state.status == AuthStatus.otpSent &&
-            state.verifiedUser == null) {
-          context.goTo(RegisterPage(phoneNumber: widget.phoneNumber));
+            state.verificationCode != null) {
+          context.goTo(
+            RegisterPage(
+              phoneNumber: widget.phoneNumber,
+              verificationCode: state.verificationCode!,
+            ),
+          );
         } else if (state.status == AuthStatus.failure &&
             state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.localizedAuthError(state.errorMessage),
-              ),
+              content: Text(context.l10n.localizedAuthError(state.errorCode)),
             ),
           );
         }

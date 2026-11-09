@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/features/auth/repositories/auth_repository.dart';
 import 'package:vidsell/features/auth/repositories/mock_auth_repository.dart';
+import 'package:vidsell/models/auth/login_request.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
-import 'package:vidsell/models/auth/verify_otp_request.dart';
 import 'package:vidsell/models/auth/register_request.dart';
 import 'package:vidsell/models/enums/gender.dart';
 import 'package:vidsell/models/enums/role.dart';
@@ -19,6 +20,7 @@ enum AuthStatus {
   otpSent,
   verifyingOtp,
   registering,
+  authenticating,
   authenticated,
   failure,
 }
@@ -50,11 +52,23 @@ final class RegistrationSubmitted extends AuthEvent {
     required this.name,
     required this.email,
     required this.password,
+    required this.verificationCode,
   });
 
   final String identifier;
   final String name;
   final String email;
+  final String password;
+  final String verificationCode;
+}
+
+final class PasswordLoginSubmitted extends AuthEvent {
+  const PasswordLoginSubmitted({
+    required this.identifier,
+    required this.password,
+  });
+
+  final String identifier;
   final String password;
 }
 
@@ -76,30 +90,41 @@ class AuthState extends Equatable {
     this.session,
     this.identifier,
     this.verifiedUser,
+    this.verificationCode,
     this.errorMessage,
+    this.errorCode,
   });
 
   final AuthStatus status;
   final AuthSession? session;
   final String? identifier;
   final User? verifiedUser;
+  final String? verificationCode;
   final String? errorMessage;
+  final String? errorCode;
 
   AuthState copyWith({
     AuthStatus? status,
     AuthSession? session,
     String? identifier,
     User? verifiedUser,
+    String? verificationCode,
     String? errorMessage,
+    String? errorCode,
     bool clearSession = false,
     bool clearError = false,
+    bool clearVerificationCode = false,
   }) {
     return AuthState(
       status: status ?? this.status,
       session: clearSession ? null : session ?? this.session,
       identifier: identifier ?? this.identifier,
       verifiedUser: verifiedUser ?? this.verifiedUser,
+      verificationCode: clearVerificationCode
+          ? null
+          : verificationCode ?? this.verificationCode,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+      errorCode: clearError ? null : errorCode ?? this.errorCode,
     );
   }
 
@@ -109,7 +134,9 @@ class AuthState extends Equatable {
     session,
     identifier,
     verifiedUser,
+    verificationCode,
     errorMessage,
+    errorCode,
   ];
 }
 
@@ -121,6 +148,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<OtpRequested>(_onOtpRequested);
     on<OtpSubmitted>(_onOtpSubmitted);
     on<RegistrationSubmitted>(_onRegistrationSubmitted);
+    on<PasswordLoginSubmitted>(_onPasswordLoginSubmitted);
     on<AuthLoggedOut>(_onLoggedOut);
     on<AuthFlowCancelled>(_onAuthFlowCancelled);
     on<AuthSessionExpired>(_onSessionExpired);
@@ -131,6 +159,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository _repository;
   late final StreamSubscription<void> _sessionExpiredSubscription;
+
+  String? _errorCode(Object error) =>
+      error is ApiException ? error.apiError?.code : null;
 
   SendOtpRequest _otpRequest(String identifier) => SendOtpRequest(
     countryCode: _countryCode(identifier),
@@ -167,6 +198,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           status: AuthStatus.failure,
           errorMessage: error.toString(),
+          errorCode: _errorCode(error),
         ),
       );
     }
@@ -180,6 +212,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       state.copyWith(
         status: AuthStatus.sendingOtp,
         identifier: event.identifier,
+        clearVerificationCode: true,
         clearError: true,
       ),
     );
@@ -196,6 +229,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           status: AuthStatus.failure,
           errorMessage: error.toString(),
+          errorCode: _errorCode(error),
         ),
       );
     }
@@ -205,47 +239,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     OtpSubmitted event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(status: AuthStatus.verifyingOtp, clearError: true));
-    try {
-      final user = await _repository.verifyOtp(
-        VerifyOtpRequest(
-          countryCode: _countryCode(event.identifier),
-          phoneNumber: _phoneNumber(event.identifier),
-          code: event.code,
-        ),
-      );
-      if (user != null) {
-        final session = await _repository.loginAfterOtp(
-          identifier: event.identifier,
-          user: user,
-        );
-        emit(
-          state.copyWith(
-            status: AuthStatus.authenticated,
-            identifier: event.identifier,
-            verifiedUser: user,
-            session: session,
-            clearError: true,
-          ),
-        );
-        return;
-      }
-
-      emit(
-        state.copyWith(
-          status: AuthStatus.otpSent,
-          identifier: event.identifier,
-          verifiedUser: user,
-        ),
-      );
-    } catch (error) {
-      emit(
-        state.copyWith(
-          status: AuthStatus.failure,
-          errorMessage: error.toString(),
-        ),
-      );
-    }
+    emit(
+      state.copyWith(
+        status: AuthStatus.otpSent,
+        identifier: event.identifier,
+        verificationCode: event.code,
+        clearError: true,
+      ),
+    );
   }
 
   Future<void> _onRegistrationSubmitted(
@@ -264,7 +265,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           gender: Gender.male,
           termsAccepted: true,
           role: Role.buyer,
-          verificationCode: '',
+          verificationCode: event.verificationCode,
         ),
       );
       emit(
@@ -279,6 +280,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           status: AuthStatus.failure,
           errorMessage: error.toString(),
+          errorCode: _errorCode(error),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onPasswordLoginSubmitted(
+    PasswordLoginSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.authenticating, clearError: true));
+    try {
+      final session = await _repository.login(
+        LoginRequest(
+          countryCode: _countryCode(event.identifier),
+          phoneNumber: _phoneNumber(event.identifier),
+          password: event.password,
+        ),
+      );
+      emit(
+        state.copyWith(
+          status: AuthStatus.authenticated,
+          identifier: event.identifier,
+          session: session,
+          clearError: true,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: error.toString(),
+          errorCode: _errorCode(error),
         ),
       );
     }

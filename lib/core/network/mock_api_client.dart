@@ -1,6 +1,7 @@
 import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
+import 'package:vidsell/models/common/api_error.dart';
 import 'package:vidsell/models/user/user.dart';
 
 class MockApiClient {
@@ -15,7 +16,10 @@ class MockApiClient {
   Future<void> sendOtp(String identifier) async {
     final normalized = _normalize(identifier);
     if (normalized.isEmpty) {
-      throw const ApiException('Telefon numarası veya e-posta gereklidir.');
+      throw const ApiException(
+        'Telefon numarası veya e-posta gereklidir.',
+        apiError: ApiError(code: 'IDENTIFIER_REQUIRED'),
+      );
     }
     _otpByIdentifier[normalized] = demoOtp;
   }
@@ -26,7 +30,10 @@ class MockApiClient {
   }) async {
     final normalized = _normalize(identifier);
     if (_otpByIdentifier[normalized] != code) {
-      throw const ApiException('Doğrulama kodu geçersiz.');
+      throw const ApiException(
+        'Doğrulama kodu geçersiz.',
+        apiError: ApiError(code: 'INVALID_OTP'),
+      );
     }
 
     _otpByIdentifier.remove(normalized);
@@ -38,10 +45,21 @@ class MockApiClient {
     required String name,
     required String email,
     required String password,
+    required String verificationCode,
   }) async {
     final normalized = _normalize(identifier);
+    if (_otpByIdentifier[normalized] != verificationCode) {
+      throw const ApiException(
+        'Doğrulama kodu geçersiz.',
+        apiError: ApiError(code: 'INVALID_OTP'),
+      );
+    }
+    _otpByIdentifier.remove(normalized);
     if (_usersByIdentifier.containsKey(normalized)) {
-      throw const ApiException('Bu hesap zaten kayıtlıdır.');
+      throw const ApiException(
+        'Bu hesap zaten kayıtlıdır.',
+        apiError: ApiError(code: 'ACCOUNT_ALREADY_REGISTERED'),
+      );
     }
 
     final user = User(
@@ -51,13 +69,6 @@ class MockApiClient {
       email: email,
     );
     _usersByIdentifier[normalized] = user;
-    return _createSession(user);
-  }
-
-  Future<AuthSession> loginAfterOtp({
-    required String identifier,
-    required User user,
-  }) async {
     return _createSession(user);
   }
 
@@ -85,7 +96,10 @@ class MockApiClient {
   }) async {
     final user = _usersByIdentifier[_normalize(identifier)];
     if (user == null) {
-      throw const ApiException('Hesap bulunamadı.');
+      throw const ApiException(
+        'Hesap bulunamadı.',
+        apiError: ApiError(code: 'ACCOUNT_NOT_FOUND'),
+      );
     }
     return _createSession(user);
   }

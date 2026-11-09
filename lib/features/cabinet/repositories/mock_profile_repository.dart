@@ -46,12 +46,15 @@ class MockProfileRepository implements ProfileRepository {
   Future<User> updateProfile({
     required String name,
     required String about,
+    String? avatarUrl,
     String? avatarPath,
     bool removeAvatar = false,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
-    final updatedAvatar = removeAvatar
+    final updatedAvatar = removeAvatar || avatarUrl == ''
         ? _profile.copyWith(clearAvatar: true)
+        : avatarUrl != null
+        ? _profile.copyWith(avatarUrl: avatarUrl)
         : avatarPath == null
         ? _profile
         : _profile.copyWith(avatarUrl: 'mock://avatar/$avatarPath');

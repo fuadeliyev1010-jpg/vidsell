@@ -9,7 +9,6 @@ import 'package:vidsell/models/auth/reset_password_request.dart';
 import 'package:vidsell/models/auth/reset_token_response.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 import 'package:vidsell/models/auth/verify_otp_request.dart';
-import 'package:vidsell/models/user/user.dart';
 
 class ApiAuthRepository implements AuthRepository {
   ApiAuthRepository({
@@ -26,14 +25,20 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendOtp(SendOtpRequest request) async {
-    await _client.post('/auth/otp/request', data: request.toJson());
+    await _client.post('/auth/send-registration-otp', data: request.toJson());
   }
 
   @override
-  Future<User?> verifyOtp(VerifyOtpRequest request) async {
-    final data = await _client.post('/auth/otp/verify', data: request.toJson());
-    if (data is! Map<String, dynamic> || data['user'] == null) return null;
-    return User.fromJson(data['user'] as Map<String, dynamic>);
+  Future<ResetTokenResponse> verifyOtp(VerifyOtpRequest request) async {
+    final data = await _client.post('/auth/verify-otp', data: request.toJson());
+    if (data is! Map<String, dynamic>) {
+      throw StateError('Invalid OTP verification response.');
+    }
+    final response = ResetTokenResponse.fromJson(data);
+    if (response.resetToken.isEmpty) {
+      throw StateError('OTP verification response has no reset token.');
+    }
+    return response;
   }
 
   @override
@@ -55,35 +60,17 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthSession> loginAfterOtp({
-    required String identifier,
-    required User user,
-  }) => _authenticate('/auth/otp/login', {
-    'identifier': identifier,
-    'userId': user.id,
-  });
-
-  @override
   Future<AuthSession> login(LoginRequest request) =>
       _authenticate('/auth/login', request.toJson());
 
   @override
-  Future<ResetTokenResponse> requestPasswordReset(
-    SendOtpRequest request,
-  ) async {
-    final data = await _client.post(
-      '/auth/password/reset/request',
-      data: request.toJson(),
-    );
-    if (data is! Map<String, dynamic>) {
-      throw StateError('Invalid password reset response.');
-    }
-    return ResetTokenResponse.fromJson(data);
+  Future<void> requestPasswordReset(SendOtpRequest request) async {
+    await _client.post('/auth/forgot-password', data: request.toJson());
   }
 
   @override
   Future<void> resetPassword(ResetPasswordRequest request) async {
-    await _client.post('/auth/password/reset', data: request.toJson());
+    await _client.post('/auth/reset-password', data: request.toJson());
   }
 
   @override

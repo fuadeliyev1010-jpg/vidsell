@@ -1,6 +1,7 @@
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/cabinet/repositories/profile_repository.dart';
+import 'package:vidsell/models/user/update_profile_request.dart';
 import 'package:vidsell/models/user/user.dart';
 
 class ApiProfileRepository implements ProfileRepository {
@@ -12,7 +13,7 @@ class ApiProfileRepository implements ProfileRepository {
 
   @override
   Future<User> fetchProfile() async {
-    final data = await _client.get('/me');
+    final data = await _client.get('/users/me');
     return _withAuthenticatedUser(_profile(data));
   }
 
@@ -20,21 +21,22 @@ class ApiProfileRepository implements ProfileRepository {
   Future<User> updateProfile({
     required String name,
     required String about,
+    String? avatarUrl,
     String? avatarPath,
     bool removeAvatar = false,
   }) async {
-    final data = await _client.patch(
-      '/me',
-      data: {
-        'name': name,
-        'about': about,
-        'avatarPath': ?avatarPath,
-        'removeAvatar': removeAvatar,
-      },
+    final data = await _client.put(
+      '/users/me',
+      data: UpdateProfileRequest(
+        fullName: name.trim(),
+        avatarUrl: removeAvatar ? '' : avatarUrl,
+      ).toJson(),
     );
     final profile = _profile(data);
-    final updatedName = profile.name.isNotEmpty ? profile.name : name.trim();
-    final updatedProfile = profile.copyWith(name: updatedName);
+    final updatedProfile = profile.copyWith(
+      fullName: profile.fullName.isNotEmpty ? profile.fullName : name.trim(),
+      avatarUrl: profile.avatarUrl ?? avatarUrl,
+    );
     await _saveAuthenticatedProfile(updatedProfile);
     return updatedProfile;
   }
@@ -68,15 +70,6 @@ class ApiProfileRepository implements ProfileRepository {
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid profile response.');
     }
-    return User(
-      id: data['id'].toString(),
-      name: data['name'] as String? ?? '',
-      email: data['email'] as String? ?? '',
-      phone: data['phone'] as String? ?? '',
-      about: data['about'] as String? ?? '',
-      avatarUrl: data['avatarUrl'] as String?,
-      phoneVerified: data['phoneVerified'] as bool? ?? false,
-      emailVerified: data['emailVerified'] as bool? ?? false,
-    );
+    return User.fromJson(data);
   }
 }

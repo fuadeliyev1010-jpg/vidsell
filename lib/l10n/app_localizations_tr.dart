@@ -1848,6 +1848,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get passwordsMismatch => 'Şifreler eşleşmiyor';
 
   @override
+  String get passwordResetComplete =>
+      'Şifreniz güncellendi. Artık giriş yapabilirsiniz.';
+
+  @override
   String get passwordUnchangedHint => 'Değiştirmek istemiyorsanız boş bırakın';
 
   @override
