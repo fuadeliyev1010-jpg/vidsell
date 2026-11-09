@@ -5,10 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/features/auth/repositories/auth_repository.dart';
+import 'package:vidsell/features/auth/constants/auth_constants.dart';
 import 'package:vidsell/models/auth/reset_password_request.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 import 'package:vidsell/models/auth/verify_otp_request.dart';
@@ -30,6 +32,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   bool _completed = false;
   bool _isSubmitting = false;
   String? _errorText;
+
+  String _formatError(Object error) {
+    if (error is! ApiException) return error.toString();
+    final code = error.code;
+    return code == null ? error.message : '${error.message} ($code)';
+  }
 
   @override
   void dispose() {
@@ -64,8 +72,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         SendOtpRequest(countryCode: phone.$1, phoneNumber: phone.$2),
       );
       if (mounted) setState(() => _codeSent = true);
-    } catch (_) {
-      if (mounted) setState(() => _errorText = context.l10n.genericError);
+    } catch (error) {
+      if (mounted) setState(() => _errorText = _formatError(error));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -74,7 +82,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Future<void> _resetPassword() async {
     final phone = _phoneParts;
     final password = _passwordController.text;
-    if (phone == null || _codeController.text.trim().length < 4) {
+    if (phone == null || _codeController.text.trim().length != authOtpLength) {
       setState(() => _errorText = context.l10n.loginIdentifierInvalid);
       return;
     }
@@ -107,8 +115,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
       if (mounted) setState(() => _completed = true);
-    } catch (_) {
-      if (mounted) setState(() => _errorText = context.l10n.genericError);
+    } catch (error) {
+      if (mounted) setState(() => _errorText = _formatError(error));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -166,7 +174,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 TextField(
                   controller: _codeController,
                   keyboardType: TextInputType.number,
-                  maxLength: 6,
+                  maxLength: authOtpLength,
                   style: AppTextStyle.primaryText,
                   decoration: InputDecoration(
                     labelText: context.l10n.verifyIdentity,

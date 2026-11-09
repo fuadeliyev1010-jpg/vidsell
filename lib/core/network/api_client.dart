@@ -205,7 +205,9 @@ class ApiClient {
         fallbackCode: error.type.name,
       );
       throw ApiException(
-        apiError.messageKey ?? 'The request could not be completed.',
+        apiError.error ??
+            apiError.messageKey ??
+            'The request could not be completed.',
         statusCode: error.response?.statusCode,
         apiError: apiError,
       );

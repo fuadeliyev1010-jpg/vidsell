@@ -8,7 +8,7 @@ class MockApiClient {
   MockApiClient({SessionStore? sessionStore})
     : _sessionStore = sessionStore ?? InMemorySessionStore();
 
-  static const String demoOtp = '1234';
+  static const String demoOtp = '123456';
   final Map<String, User> _usersByIdentifier = {};
   final Map<String, String> _otpByIdentifier = {};
   final SessionStore _sessionStore;

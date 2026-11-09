@@ -52,7 +52,7 @@ void main() {
           gender: Gender.female,
           termsAccepted: true,
           role: Role.buyer,
-          verificationCode: '1234',
+          verificationCode: '780423',
         ),
       );
       expect(registered.user.fullName, 'Test User');
@@ -121,7 +121,7 @@ void main() {
         'gender': 'FEMALE',
         'termsAccepted': true,
         'role': 'BUYER',
-        'verificationCode': '1234',
+        'verificationCode': '780423',
       });
       expect(adapter.requests[2].data, {
         'countryCode': '+994',

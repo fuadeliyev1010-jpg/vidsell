@@ -34,9 +34,16 @@ class ApiError {
         ? Map<String, dynamic>.from(map['error'] as Map)
         : const <String, dynamic>{};
     final source = {...nested, ...map};
+    final errorMessage = source['error'] is String
+        ? source['error'] as String
+        : nested['error'] is String
+        ? nested['error'] as String
+        : source['message'] is String
+        ? source['message'] as String
+        : null;
     return ApiError(
       status: _int(source['status']) ?? status,
-      error: source['error'] is String ? source['error'] as String : null,
+      error: errorMessage,
       code: source['code'] as String? ?? fallbackCode,
       messageKey: source['messageKey'] as String? ?? fallbackMessageKey,
       details: _details(source['details'] ?? source['errors']),

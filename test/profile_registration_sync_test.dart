@@ -64,7 +64,7 @@ Future<InMemorySessionStore> _registerTestAccount() async {
       gender: Gender.female,
       termsAccepted: true,
       role: Role.buyer,
-      verificationCode: '1234',
+      verificationCode: '123456',
     ),
   );
   return sessionStore;

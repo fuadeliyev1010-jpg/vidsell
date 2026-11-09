@@ -22,7 +22,7 @@ class OtpBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 74.w,
+      width: 48.w,
       height: 60.h,
       child: AnimatedBuilder(
         animation: focusNode,

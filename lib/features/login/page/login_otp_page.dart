@@ -10,6 +10,7 @@ import 'package:vidsell/core/utils/format_phone_number.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/features/login/widgets/otp_box.dart';
+import 'package:vidsell/features/auth/constants/auth_constants.dart';
 import 'package:vidsell/features/register/page/register_page.dart';
 import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
 import 'package:vidsell/features/home/page/home_page.dart';
@@ -26,7 +27,7 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  static const _otpLength = 4;
+  static const _otpLength = authOtpLength;
   static const _duration = Duration(milliseconds: 220);
   static const _curve = Curves.easeOut;
 
@@ -90,6 +91,19 @@ class _OtpPageState extends State<OtpPage> {
     return _controllers.every((controller) => controller.text.isNotEmpty);
   }
 
+  void _resendCode() {
+    final operation = context.read<AuthBloc>().state.operation;
+    if (operation == AuthOperation.sendingOtp ||
+        (_secondsLeft > 0 && operation != AuthOperation.failure)) {
+      return;
+    }
+    for (final controller in _controllers) {
+      controller.clear();
+    }
+    setState(() {});
+    context.read<AuthBloc>().add(OtpRequested(widget.phoneNumber));
+  }
+
   void _onDigitChanged(int index, String value) {
     if (value.isNotEmpty) {
       if (index + 1 < _otpLength) {
@@ -125,6 +139,7 @@ class _OtpPageState extends State<OtpPage> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final authState = context.watch<AuthBloc>().state;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -138,13 +153,13 @@ class _OtpPageState extends State<OtpPage> {
               verificationCode: state.verificationCode!,
             ),
           );
-        } else if (state.operation == AuthOperation.failure &&
-            state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.localizedAuthError(state.errorCode)),
-            ),
-          );
+        } else if (state.operation == AuthOperation.otpSent) {
+          _startResendTimer();
+        } else if (state.operation == AuthOperation.failure) {
+          for (final controller in _controllers) {
+            controller.clear();
+          }
+          setState(() {});
         }
       },
       child: Scaffold(
@@ -213,6 +228,21 @@ class _OtpPageState extends State<OtpPage> {
                     }),
                   ),
 
+                  if (authState.operation == AuthOperation.failure &&
+                      authState.displayError != null) ...[
+                    16.height,
+                    Text(
+                      authState.errorMessage == null
+                          ? context.l10n.localizedAuthError(authState.errorCode)
+                          : authState.displayError!,
+                      key: const ValueKey('registration-otp-error'),
+                      style: AppTextStyle.primaryText.copyWith(
+                        color: Colors.redAccent,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                  ],
+
                   56.height,
 
                   SizedBox(
@@ -242,37 +272,36 @@ class _OtpPageState extends State<OtpPage> {
                   14.height,
 
                   Center(
-                    child: _secondsLeft > 0
-                        ? Text.rich(
-                            TextSpan(
-                              style: AppTextStyle.primaryText.copyWith(
-                                fontSize: 13.sp,
-                                color: AppColor.tertiaryTextColor,
-                              ),
-                              children: [
-                                TextSpan(text: context.l10n.resendCode),
-                                TextSpan(
-                                  text: _formattedTime,
-                                  style: const TextStyle(
-                                    color: AppColor.activeColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                          )
-                        : TextButton(
-                            onPressed: _startResendTimer,
-                            child: Text(
-                              context.l10n.resendCode,
-                              style: AppTextStyle.primaryText.copyWith(
-                                fontSize: 13.sp,
-                                color: AppColor.activeColor,
-                                fontWeight: FontWeight.w600,
-                              ),
+                    child: Text.rich(
+                      TextSpan(
+                        style: AppTextStyle.primaryText.copyWith(
+                          fontSize: 13.sp,
+                          color: AppColor.tertiaryTextColor,
+                        ),
+                        children: [
+                          TextSpan(text: context.l10n.resendCode),
+                          TextSpan(
+                            text: ' $_formattedTime',
+                            style: const TextStyle(
+                              color: AppColor.activeColor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Center(
+                    child: TextButton(
+                      onPressed:
+                          authState.operation == AuthOperation.sendingOtp ||
+                              (_secondsLeft > 0 &&
+                                  authState.operation != AuthOperation.failure)
+                          ? null
+                          : _resendCode,
+                      child: Text(context.l10n.resendCode),
+                    ),
                   ),
                 ],
               ),

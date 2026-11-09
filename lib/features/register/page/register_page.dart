@@ -50,6 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
+  bool _registrationFailed = false;
 
   @override
   void initState() {
@@ -149,15 +150,16 @@ class _RegisterPageState extends State<RegisterPage> {
           context.goAndClear(const HomePage());
         } else if (state.operation == AuthOperation.failure &&
             state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.localizedAuthError(state.errorCode)),
-            ),
-          );
+          setState(() => _registrationFailed = true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) context.goBack();
+            });
+          });
         }
       },
       child: PopScope(
-        canPop: !_hasUnsavedInput,
+        canPop: !_hasUnsavedInput || _registrationFailed,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) _handleBackPressed();
         },

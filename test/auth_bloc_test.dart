@@ -14,9 +14,9 @@ void main() {
         (state) => state.operation == AuthOperation.otpSent,
       );
 
-      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '1234'));
+      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '123456'));
       final otpState = await bloc.stream.firstWhere(
-        (state) => state.verificationCode == '1234',
+        (state) => state.verificationCode == '123456',
       );
       expect(otpState.verifiedUser, isNull);
 
@@ -44,9 +44,9 @@ void main() {
     await bloc.stream.firstWhere(
       (state) => state.operation == AuthOperation.otpSent,
     );
-    bloc.add(const OtpSubmitted(identifier: '+994501112244', code: '0000'));
+    bloc.add(const OtpSubmitted(identifier: '+994501112244', code: '000000'));
     final otpState = await bloc.stream.firstWhere(
-      (state) => state.verificationCode == '0000',
+      (state) => state.verificationCode == '000000',
     );
     bloc.add(
       RegistrationSubmitted(
@@ -61,6 +61,23 @@ void main() {
       (state) => state.operation == AuthOperation.failure,
     );
     expect(state.errorMessage, contains('geçersiz'));
+    expect(state.errorCode, 'INVALID_OTP');
+  });
+
+  test('OTP submission rejects codes that are not six digits', () async {
+    final bloc = AuthBloc(repository: MockAuthRepository());
+    addTearDown(bloc.close);
+
+    bloc.add(const OtpRequested('+994501112255'));
+    await bloc.stream.firstWhere(
+      (state) => state.operation == AuthOperation.otpSent,
+    );
+    bloc.add(const OtpSubmitted(identifier: '+994501112255', code: '1234'));
+    final state = await bloc.stream.firstWhere(
+      (state) => state.operation == AuthOperation.failure,
+    );
+
+    expect(state.verificationCode, isNull);
     expect(state.errorCode, 'INVALID_OTP');
   });
 

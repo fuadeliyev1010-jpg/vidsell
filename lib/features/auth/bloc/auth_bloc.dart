@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/core/network/api_exception.dart';
+import 'package:vidsell/features/auth/constants/auth_constants.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/features/auth/repositories/auth_repository.dart';
 import 'package:vidsell/features/auth/repositories/mock_auth_repository.dart';
@@ -106,6 +107,11 @@ class AuthState extends Equatable {
   final String? errorMessage;
   final String? errorCode;
 
+  String? get displayError {
+    if (errorMessage == null || errorMessage!.isEmpty) return errorCode;
+    return errorCode == null ? errorMessage : '$errorMessage ($errorCode)';
+  }
+
   AuthState copyWith({
     AuthStatus? status,
     AuthOperation? operation,
@@ -117,6 +123,7 @@ class AuthState extends Equatable {
     String? errorCode,
     bool clearSession = false,
     bool clearError = false,
+    bool clearErrorMessage = false,
     bool clearVerificationCode = false,
   }) {
     return AuthState(
@@ -128,7 +135,9 @@ class AuthState extends Equatable {
       verificationCode: clearVerificationCode
           ? null
           : verificationCode ?? this.verificationCode,
-      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+      errorMessage: clearError || clearErrorMessage
+          ? null
+          : errorMessage ?? this.errorMessage,
       errorCode: clearError ? null : errorCode ?? this.errorCode,
     );
   }
@@ -249,6 +258,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     OtpSubmitted event,
     Emitter<AuthState> emit,
   ) async {
+    if (event.code.length != authOtpLength) {
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorCode: 'INVALID_OTP',
+          clearErrorMessage: true,
+        ),
+      );
+      return;
+    }
     emit(
       state.copyWith(
         operation: AuthOperation.otpSent,
@@ -263,6 +282,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegistrationSubmitted event,
     Emitter<AuthState> emit,
   ) async {
+    if (event.verificationCode.length != authOtpLength) {
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorCode: 'INVALID_OTP',
+          clearErrorMessage: true,
+        ),
+      );
+      return;
+    }
     emit(
       state.copyWith(operation: AuthOperation.registering, clearError: true),
     );

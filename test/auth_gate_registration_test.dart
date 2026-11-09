@@ -1,15 +1,24 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vidsell/core/config/app_environment.dart';
+import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/pager/app_router.dart';
+import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/auth/bloc/auth_bloc.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
+import 'package:vidsell/features/auth/repositories/api_auth_repository.dart';
 import 'package:vidsell/features/auth/repositories/mock_auth_repository.dart';
 import 'package:vidsell/features/auth/widgets/auth_gate.dart';
 import 'package:vidsell/features/login/page/login_otp_page.dart';
+import 'package:vidsell/features/login/widgets/otp_box.dart';
+import 'package:vidsell/features/register/page/register_page.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 
@@ -69,6 +78,247 @@ void main() {
     expect(find.byType(OtpPage), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  test(
+    'six-digit API registration code reaches successful registration',
+    () async {
+      final fixture = _RegistrationApiFixture();
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
+        ..httpClientAdapter = fixture;
+      final client = ApiClient(
+        config: const AppConfig(
+          apiBaseUrl: 'https://api.example.test/api/v1',
+          useMockBackend: false,
+        ),
+        dio: dio,
+      );
+      final repository = ApiAuthRepository(
+        client: client,
+        sessionStore: InMemorySessionStore(),
+      );
+      final bloc = AuthBloc(repository: repository);
+      addTearDown(() async {
+        await bloc.close();
+        client.dispose();
+        dio.close(force: true);
+      });
+
+      bloc.add(const AuthStarted());
+      await bloc.stream.firstWhere(
+        (state) => state.status == AuthStatus.unauthenticated,
+      );
+      bloc.add(const OtpRequested('+994501112233'));
+      await bloc.stream.firstWhere(
+        (state) => state.operation == AuthOperation.otpSent,
+      );
+      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '780423'));
+      await bloc.stream.firstWhere(
+        (state) => state.verificationCode == '780423',
+      );
+      bloc.add(
+        const RegistrationSubmitted(
+          identifier: '+994501112233',
+          name: 'Test User',
+          email: 'test@example.test',
+          password: 'password-8',
+          verificationCode: '780423',
+        ),
+      );
+      final registered = await bloc.stream.firstWhere(
+        (state) => state.status == AuthStatus.authenticated,
+      );
+
+      expect(registered.session, isNotNull);
+      final registrationRequest = fixture.requests.singleWhere(
+        (request) => request.path == '/auth/register',
+      );
+      expect(registrationRequest.data['verificationCode'], '780423');
+      expect(fixture.requests.map((request) => request.path), [
+        '/auth/send-registration-otp',
+        '/auth/register',
+      ]);
+    },
+  );
+
+  testWidgets(
+    '400 registration response returns to OTP with error and resend',
+    (tester) async {
+      final fixture = _RegistrationApiFixture(rejectRegistration: true);
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
+        ..httpClientAdapter = fixture;
+      final client = ApiClient(
+        config: const AppConfig(
+          apiBaseUrl: 'https://api.example.test/api/v1',
+          useMockBackend: false,
+        ),
+        dio: dio,
+      );
+      final repository = ApiAuthRepository(
+        client: client,
+        sessionStore: InMemorySessionStore(),
+      );
+      final authBloc = AuthBloc(repository: repository);
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const AuthGate()),
+          routedPageRoute(),
+        ],
+      );
+      addTearDown(() async {
+        router.dispose();
+        await authBloc.close();
+        client.dispose();
+        dio.close(force: true);
+      });
+
+      await tester.pumpWidget(
+        ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) => RepositoryProvider<AppConfig>.value(
+            value: const AppConfig(useMockBackend: false),
+            child: BlocProvider<AuthBloc>.value(
+              value: authBloc,
+              child: MaterialApp.router(
+                routerConfig: router,
+                locale: const Locale('en'),
+                supportedLocales: AppLocalizations.supportedLocales,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+              ),
+            ),
+          ),
+        ),
+      );
+      authBloc.add(const AuthStarted());
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(TextButton, "Let's create your account"),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField).first, '+994501112233');
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Continue'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+
+      for (var index = 0; index < 6; index++) {
+        final otpBox = find.byType(OtpBox).at(index);
+        await tester.enterText(
+          find.descendant(of: otpBox, matching: find.byType(TextField)),
+          '780423'[index],
+        );
+        await tester.pump();
+      }
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Devam et'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(RegisterPage), findsOneWidget);
+
+      final registerFields = find.descendant(
+        of: find.byType(RegisterPage),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(registerFields.at(0), 'Test User');
+      await tester.enterText(registerFields.at(1), 'test@example.test');
+      await tester.enterText(registerFields.at(2), 'password-8');
+      await tester.enterText(registerFields.at(3), 'password-8');
+      final registerButton = find.descendant(
+        of: find.byType(RegisterPage),
+        matching: find.widgetWithText(OutlinedButton, 'Devam et'),
+      );
+      await tester.ensureVisible(registerButton);
+      await tester.tap(registerButton);
+      await tester.pump();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
+      expect(find.byType(RegisterPage), findsNothing);
+      expect(find.byType(OtpPage), findsOneWidget);
+      expect(find.byType(OtpPage), findsOneWidget);
+      expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
+      expect(
+        fixture.requests
+            .singleWhere((request) => request.path == '/auth/register')
+            .data['verificationCode'],
+        '780423',
+      );
+
+      final resendButton = find.widgetWithText(TextButton, 'Resend code');
+      await tester.ensureVisible(resendButton);
+      await tester.tap(resendButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        fixture.requests
+            .where((request) => request.path == '/auth/send-registration-otp')
+            .length,
+        2,
+      );
+      expect(authBloc.state.status, AuthStatus.unauthenticated);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+}
+
+class _RegistrationApiFixture implements HttpClientAdapter {
+  _RegistrationApiFixture({this.rejectRegistration = false});
+
+  final bool rejectRegistration;
+  final requests = <RequestOptions>[];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(options);
+    if (options.path == '/auth/register' && rejectRegistration) {
+      return ResponseBody.fromString(
+        jsonEncode({
+          'status': 400,
+          'error': 'The code expired',
+          'code': 'OTP_EXPIRED',
+        }),
+        400,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
+
+    final response = switch (options.path) {
+      '/auth/send-registration-otp' => {'message': 'OTP sent'},
+      '/auth/register' => _authResponse,
+      _ => throw StateError('Unexpected auth route: ${options.path}'),
+    };
+    return ResponseBody.fromString(
+      jsonEncode(response),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  static final _authResponse = {
+    'accessToken': base64Url.encode(utf8.encode('registration-access')),
+    'refreshToken': base64Url.encode(utf8.encode('registration-refresh')),
+    'tokenType': 'Bearer',
+    'user': {
+      'id': '00000000-0000-4000-8000-000000000001',
+      'fullName': 'Test User',
+      'countryCode': '+994',
+      'phoneNumber': '501112233',
+      'email': 'test@example.test',
+      'avatarUrl': '',
+      'gender': 'MALE',
+      'role': 'BUYER',
+      'createdAt': '2026-11-09T12:00:00Z',
+    },
+  };
+
+  @override
+  void close({bool force = false}) {}
 }
 
 class _OtpSentRepository extends MockAuthRepository {
