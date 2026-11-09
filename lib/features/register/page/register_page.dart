@@ -5,12 +5,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/constants/back_appbar.dart';
+import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/format_phone_number.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/core/widgets/special_text_field.dart';
 import 'package:vidsell/features/home/page/home_page.dart';
+import 'package:vidsell/features/login/page/login_otp_page.dart';
 import 'package:vidsell/features/login/page/login_page.dart';
 import 'package:vidsell/features/register/widgets/discard_data_dialog.dart';
 import 'package:vidsell/features/register/widgets/field_error.dart';
@@ -23,12 +25,12 @@ import 'package:vidsell/l10n/app_localizations_extensions.dart';
 /// The backend validates the OTP code together with the registration request.
 class RegisterPage extends StatefulWidget {
   final String phoneNumber;
-  final String verificationCode;
+  final String? verificationCode;
 
   const RegisterPage({
     super.key,
     required this.phoneNumber,
-    required this.verificationCode,
+    this.verificationCode,
   });
 
   @override
@@ -51,6 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _passwordError;
   String? _confirmPasswordError;
   bool _registrationFailed = false;
+  bool _hasOpenedOtpPage = false;
 
   @override
   void initState() {
@@ -104,15 +107,27 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    context.read<AuthBloc>().add(
-      RegistrationSubmitted(
-        identifier: widget.phoneNumber,
-        name: name,
-        email: email,
-        password: password,
-        verificationCode: widget.verificationCode,
-      ),
-    );
+    final authBloc = context.read<AuthBloc>();
+    if (!context.read<AppConfig>().useMockBackend) {
+      authBloc.add(
+        RegistrationOtpRequested(
+          identifier: widget.phoneNumber,
+          name: name,
+          email: email,
+          password: password,
+        ),
+      );
+    } else {
+      authBloc.add(
+        RegistrationSubmitted(
+          identifier: widget.phoneNumber,
+          name: name,
+          email: email,
+          password: password,
+          verificationCode: widget.verificationCode ?? '',
+        ),
+      );
+    }
   }
 
   /// Whether the user has typed anything worth warning about before leaving.
@@ -146,16 +161,30 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        if (ModalRoute.of(context)?.isCurrent != true) return;
         if (state.status == AuthStatus.authenticated) {
           context.goAndClear(const HomePage());
+        } else if (state.operation == AuthOperation.otpSent &&
+            state.pendingRegistration != null &&
+            !_hasOpenedOtpPage) {
+          _hasOpenedOtpPage = true;
+          context.goTo(OtpPage(phoneNumber: widget.phoneNumber));
         } else if (state.operation == AuthOperation.failure &&
             state.errorMessage != null) {
-          setState(() => _registrationFailed = true);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (state.pendingRegistration != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.displayError ?? state.errorMessage!),
+              ),
+            );
+          } else {
+            setState(() => _registrationFailed = true);
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) context.goBack();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) context.goBack();
+              });
             });
-          });
+          }
         }
       },
       child: PopScope(

@@ -23,7 +23,13 @@ import 'package:vidsell/l10n/app_localizations.dart';
 import 'package:vidsell/models/auth/send_otp_request.dart';
 
 void main() {
-  testWidgets('registration OTP opens and stays on OTP page', (tester) async {
+  testWidgets('API registration opens the registration form first', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final repository = _OtpSentRepository();
     final authBloc = AuthBloc(repository: repository);
     final router = GoRouter(
@@ -68,14 +74,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
 
-    expect(repository.requests, hasLength(1));
+    expect(repository.requests, isEmpty);
     expect(find.byType(AuthGate), findsOneWidget);
-    expect(find.byType(OtpPage), findsOneWidget);
+    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(find.byType(OtpPage), findsNothing);
     expect(authBloc.state.status, AuthStatus.unauthenticated);
-    expect(authBloc.state.operation, AuthOperation.otpSent);
-
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byType(OtpPage), findsOneWidget);
+    expect(authBloc.state.operation, AuthOperation.idle);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -107,23 +111,18 @@ void main() {
       await bloc.stream.firstWhere(
         (state) => state.status == AuthStatus.unauthenticated,
       );
-      bloc.add(const OtpRequested('+994501112233'));
-      await bloc.stream.firstWhere(
-        (state) => state.operation == AuthOperation.otpSent,
-      );
-      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '780423'));
-      await bloc.stream.firstWhere(
-        (state) => state.verificationCode == '780423',
-      );
       bloc.add(
-        const RegistrationSubmitted(
+        const RegistrationOtpRequested(
           identifier: '+994501112233',
           name: 'Test User',
           email: 'test@example.test',
           password: 'password-8',
-          verificationCode: '780423',
         ),
       );
+      await bloc.stream.firstWhere(
+        (state) => state.operation == AuthOperation.otpSent,
+      );
+      bloc.add(const OtpSubmitted(identifier: '+994501112233', code: '780423'));
       final registered = await bloc.stream.firstWhere(
         (state) => state.status == AuthStatus.authenticated,
       );
@@ -133,6 +132,14 @@ void main() {
         (request) => request.path == '/auth/register',
       );
       expect(registrationRequest.data['verificationCode'], '780423');
+      expect(registrationRequest.data['fullName'], 'Test User');
+      expect(registrationRequest.data['countryCode'], '+994');
+      expect(registrationRequest.data['phoneNumber'], '501112233');
+      expect(registrationRequest.data['email'], 'test@example.test');
+      expect(registrationRequest.data['password'], 'password-8');
+      expect(registrationRequest.data['gender'], 'MALE');
+      expect(registrationRequest.data['termsAccepted'], isTrue);
+      expect(registrationRequest.data['role'], 'BUYER');
       expect(fixture.requests.map((request) => request.path), [
         '/auth/send-registration-otp',
         '/auth/register',
@@ -143,6 +150,10 @@ void main() {
   testWidgets(
     '400 registration response returns to OTP with error and resend',
     (tester) async {
+      tester.view.physicalSize = const Size(375, 812);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       final fixture = _RegistrationApiFixture(rejectRegistration: true);
       final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'))
         ..httpClientAdapter = fixture;
@@ -201,19 +212,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump();
 
-      for (var index = 0; index < 6; index++) {
-        final otpBox = find.byType(OtpBox).at(index);
-        await tester.enterText(
-          find.descendant(of: otpBox, matching: find.byType(TextField)),
-          '780423'[index],
-        );
-        await tester.pump();
-      }
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Devam et'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(RegisterPage), findsOneWidget);
-
       final registerFields = find.descendant(
         of: find.byType(RegisterPage),
         matching: find.byType(TextField),
@@ -229,12 +228,32 @@ void main() {
       await tester.ensureVisible(registerButton);
       await tester.tap(registerButton);
       await tester.pump();
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
-
-      expect(find.byType(RegisterPage), findsNothing);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
       expect(find.byType(OtpPage), findsOneWidget);
+
+      for (var index = 0; index < 6; index++) {
+        final otpBox = find.byType(OtpBox).at(index);
+        await tester.enterText(
+          find.descendant(of: otpBox, matching: find.byType(TextField)),
+          '780423'[index],
+        );
+        await tester.pump();
+      }
+      await tester.tap(
+        find.descendant(
+          of: find.byType(OtpPage),
+          matching: find.widgetWithText(OutlinedButton, 'Devam et'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
       expect(find.byType(OtpPage), findsOneWidget);
       expect(find.text('The code expired (OTP_EXPIRED)'), findsOneWidget);
+      expect(authBloc.state.pendingRegistration?.name, 'Test User');
+      expect(authBloc.state.pendingRegistration?.email, 'test@example.test');
+      expect(authBloc.state.pendingRegistration?.password, 'password-8');
       expect(
         fixture.requests
             .singleWhere((request) => request.path == '/auth/register')
@@ -242,8 +261,11 @@ void main() {
         '780423',
       );
 
+      tester.testTextInput.hide();
+      await tester.pumpAndSettle();
       final resendButton = find.widgetWithText(TextButton, 'Resend code');
       await tester.ensureVisible(resendButton);
+      await tester.pumpAndSettle();
       await tester.tap(resendButton);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));

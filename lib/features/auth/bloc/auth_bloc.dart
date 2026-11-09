@@ -48,6 +48,20 @@ final class OtpSubmitted extends AuthEvent {
   final String code;
 }
 
+final class RegistrationOtpRequested extends AuthEvent {
+  const RegistrationOtpRequested({
+    required this.identifier,
+    required this.name,
+    required this.email,
+    required this.password,
+  });
+
+  final String identifier;
+  final String name;
+  final String email;
+  final String password;
+}
+
 final class RegistrationSubmitted extends AuthEvent {
   const RegistrationSubmitted({
     required this.identifier,
@@ -62,6 +76,23 @@ final class RegistrationSubmitted extends AuthEvent {
   final String email;
   final String password;
   final String verificationCode;
+}
+
+class PendingRegistration extends Equatable {
+  const PendingRegistration({
+    required this.identifier,
+    required this.name,
+    required this.email,
+    required this.password,
+  });
+
+  final String identifier;
+  final String name;
+  final String email;
+  final String password;
+
+  @override
+  List<Object?> get props => [identifier, name, email, password];
 }
 
 final class PasswordLoginSubmitted extends AuthEvent {
@@ -94,6 +125,7 @@ class AuthState extends Equatable {
     this.identifier,
     this.verifiedUser,
     this.verificationCode,
+    this.pendingRegistration,
     this.errorMessage,
     this.errorCode,
   });
@@ -104,6 +136,7 @@ class AuthState extends Equatable {
   final String? identifier;
   final User? verifiedUser;
   final String? verificationCode;
+  final PendingRegistration? pendingRegistration;
   final String? errorMessage;
   final String? errorCode;
 
@@ -119,11 +152,13 @@ class AuthState extends Equatable {
     String? identifier,
     User? verifiedUser,
     String? verificationCode,
+    PendingRegistration? pendingRegistration,
     String? errorMessage,
     String? errorCode,
     bool clearSession = false,
     bool clearError = false,
     bool clearErrorMessage = false,
+    bool clearPendingRegistration = false,
     bool clearVerificationCode = false,
   }) {
     return AuthState(
@@ -135,6 +170,9 @@ class AuthState extends Equatable {
       verificationCode: clearVerificationCode
           ? null
           : verificationCode ?? this.verificationCode,
+      pendingRegistration: clearPendingRegistration
+          ? null
+          : pendingRegistration ?? this.pendingRegistration,
       errorMessage: clearError || clearErrorMessage
           ? null
           : errorMessage ?? this.errorMessage,
@@ -150,6 +188,7 @@ class AuthState extends Equatable {
     identifier,
     verifiedUser,
     verificationCode,
+    pendingRegistration,
     errorMessage,
     errorCode,
   ];
@@ -161,6 +200,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       super(const AuthState()) {
     on<AuthStarted>(_onStarted);
     on<OtpRequested>(_onOtpRequested);
+    on<RegistrationOtpRequested>(_onRegistrationOtpRequested);
     on<OtpSubmitted>(_onOtpSubmitted);
     on<RegistrationSubmitted>(_onRegistrationSubmitted);
     on<PasswordLoginSubmitted>(_onPasswordLoginSubmitted);
@@ -207,6 +247,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           operation: AuthOperation.idle,
           session: session,
           clearError: true,
+          clearPendingRegistration: true,
         ),
       );
     } catch (error) {
@@ -254,6 +295,45 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onRegistrationOtpRequested(
+    RegistrationOtpRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final pendingRegistration = PendingRegistration(
+      identifier: event.identifier,
+      name: event.name,
+      email: event.email,
+      password: event.password,
+    );
+    emit(
+      state.copyWith(
+        operation: AuthOperation.sendingOtp,
+        identifier: event.identifier,
+        pendingRegistration: pendingRegistration,
+        clearVerificationCode: true,
+        clearError: true,
+      ),
+    );
+    try {
+      await _repository.sendOtp(_otpRequest(event.identifier));
+      emit(
+        state.copyWith(
+          operation: AuthOperation.otpSent,
+          identifier: event.identifier,
+        ),
+      );
+    } catch (error) {
+      debugPrint('[AuthBloc] Sending registration OTP failed: $error');
+      emit(
+        state.copyWith(
+          operation: AuthOperation.failure,
+          errorMessage: error.toString(),
+          errorCode: _errorCode(error),
+        ),
+      );
+    }
+  }
+
   Future<void> _onOtpSubmitted(
     OtpSubmitted event,
     Emitter<AuthState> emit,
@@ -266,6 +346,46 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           clearErrorMessage: true,
         ),
       );
+      return;
+    }
+    final pendingRegistration = state.pendingRegistration;
+    if (pendingRegistration != null) {
+      emit(
+        state.copyWith(
+          operation: AuthOperation.registering,
+          identifier: event.identifier,
+          clearError: true,
+        ),
+      );
+      try {
+        final session = await _repository.register(
+          _registrationRequest(
+            identifier: pendingRegistration.identifier,
+            name: pendingRegistration.name,
+            email: pendingRegistration.email,
+            password: pendingRegistration.password,
+            verificationCode: event.code,
+          ),
+        );
+        emit(
+          state.copyWith(
+            status: AuthStatus.authenticated,
+            operation: AuthOperation.idle,
+            session: session,
+            clearError: true,
+            clearPendingRegistration: true,
+          ),
+        );
+      } catch (error) {
+        debugPrint('[AuthBloc] Registration failed: $error');
+        emit(
+          state.copyWith(
+            operation: AuthOperation.failure,
+            errorMessage: error.toString(),
+            errorCode: _errorCode(error),
+          ),
+        );
+      }
       return;
     }
     emit(
@@ -297,15 +417,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     try {
       final session = await _repository.register(
-        RegisterRequest(
-          fullName: event.name,
-          countryCode: _countryCode(event.identifier),
-          phoneNumber: _phoneNumber(event.identifier),
-          password: event.password,
+        _registrationRequest(
+          identifier: event.identifier,
+          name: event.name,
           email: event.email,
-          gender: Gender.male,
-          termsAccepted: true,
-          role: Role.buyer,
+          password: event.password,
           verificationCode: event.verificationCode,
         ),
       );
@@ -328,6 +444,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
     }
   }
+
+  RegisterRequest _registrationRequest({
+    required String identifier,
+    required String name,
+    required String email,
+    required String password,
+    required String verificationCode,
+  }) => RegisterRequest(
+    fullName: name,
+    countryCode: _countryCode(identifier),
+    phoneNumber: _phoneNumber(identifier),
+    password: password,
+    email: email,
+    gender: Gender.male,
+    termsAccepted: true,
+    role: Role.buyer,
+    verificationCode: verificationCode,
+  );
 
   Future<void> _onPasswordLoginSubmitted(
     PasswordLoginSubmitted event,

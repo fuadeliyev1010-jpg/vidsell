@@ -11,6 +11,7 @@ import 'package:vidsell/core/widgets/app_button.dart';
 import 'package:vidsell/core/widgets/special_text_field.dart';
 import 'package:vidsell/features/login/page/login_otp_page.dart';
 import 'package:vidsell/features/login/page/forgot_password_page.dart';
+import 'package:vidsell/features/register/page/register_page.dart';
 import 'package:vidsell/features/home/page/home_page.dart';
 import 'package:vidsell/features/login/widgets/login_terms_text.dart';
 import 'package:vidsell/features/login/widgets/social_login_section.dart';
@@ -152,6 +153,8 @@ class _LoginPageState extends State<LoginPage> {
           password: _passwordController.text,
         ),
       );
+    } else if (apiMode) {
+      context.goTo(RegisterPage(phoneNumber: identifier));
     } else {
       context.read<AuthBloc>().add(OtpRequested(identifier));
     }
@@ -176,6 +179,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        if (ModalRoute.of(context)?.isCurrent != true) return;
         if (state.status == AuthStatus.authenticated && !_hasOpenedOtpPage) {
           context.goAndClear(const HomePage());
         } else if (state.operation == AuthOperation.otpSent &&
