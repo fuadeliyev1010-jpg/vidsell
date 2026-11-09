@@ -41,7 +41,7 @@ class ApiClient {
         onRequest: (options, handler) async {
           final session = await _sessionStore.read();
           if (session != null && session.accessToken.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer ${session.accessToken}';
+            options.headers['Authorization'] = _authorizationHeader(session);
           }
           options.headers['X-App-Language'] = _languageCode;
           handler.next(options);
@@ -73,7 +73,7 @@ class ApiClient {
             final retryOptions = Options(
               method: requestOptions.method,
               headers: Map<String, dynamic>.from(requestOptions.headers)
-                ..['Authorization'] = 'Bearer ${newSession.accessToken}'
+                ..['Authorization'] = _authorizationHeader(newSession)
                 ..['X-App-Language'] = _languageCode,
               extra: Map<String, dynamic>.from(requestOptions.extra)
                 ..['isRetry'] = true,
@@ -97,6 +97,9 @@ class ApiClient {
       ),
     );
   }
+
+  static String _authorizationHeader(AuthSession session) =>
+      '${session.tokenType} ${session.accessToken}';
 
   final Dio _dio;
   final Dio _refreshDio;

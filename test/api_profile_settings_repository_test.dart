@@ -5,9 +5,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/network/api_client.dart';
+import 'package:vidsell/core/storage/session_store.dart';
+import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/features/cabinet/repositories/api_profile_repository.dart';
 import 'package:vidsell/features/cabinet/repositories/api_settings_repository.dart';
 import 'package:vidsell/models/enums/app_language.dart';
+import 'package:vidsell/models/user/user.dart';
 
 void main() {
   test(
@@ -16,11 +19,21 @@ void main() {
       final adapter = _ProfileSettingsAdapter();
       final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test/api/v1'));
       dio.httpClientAdapter = adapter;
+      final sessionStore = InMemorySessionStore();
+      await sessionStore.write(
+        const AuthSession(
+          accessToken: 'api-test-token',
+          refreshToken: '',
+          tokenType: 'Token',
+          user: User(id: 'test-user'),
+        ),
+      );
       final client = ApiClient(
         config: const AppConfig(
           apiBaseUrl: 'https://api.example.test/api/v1',
           useMockBackend: false,
         ),
+        sessionStore: sessionStore,
         dio: dio,
       );
       addTearDown(() {
@@ -33,6 +46,8 @@ void main() {
 
       final profile = await profileRepository.fetchProfile();
       expect(profile.fullName, 'Test User');
+      expect(profile.phoneNumber, '501112233');
+      expect(profile.countryCode, '+994');
       final updatedProfile = await profileRepository.updateProfile(
         name: 'Updated User',
         about: '',
@@ -70,6 +85,10 @@ void main() {
       expect(
         adapter.requests.map((request) => request.headers['X-App-Language']),
         everyElement('tr'),
+      );
+      expect(
+        adapter.requests.map((request) => request.headers['Authorization']),
+        everyElement('Token api-test-token'),
       );
     },
   );

@@ -51,6 +51,7 @@ class _CabinetPageState extends State<CabinetPage>
   late final UserListingRepository _userListingRepository;
   late final StatusCountRepository _statusCountRepository;
   Map<ProductStatus, int> _statusCounts = const {};
+  String? _statusCountsError;
   String? _selectedCategory;
   String? _selectedSortOption;
   final TextEditingController _searchController = TextEditingController();
@@ -92,14 +93,17 @@ class _CabinetPageState extends State<CabinetPage>
       if (!mounted) return;
       setState(() {
         _statusCounts = {for (final item in counts) item.status: item.count};
+        _statusCountsError = null;
       });
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not load listing counts: $error')),
-        );
+        setState(() => _statusCountsError = error.toString());
       }
     }
+  }
+
+  void _reloadProfile() {
+    setState(() => _profileFuture = _profileRepository.fetchProfile());
   }
 
   int _statusCount(int index) {
@@ -342,7 +346,39 @@ class _CabinetPageState extends State<CabinetPage>
                       builder: (context, snapshot) {
                         final profile = snapshot.data ?? _profile;
                         if (profile == null) {
-                          return _buildHeaderSection(null);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildHeaderSection(null),
+                              if (snapshot.hasError)
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                    vertical: 6.h,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          context.l10n.genericError,
+                                          key: const ValueKey(
+                                            'cabinet-profile-error',
+                                          ),
+                                          style: TextStyle(
+                                            color: AppColor.error,
+                                            fontSize: 11.sp,
+                                          ),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: _reloadProfile,
+                                        child: Text(context.l10n.retry),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          );
                         }
                         _profile = profile;
                         return _buildHeaderSection(profile);
@@ -537,6 +573,14 @@ class _CabinetPageState extends State<CabinetPage>
   }
 
   Widget _buildHeaderSection(User? profile) {
+    final avatarUrl = profile?.avatarUrl;
+    final phoneNumber = profile?.phoneNumber.trim() ?? '';
+    final countryCode = profile?.countryCode.trim() ?? '';
+    final displayPhone = phoneNumber.isEmpty
+        ? ''
+        : countryCode.isEmpty || phoneNumber.startsWith(countryCode)
+        ? phoneNumber
+        : '$countryCode $phoneNumber';
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
@@ -544,7 +588,19 @@ class _CabinetPageState extends State<CabinetPage>
           CircleAvatar(
             radius: 24.r,
             backgroundColor: AppColor.bgSurfaceColor,
-            child: SvgPicture.asset('assets/icons/profile-2.svg'),
+            child: ClipOval(
+              child: avatarUrl == null || avatarUrl.isEmpty
+                  ? SvgPicture.asset('assets/icons/profile-2.svg')
+                  : Image.network(
+                      key: const ValueKey('cabinet-profile-avatar-image'),
+                      avatarUrl,
+                      width: 48.r,
+                      height: 48.r,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          SvgPicture.asset('assets/icons/profile-2.svg'),
+                    ),
+            ),
           ),
           12.width,
           Expanded(
@@ -564,11 +620,21 @@ class _CabinetPageState extends State<CabinetPage>
                   AppLocalizations.of(
                     context,
                   )!.accountIdLabel(profile?.id ?? '-'),
+                  key: const ValueKey('cabinet-profile-id'),
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 12.sp,
                   ),
                 ),
+                if (displayPhone.isNotEmpty)
+                  Text(
+                    displayPhone,
+                    key: const ValueKey('cabinet-profile-phone'),
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 12.sp,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -705,23 +771,47 @@ class _CabinetPageState extends State<CabinetPage>
 
   Widget _buildTabBar() {
     return SizedBox(
-      height: 60.h,
-      child: TabBar(
-        dividerColor: Colors.transparent,
-        controller: _tabController,
-        isScrollable: true,
-        tabAlignment: TabAlignment.start,
-        indicatorColor: AppColor.activeColor,
-        indicatorWeight: 2.h,
-        labelColor: AppColor.activeColor,
-        unselectedLabelColor: Colors.grey.shade400,
-        labelStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500),
-        tabs: [
-          Tab(text: context.l10n.activeListingsCount(_statusCount(0))),
-          Tab(text: context.l10n.paymentAwaiting(_statusCount(1))),
-          Tab(text: context.l10n.inactiveListingsCount(_statusCount(2))),
-          Tab(text: context.l10n.rejectedListingsCount(_statusCount(3))),
-          Tab(text: context.l10n.moderationListingsCount(_statusCount(4))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_statusCountsError != null)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+              child: Text(
+                context.l10n.genericError,
+                key: const ValueKey('cabinet-status-count-error'),
+                style: TextStyle(
+                  color: Colors.orange.shade300,
+                  fontSize: 11.sp,
+                ),
+              ),
+            ),
+          SizedBox(
+            height: 60.h,
+            child: TabBar(
+              dividerColor: Colors.transparent,
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: AppColor.activeColor,
+              indicatorWeight: 2.h,
+              labelColor: AppColor.activeColor,
+              unselectedLabelColor: Colors.grey.shade400,
+              labelStyle: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+              tabs: [
+                Tab(text: context.l10n.activeListingsCount(_statusCount(0))),
+                Tab(text: context.l10n.paymentAwaiting(_statusCount(1))),
+                Tab(text: context.l10n.inactiveListingsCount(_statusCount(2))),
+                Tab(text: context.l10n.rejectedListingsCount(_statusCount(3))),
+                Tab(
+                  text: context.l10n.moderationListingsCount(_statusCount(4)),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -8,17 +8,20 @@ class AuthSession extends Equatable {
     required this.accessToken,
     required this.refreshToken,
     required this.user,
+    this.tokenType = 'Bearer',
     this.expiresAt,
   });
 
   final String accessToken;
   final String refreshToken;
+  final String tokenType;
   final User user;
   final DateTime? expiresAt;
 
   factory AuthSession.fromAuthResponse(AuthResponse response) => AuthSession(
     accessToken: response.accessToken,
     refreshToken: response.refreshToken,
+    tokenType: response.tokenType,
     user: response.user,
     expiresAt: tryParseJwtExpiry(response.accessToken),
   );
@@ -54,6 +57,7 @@ class AuthSession extends Equatable {
     return AuthSession(
       accessToken: (json['accessToken'] ?? json['token']) as String? ?? '',
       refreshToken: (json['refreshToken'] ?? '') as String,
+      tokenType: (json['tokenType'] as String?) ?? 'Bearer',
       user: User.fromJson(
         json['user'] is Map<String, dynamic>
             ? json['user'] as Map<String, dynamic>
@@ -70,6 +74,7 @@ class AuthSession extends Equatable {
   Map<String, dynamic> toJson() => {
     'accessToken': accessToken,
     'refreshToken': refreshToken,
+    'tokenType': tokenType,
     'user': user.toJson(),
     if (expiresAt != null) 'expiresAt': expiresAt!.toIso8601String(),
   };
@@ -77,17 +82,25 @@ class AuthSession extends Equatable {
   AuthSession copyWith({
     String? accessToken,
     String? refreshToken,
+    String? tokenType,
     User? user,
     DateTime? expiresAt,
   }) {
     return AuthSession(
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
+      tokenType: tokenType ?? this.tokenType,
       user: user ?? this.user,
       expiresAt: expiresAt ?? this.expiresAt,
     );
   }
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, user, expiresAt];
+  List<Object?> get props => [
+    accessToken,
+    refreshToken,
+    tokenType,
+    user,
+    expiresAt,
+  ];
 }
