@@ -48,11 +48,11 @@ class CabinetPage extends StatefulWidget {
 class _CabinetPageState extends State<CabinetPage>
     with SingleTickerProviderStateMixin {
   static const _tabStatuses = [
-    ProductStatus.active,
-    ProductStatus.pendingPayment,
-    ProductStatus.sold,
-    ProductStatus.rejected,
-    ProductStatus.underReview,
+    [ProductStatus.active],
+    [ProductStatus.pendingPayment],
+    [ProductStatus.inactive, ProductStatus.sold],
+    [ProductStatus.rejected],
+    [ProductStatus.underReview],
   ];
 
   late TabController _tabController;
@@ -228,12 +228,18 @@ class _CabinetPageState extends State<CabinetPage>
     await Future.wait(
       tabIndexes.map((index) async {
         try {
-          final listings = await _userListingRepository.fetchMyListings(
-            status: _tabStatuses[index],
+          final listingsByStatus = await Future.wait(
+            _tabStatuses[index].map(
+              (status) =>
+                  _userListingRepository.fetchMyListings(status: status),
+            ),
           );
           if (!mounted) return;
           setState(() {
-            _listingsByTab = {..._listingsByTab, index: listings};
+            _listingsByTab = {
+              ..._listingsByTab,
+              index: listingsByStatus.expand((listings) => listings).toList(),
+            };
             _loadingListingTabs = {..._loadingListingTabs}..remove(index);
             _listingErrorsByTab = {..._listingErrorsByTab}..remove(index);
           });

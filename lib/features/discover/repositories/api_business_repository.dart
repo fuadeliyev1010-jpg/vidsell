@@ -47,12 +47,23 @@ class ApiBusinessRepository implements BusinessRepository {
   Future<MyStore> updateMyStore(StoreDraft draft) async {
     final request = UpdateStoreRequest(
       name: draft.storeName.trim(),
-      category: draft.categoryNames.firstOrNull,
+      category: draft.categoryNames.isEmpty
+          ? null
+          : _categoryCode(draft.categoryNames.first),
+      slogan: draft.slogan.trim(),
       description: draft.description.trim(),
-      phone: draft.mainPhone.trim().isEmpty
-          ? draft.phoneNumber.trim()
-          : draft.mainPhone.trim(),
-      workingHours: '${draft.openingTime}-${draft.closingTime}',
+      logoUrl: _remoteUrl(draft.logoPath),
+      bannerUrl: _remoteUrl(draft.bannerPath),
+      open24Hours: draft.alwaysOpen,
+      workingHours: [
+        if (!draft.alwaysOpen)
+          for (final day in draft.openDays)
+            StoreWorkingHour(
+              day: day,
+              opens: draft.openingTime,
+              closes: draft.closingTime,
+            ),
+      ],
     );
     final data = await _client.put('/storefronts/me', data: request.toJson());
     return _myStoreFromMutationResponse(data);

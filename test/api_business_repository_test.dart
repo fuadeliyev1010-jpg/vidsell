@@ -56,12 +56,15 @@ void main() {
     final update = adapter.requests[1];
     expect(update.method, 'PUT');
     expect(update.path, '/storefronts/me');
-    expect((update.data as Map<String, dynamic>).keys.toSet(), {
-      'name',
-      'category',
-      'description',
-      'phone',
-      'workingHours',
+    expect(update.data, {
+      'name': 'Test Store',
+      'category': 'ELECTRONICS',
+      'slogan': 'Mock-only slogan',
+      'description': 'Store description',
+      'open24Hours': false,
+      'workingHours': [
+        {'day': 'Monday', 'opens': '09:00', 'closes': '18:00'},
+      ],
     });
   });
 

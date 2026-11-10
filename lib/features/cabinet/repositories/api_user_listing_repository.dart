@@ -37,6 +37,6 @@ class ApiUserListingRepository implements UserListingRepository {
 
   @override
   Future<void> deleteListing(String listingId) async {
-    await _client.delete('/me/listings/$listingId');
+    await _client.delete('/products/$listingId');
   }
 }

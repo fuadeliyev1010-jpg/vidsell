@@ -67,6 +67,7 @@ void main() {
       containsAll([
         ProductStatus.active,
         ProductStatus.pendingPayment,
+        ProductStatus.inactive,
         ProductStatus.sold,
         ProductStatus.rejected,
         ProductStatus.underReview,
