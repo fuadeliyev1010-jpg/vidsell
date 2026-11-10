@@ -156,7 +156,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         );
         if (updatedProfile != null && mounted) {
-          setState(() => _profileFuture = Future.value(updatedProfile));
+          final profileFuture = Future.value(updatedProfile);
+          setState(() {
+            _profileFuture = profileFuture;
+          });
         }
       },
       child: Container(

@@ -103,7 +103,10 @@ class _CabinetPageState extends State<CabinetPage>
   }
 
   void _reloadProfile() {
-    setState(() => _profileFuture = _profileRepository.fetchProfile());
+    final profileFuture = _profileRepository.fetchProfile();
+    setState(() {
+      _profileFuture = profileFuture;
+    });
   }
 
   int _statusCount(int index) {

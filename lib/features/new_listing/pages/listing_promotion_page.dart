@@ -147,6 +147,15 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
     setState(() => _selectedPromotion = promotion);
   }
 
+  void _reloadAvailability() {
+    final availabilityFuture = context
+        .read<PromotionRepository>()
+        .fetchAvailability();
+    setState(() {
+      _availabilityFuture = availabilityFuture;
+    });
+  }
+
   Widget _buildApiPromotions() {
     return FutureBuilder<PromotionAvailability>(
       future: _availabilityFuture,
@@ -159,11 +168,7 @@ class _ListingPromotionPageState extends State<ListingPromotionPage> {
                 Text(context.l10n.genericError),
                 8.height,
                 TextButton(
-                  onPressed: () => setState(
-                    () => _availabilityFuture = context
-                        .read<PromotionRepository>()
-                        .fetchAvailability(),
-                  ),
+                  onPressed: _reloadAvailability,
                   child: Text(context.l10n.retry),
                 ),
               ],

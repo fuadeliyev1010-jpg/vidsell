@@ -264,6 +264,15 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
     );
   }
 
+  void _reloadPaymentMethods() {
+    final paymentMethodsFuture = context
+        .read<WalletRepository>()
+        .fetchPaymentMethods();
+    setState(() {
+      _paymentMethodsFuture = paymentMethodsFuture;
+    });
+  }
+
   Widget _buildApiTopUpCard() {
     return Container(
       width: double.infinity,
@@ -281,11 +290,7 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
                 Text(context.l10n.genericError),
                 12.height,
                 TextButton(
-                  onPressed: () => setState(
-                    () => _paymentMethodsFuture = context
-                        .read<WalletRepository>()
-                        .fetchPaymentMethods(),
-                  ),
+                  onPressed: _reloadPaymentMethods,
                   child: Text(context.l10n.retry),
                 ),
               ],
