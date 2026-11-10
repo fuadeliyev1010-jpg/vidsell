@@ -88,7 +88,7 @@ void main() {
       );
       expect(
         adapter.requests.map((request) => request.headers['Authorization']),
-        everyElement('Token api-test-token'),
+        everyElement('Bearer api-test-token'),
       );
     },
   );

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:vidsell/models/auth/auth_response.dart';
 import 'package:vidsell/models/user/user.dart';
+import 'package:vidsell/features/auth/models/auth_token.dart';
 
 class AuthSession extends Equatable {
   const AuthSession({
@@ -54,10 +55,15 @@ class AuthSession extends Equatable {
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     final rawExpiresAt = json['expiresAt'];
+    final accessToken = normalizeAuthToken(
+      json['accessToken'] ?? json['token'],
+    );
     return AuthSession(
-      accessToken: (json['accessToken'] ?? json['token']) as String? ?? '',
-      refreshToken: (json['refreshToken'] ?? '') as String,
-      tokenType: (json['tokenType'] as String?) ?? 'Bearer',
+      accessToken: accessToken,
+      refreshToken: normalizeAuthToken(json['refreshToken']),
+      tokenType: json['tokenType'] is String
+          ? (json['tokenType'] as String).trim()
+          : 'Bearer',
       user: User.fromJson(
         json['user'] is Map<String, dynamic>
             ? json['user'] as Map<String, dynamic>
@@ -65,9 +71,7 @@ class AuthSession extends Equatable {
       ),
       expiresAt: rawExpiresAt != null
           ? DateTime.tryParse(rawExpiresAt.toString())
-          : tryParseJwtExpiry(
-              (json['accessToken'] ?? json['token']) as String? ?? '',
-            ),
+          : tryParseJwtExpiry(accessToken),
     );
   }
 

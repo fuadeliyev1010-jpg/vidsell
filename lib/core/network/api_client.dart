@@ -6,7 +6,9 @@ import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
+import 'package:vidsell/features/auth/models/auth_token.dart';
 import 'package:vidsell/models/common/api_error.dart';
+import 'package:vidsell/models/auth/auth_response.dart';
 
 class ApiClient {
   static const _requestStartedAtKey = '_apiClientRequestStartedAt';
@@ -48,7 +50,8 @@ class ApiClient {
         onRequest: (options, handler) async {
           options.extra[_requestStartedAtKey] = Stopwatch()..start();
           final session = await _sessionStore.read();
-          if (session != null && session.accessToken.isNotEmpty) {
+          if (session != null &&
+              normalizeAuthToken(session.accessToken).isNotEmpty) {
             options.headers['Authorization'] = _authorizationHeader(session);
           }
           options.headers['X-App-Language'] = _languageCode;
@@ -129,7 +132,7 @@ class ApiClient {
   }
 
   static String _authorizationHeader(AuthSession session) =>
-      '${session.tokenType} ${session.accessToken}';
+      'Bearer ${normalizeAuthToken(session.accessToken)}';
 
   final Dio _dio;
   final Dio _refreshDio;
@@ -202,16 +205,21 @@ class ApiClient {
         return null;
       }
 
-      final newAccessToken = (data['accessToken'] ?? data['token']) as String?;
-      if (newAccessToken == null || newAccessToken.isEmpty) {
+      final authResponse = AuthResponse.fromJson(data);
+      final newAccessToken = authResponse.accessToken;
+      if (newAccessToken.isEmpty) {
         await _expireSession();
         return null;
       }
 
       final updatedSession = currentSession.copyWith(
         accessToken: newAccessToken,
-        refreshToken:
-            (data['refreshToken'] as String?) ?? currentSession.refreshToken,
+        refreshToken: authResponse.refreshToken.isEmpty
+            ? currentSession.refreshToken
+            : authResponse.refreshToken,
+        tokenType: authResponse.tokenType.isEmpty
+            ? currentSession.tokenType
+            : authResponse.tokenType,
       );
       await _sessionStore.write(updatedSession);
       return updatedSession;
@@ -312,11 +320,28 @@ class ApiClient {
       safeUri,
       'status=${statusCode ?? '-'}',
       'duration=${elapsed.inMilliseconds}ms',
+      _maskedAuthorization(options),
       if (dioExceptionType != null) 'dioType=${dioExceptionType.name}',
       if (safeCode != null) 'code=$safeCode',
       if (safeMessage != null) 'message="$safeMessage"',
     ];
     debugPrint(fields.join(' '));
+  }
+
+  String _maskedAuthorization(RequestOptions options) {
+    final header = options.headers.entries
+        .where((entry) => entry.key.toLowerCase() == 'authorization')
+        .map((entry) => entry.value.toString())
+        .firstOrNull;
+    if (header == null || header.isEmpty) return 'Authorization: <missing>';
+
+    final separator = header.indexOf(' ');
+    if (separator <= 0) {
+      return 'Authorization: [malformed] ****(len ${header.length})';
+    }
+    final scheme = header.substring(0, separator);
+    final token = normalizeAuthToken(header.substring(separator + 1));
+    return 'Authorization: $scheme ****(len ${token.length})';
   }
 
   List<String> _sensitiveValues(RequestOptions options) {

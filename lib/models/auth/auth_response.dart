@@ -1,4 +1,5 @@
 import '../user/user.dart';
+import '../../features/auth/models/auth_token.dart';
 
 class AuthResponse {
   const AuthResponse({
@@ -14,9 +15,11 @@ class AuthResponse {
   final User user;
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
-    accessToken: '${json['accessToken'] ?? ''}',
-    refreshToken: '${json['refreshToken'] ?? ''}',
-    tokenType: '${json['tokenType'] ?? 'Bearer'}',
+    accessToken: normalizeAuthToken(json['accessToken']),
+    refreshToken: normalizeAuthToken(json['refreshToken']),
+    tokenType: json['tokenType'] is String
+        ? (json['tokenType'] as String).trim()
+        : 'Bearer',
     user: User.fromJson(_map(json['user'])),
   );
 
