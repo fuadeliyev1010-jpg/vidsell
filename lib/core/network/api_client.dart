@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/storage/session_store.dart';
@@ -8,6 +9,12 @@ import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/models/common/api_error.dart';
 
 class ApiClient {
+  static const _requestStartedAtKey = '_apiClientRequestStartedAt';
+  static final _sensitiveKey = RegExp(
+    r'(?:access[_-]?token|refresh[_-]?token|token|password|passwd|otp|one.?time.?code|code)',
+    caseSensitive: false,
+  );
+
   ApiClient({
     required AppConfig config,
     SessionStore? sessionStore,
@@ -39,6 +46,7 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          options.extra[_requestStartedAtKey] = Stopwatch()..start();
           final session = await _sessionStore.read();
           if (session != null && session.accessToken.isNotEmpty) {
             options.headers['Authorization'] = _authorizationHeader(session);
@@ -46,7 +54,24 @@ class ApiClient {
           options.headers['X-App-Language'] = _languageCode;
           handler.next(options);
         },
+        onResponse: (response, handler) {
+          _logRequest(response.requestOptions, statusCode: response.statusCode);
+          handler.next(response);
+        },
         onError: (error, handler) async {
+          final apiError = ApiError.fromResponse(
+            error.response?.data,
+            status: error.response?.statusCode,
+            fallbackCode: error.type.name,
+          );
+          _logRequest(
+            error.requestOptions,
+            statusCode: error.response?.statusCode,
+            code: apiError.code,
+            message: apiError.error ?? apiError.messageKey,
+            dioExceptionType: error.type,
+          );
+
           if (error.response?.statusCode != 401) {
             return handler.next(error);
           }
@@ -135,13 +160,37 @@ class ApiClient {
         return null;
       }
 
-      final response = await _refreshDio.post<dynamic>(
-        '/auth/refresh',
-        data: {'refreshToken': currentSession.refreshToken},
-        options: Options(
-          extra: {'isRefresh': true},
-          headers: {'X-App-Language': _languageCode},
-        ),
+      final stopwatch = Stopwatch()..start();
+      late final Response<dynamic> response;
+      try {
+        response = await _refreshDio.post<dynamic>(
+          '/auth/refresh',
+          data: {'refreshToken': currentSession.refreshToken},
+          options: Options(
+            extra: {'isRefresh': true},
+            headers: {'X-App-Language': _languageCode},
+          ),
+        );
+      } on DioException catch (error) {
+        final apiError = ApiError.fromResponse(
+          error.response?.data,
+          status: error.response?.statusCode,
+          fallbackCode: error.type.name,
+        );
+        _logRequest(
+          error.requestOptions,
+          statusCode: error.response?.statusCode,
+          duration: stopwatch.elapsed,
+          code: apiError.code,
+          message: apiError.error ?? apiError.messageKey,
+          dioExceptionType: error.type,
+        );
+        rethrow;
+      }
+      _logRequest(
+        response.requestOptions,
+        statusCode: response.statusCode,
+        duration: stopwatch.elapsed,
       );
       final data = response.data;
       if (data is! Map<String, dynamic>) {
@@ -213,8 +262,97 @@ class ApiClient {
             'The request could not be completed.',
         statusCode: error.response?.statusCode,
         apiError: apiError,
+        underlyingType: error.type,
       );
     }
+  }
+
+  void _logRequest(
+    RequestOptions options, {
+    int? statusCode,
+    Duration? duration,
+    String? code,
+    String? message,
+    DioExceptionType? dioExceptionType,
+  }) {
+    final requestTimer = options.extra.remove(_requestStartedAtKey);
+    final elapsed =
+        duration ??
+        (requestTimer is Stopwatch ? requestTimer.elapsed : Duration.zero);
+    if (!kDebugMode) return;
+
+    final sensitiveValues = _sensitiveValues(options);
+    final safeCode = code == null ? null : _redact(code, sensitiveValues);
+    final safeMessage = message == null
+        ? null
+        : _redact(message, sensitiveValues).replaceAll('"', r'\"');
+    final uri = options.uri.toString().replaceFirst(
+      RegExp(r'//[^/@]+@'),
+      '//[REDACTED]@',
+    );
+    final safeUri = uri.replaceAllMapped(
+      RegExp(
+        r'([?&][^=&#]*(?:access[_-]?token|refresh[_-]?token|token|password|otp|code)[^=&#]*=)[^&#]*',
+        caseSensitive: false,
+      ),
+      (match) => '${match[1]}[REDACTED]',
+    );
+    final fields = <String>[
+      '[ApiClient]',
+      options.method,
+      safeUri,
+      'status=${statusCode ?? '-'}',
+      'duration=${elapsed.inMilliseconds}ms',
+      if (dioExceptionType != null) 'dioType=${dioExceptionType.name}',
+      if (safeCode != null) 'code=$safeCode',
+      if (safeMessage != null) 'message="$safeMessage"',
+    ];
+    debugPrint(fields.join(' '));
+  }
+
+  List<String> _sensitiveValues(RequestOptions options) {
+    final values = <String>[];
+    final authorization = options.headers['Authorization'];
+    if (authorization is String && authorization.isNotEmpty) {
+      values.add(authorization);
+      final separator = authorization.indexOf(' ');
+      if (separator >= 0 && separator + 1 < authorization.length) {
+        values.add(authorization.substring(separator + 1));
+      }
+    }
+
+    void collect(Object? value) {
+      if (value is Map) {
+        for (final entry in value.entries) {
+          if (_sensitiveKey.hasMatch(entry.key.toString())) {
+            if (entry.value != null) values.add(entry.value.toString());
+          } else {
+            collect(entry.value);
+          }
+        }
+      } else if (value is Iterable) {
+        for (final item in value) {
+          collect(item);
+        }
+      } else if (value is FormData) {
+        for (final field in value.fields) {
+          if (_sensitiveKey.hasMatch(field.key)) values.add(field.value);
+        }
+      }
+    }
+
+    collect(options.data);
+    collect(options.queryParameters);
+    collect(options.uri.queryParameters);
+    return values.where((value) => value.isNotEmpty).toList(growable: false);
+  }
+
+  String _redact(String value, List<String> sensitiveValues) {
+    var result = value.replaceAll(RegExp(r'[\r\n\t]+'), ' ');
+    for (final secret in sensitiveValues) {
+      result = result.replaceAll(secret, '[REDACTED]');
+    }
+    return result;
   }
 }
 
