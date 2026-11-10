@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,6 +8,7 @@ import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/core/widgets/bottom_navigation.dart';
 import 'package:vidsell/core/widgets/app_button.dart';
@@ -45,6 +47,14 @@ class CabinetPage extends StatefulWidget {
 
 class _CabinetPageState extends State<CabinetPage>
     with SingleTickerProviderStateMixin {
+  static const _tabStatuses = [
+    ProductStatus.active,
+    ProductStatus.pendingPayment,
+    ProductStatus.sold,
+    ProductStatus.rejected,
+    ProductStatus.underReview,
+  ];
+
   late TabController _tabController;
   late final ProfileRepository _profileRepository;
   late final BusinessRepository _businessRepository;
@@ -61,10 +71,9 @@ class _CabinetPageState extends State<CabinetPage>
 
   // Selection state for inactive listing item
   String? _selectedListingId;
-  List<Product> _userListings = const [];
   Map<int, List<Product>> _listingsByTab = const {};
-  bool _isLoadingListings = true;
-  String? _listingsError;
+  Set<int> _loadingListingTabs = {0, 1, 2, 3, 4};
+  Map<int, Object> _listingErrorsByTab = {};
   late Future<User> _profileFuture;
   User? _profile;
   MyStore? _myStore;
@@ -207,40 +216,36 @@ class _CabinetPageState extends State<CabinetPage>
     if (mounted) setState(() => _selectedListingId = null);
   }
 
-  Future<void> _loadMyListings() async {
+  Future<void> _loadMyListings({int? onlyTab}) async {
+    final tabIndexes = onlyTab == null
+        ? List.generate(_tabStatuses.length, (index) => index)
+        : [onlyTab];
     setState(() {
-      _isLoadingListings = true;
-      _listingsError = null;
+      _loadingListingTabs = {..._loadingListingTabs, ...tabIndexes};
+      _listingErrorsByTab = {..._listingErrorsByTab}
+        ..removeWhere((index, _) => tabIndexes.contains(index));
     });
-    try {
-      const tabStatuses = [
-        ProductStatus.active,
-        ProductStatus.pendingPayment,
-        ProductStatus.sold,
-        ProductStatus.rejected,
-        ProductStatus.underReview,
-      ];
-      final tabListings = await Future.wait(
-        tabStatuses.map(
-          (status) => _userListingRepository.fetchMyListings(status: status),
-        ),
-      );
-      if (!mounted) return;
-      setState(() {
-        _listingsByTab = {
-          for (var index = 0; index < tabListings.length; index++)
-            index: tabListings[index],
-        };
-        _userListings = tabListings.expand((listings) => listings).toList();
-        _isLoadingListings = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _listingsError = context.l10n.homeLoadError;
-        _isLoadingListings = false;
-      });
-    }
+    await Future.wait(
+      tabIndexes.map((index) async {
+        try {
+          final listings = await _userListingRepository.fetchMyListings(
+            status: _tabStatuses[index],
+          );
+          if (!mounted) return;
+          setState(() {
+            _listingsByTab = {..._listingsByTab, index: listings};
+            _loadingListingTabs = {..._loadingListingTabs}..remove(index);
+            _listingErrorsByTab = {..._listingErrorsByTab}..remove(index);
+          });
+        } catch (error) {
+          if (!mounted) return;
+          setState(() {
+            _loadingListingTabs = {..._loadingListingTabs}..remove(index);
+            _listingErrorsByTab = {..._listingErrorsByTab, index: error};
+          });
+        }
+      }),
+    );
   }
 
   Future<void> _changeListingStatus(
@@ -267,9 +272,6 @@ class _CabinetPageState extends State<CabinetPage>
       await _userListingRepository.deleteListing(listingId);
       if (!mounted) return;
       setState(() {
-        _userListings = _userListings
-            .where((listing) => listing.id != listingId)
-            .toList(growable: false);
         _listingsByTab = {
           for (final entry in _listingsByTab.entries)
             entry.key: entry.value
@@ -375,7 +377,12 @@ class _CabinetPageState extends State<CabinetPage>
                                       ),
                                       TextButton(
                                         onPressed: _reloadProfile,
-                                        child: Text(context.l10n.retry),
+                                        child: Text(
+                                          _retryLabel(
+                                            context.l10n.retry,
+                                            snapshot.error,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -384,7 +391,44 @@ class _CabinetPageState extends State<CabinetPage>
                           );
                         }
                         _profile = profile;
-                        return _buildHeaderSection(profile);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildHeaderSection(profile),
+                            if (snapshot.hasError)
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 6.h,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        context.l10n.genericError,
+                                        key: const ValueKey(
+                                          'cabinet-profile-error',
+                                        ),
+                                        style: TextStyle(
+                                          color: AppColor.error,
+                                          fontSize: 11.sp,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: _reloadProfile,
+                                      child: Text(
+                                        _retryLabel(
+                                          context.l10n.retry,
+                                          snapshot.error,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
                       },
                     ),
                     16.height,
@@ -445,9 +489,15 @@ class _CabinetPageState extends State<CabinetPage>
     }
     if (_myStoreError != null) {
       return Center(
-        child: TextButton(
-          onPressed: _loadMyStore,
-          child: Text(context.l10n.genericError),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(context.l10n.genericError),
+            TextButton(
+              onPressed: _loadMyStore,
+              child: Text(_retryLabel(context.l10n.retry, _myStoreError)),
+            ),
+          ],
         ),
       );
     }
@@ -1022,26 +1072,34 @@ class _CabinetPageState extends State<CabinetPage>
     return _listingsByTab[index] ?? const [];
   }
 
+  String _retryLabel(String label, Object? error) {
+    if (!kDebugMode || error is! ApiException || error.code == null) {
+      return label;
+    }
+    return '$label (${error.code})';
+  }
+
   Widget _buildListingsTab(int index, String emptyTitle) {
-    if (_isLoadingListings) {
+    if (_loadingListingTabs.contains(index)) {
       return const Center(
         child: CircularProgressIndicator(color: AppColor.activeColor),
       );
     }
 
-    if (_listingsError != null) {
+    final error = _listingErrorsByTab[index];
+    if (error != null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _listingsError!,
+              context.l10n.homeLoadError,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade400, fontSize: 13.sp),
             ),
             TextButton(
-              onPressed: _loadMyListings,
-              child: Text(context.l10n.retryAgain),
+              onPressed: () => _loadMyListings(onlyTab: index),
+              child: Text(_retryLabel(context.l10n.retryAgain, error)),
             ),
           ],
         ),

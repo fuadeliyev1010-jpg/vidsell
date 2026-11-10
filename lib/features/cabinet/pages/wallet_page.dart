@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,6 +7,7 @@ import 'package:vidsell/core/constants/app_text_style.dart';
 import 'package:vidsell/core/utils/currency_formatter.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/features/cabinet/pages/top_up_payment_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
@@ -49,6 +51,29 @@ class _WalletPageState extends State<WalletPage> {
     });
   }
 
+  void _reloadWallet() {
+    final walletFuture = context.read<WalletRepository>().fetchWallet();
+    setState(() {
+      _walletFuture = walletFuture;
+    });
+  }
+
+  void _reloadTransactions() {
+    final transactionsFuture = context
+        .read<WalletRepository>()
+        .fetchTransactions();
+    setState(() {
+      _transactionsFuture = transactionsFuture;
+    });
+  }
+
+  String _retryLabel(String label, Object? error) {
+    if (!kDebugMode || error is! ApiException || error.code == null) {
+      return label;
+    }
+    return '$label (${error.code})';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,6 +110,7 @@ class _WalletPageState extends State<WalletPage> {
                   snapshot.data,
                   isLoading:
                       snapshot.connectionState == ConnectionState.waiting,
+                  error: snapshot.error,
                 ),
               ),
               16.height,
@@ -98,7 +124,11 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  Widget _buildBalanceCard(WalletBalance? wallet, {bool isLoading = false}) {
+  Widget _buildBalanceCard(
+    WalletBalance? wallet, {
+    bool isLoading = false,
+    Object? error,
+  }) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
@@ -121,29 +151,41 @@ class _WalletPageState extends State<WalletPage> {
             ),
           ),
           14.width,
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.walletBalance,
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 12.sp),
-              ),
-              4.height,
-              Text(
-                isLoading
-                    ? '...'
-                    : CurrencyFormatter.formatPrice(
-                        wallet?.balance ?? 0,
-                        wallet?.currency ?? fallbackCurrencyCode,
-                        decimalDigits: 2,
-                      ),
-                style: AppTextStyle.primaryText.copyWith(
-                  color: Colors.white,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.walletBalance,
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 12.sp,
+                  ),
                 ),
-              ),
-            ],
+                4.height,
+                Text(
+                  error != null
+                      ? context.l10n.genericError
+                      : isLoading
+                      ? '...'
+                      : CurrencyFormatter.formatPrice(
+                          wallet?.balance ?? 0,
+                          wallet?.currency ?? fallbackCurrencyCode,
+                          decimalDigits: 2,
+                        ),
+                  style: AppTextStyle.primaryText.copyWith(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (error != null)
+                  TextButton(
+                    onPressed: _reloadWallet,
+                    child: Text(_retryLabel(context.l10n.retry, error)),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -251,7 +293,16 @@ class _WalletPageState extends State<WalletPage> {
                 final amount = double.tryParse(
                   _amountController.text.replaceAll(',', '.'),
                 );
-                final wallet = await _walletFuture;
+                late WalletBalance wallet;
+                try {
+                  wallet = await _walletFuture;
+                } catch (_) {
+                  if (!context.mounted) return;
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.genericError)),
+                  );
+                  return;
+                }
                 if (!context.mounted) return;
                 if (amount == null || amount < 1 || amount > 5000) {
                   messenger.showSnackBar(
@@ -270,9 +321,12 @@ class _WalletPageState extends State<WalletPage> {
                 );
                 if (!mounted) return;
                 if (confirmed == true) {
+                  final walletFuture = walletRepository.fetchWallet();
+                  final transactionsFuture = walletRepository
+                      .fetchTransactions();
                   setState(() {
-                    _walletFuture = walletRepository.fetchWallet();
-                    _transactionsFuture = walletRepository.fetchTransactions();
+                    _walletFuture = walletFuture;
+                    _transactionsFuture = transactionsFuture;
                   });
                 }
               },
@@ -303,7 +357,15 @@ class _WalletPageState extends State<WalletPage> {
       future: _transactionsFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text(context.l10n.genericError);
+          return Column(
+            children: [
+              Text(context.l10n.genericError),
+              TextButton(
+                onPressed: _reloadTransactions,
+                child: Text(_retryLabel(context.l10n.retry, snapshot.error)),
+              ),
+            ],
+          );
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
