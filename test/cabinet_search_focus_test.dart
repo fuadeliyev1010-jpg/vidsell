@@ -108,9 +108,10 @@ class _CabinetTestListingRepository implements UserListingRepository {
   );
 
   @override
-  Future<List<Product>> fetchMyListings({ProductStatus? status}) async => [
-    _listing,
-  ];
+  Future<List<Product>> fetchMyListings({ProductStatus? status}) async {
+    if (status == null || status == _listing.status) return [_listing];
+    return const [];
+  }
 
   @override
   Future<void> updateListingStatus(
