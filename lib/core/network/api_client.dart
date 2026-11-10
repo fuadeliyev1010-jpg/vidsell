@@ -86,7 +86,6 @@ class ApiClient {
           final isRetry = requestOptions.extra['isRetry'] == true;
 
           if (isRefreshRequest || isRetry) {
-            await _expireSession();
             return handler.next(error);
           }
 
@@ -95,7 +94,6 @@ class ApiClient {
             _refreshFuture ??= _performTokenRefresh();
             newSession = await _refreshFuture;
           } catch (_) {
-            await _expireSession();
             return handler.next(error);
           }
           if (newSession == null || newSession.accessToken.isEmpty) {
@@ -123,6 +121,8 @@ class ApiClient {
               options: retryOptions,
             );
             return handler.resolve(response);
+          } on DioException catch (retryError) {
+            return handler.next(retryError);
           } catch (_) {
             return handler.next(error);
           }
@@ -160,14 +160,22 @@ class ApiClient {
   Future<AuthSession?> refreshTokenManually() => _performTokenRefresh();
 
   Future<AuthSession?> _performTokenRefresh() async {
+    final stopwatch = Stopwatch()..start();
+    _logRefresh('start');
     try {
       final currentSession = await _sessionStore.read();
+      _logRefresh(
+        'session state',
+        detail: currentSession == null
+            ? 'session=missing'
+            : 'session=present accessLength=${currentSession.accessToken.length} '
+                  'refreshLength=${currentSession.refreshToken.length}',
+      );
       if (currentSession == null || currentSession.refreshToken.isEmpty) {
-        await _expireSession();
+        _logRefresh('skipped', detail: 'session or refresh token missing');
         return null;
       }
 
-      final stopwatch = Stopwatch()..start();
       late final Response<dynamic> response;
       try {
         response = await _refreshDio.post<dynamic>(
@@ -192,7 +200,14 @@ class ApiClient {
           message: apiError.error ?? apiError.messageKey,
           dioExceptionType: error.type,
         );
-        rethrow;
+        final statusCode = error.response?.statusCode;
+        if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+          _logRefresh('rejected', statusCode: statusCode);
+          await _expireSession();
+        } else {
+          _logRefresh('failed', statusCode: statusCode);
+        }
+        return null;
       }
       _logRequest(
         response.requestOptions,
@@ -201,14 +216,14 @@ class ApiClient {
       );
       final data = response.data;
       if (data is! Map<String, dynamic>) {
-        await _expireSession();
+        _logRefresh('invalid response', statusCode: response.statusCode);
         return null;
       }
 
       final authResponse = AuthResponse.fromJson(data);
       final newAccessToken = authResponse.accessToken;
       if (newAccessToken.isEmpty) {
-        await _expireSession();
+        _logRefresh('missing access token', statusCode: response.statusCode);
         return null;
       }
 
@@ -222,9 +237,18 @@ class ApiClient {
             : authResponse.tokenType,
       );
       await _sessionStore.write(updatedSession);
+      _logRefresh(
+        'updated',
+        statusCode: response.statusCode,
+        detail:
+            'session=present accessLength=${updatedSession.accessToken.length} '
+            'refreshLength=${updatedSession.refreshToken.length}',
+      );
       return updatedSession;
+    } on DioException {
+      rethrow;
     } catch (_) {
-      await _expireSession();
+      _logRefresh('failed', detail: 'refresh processing error');
       return null;
     } finally {
       _refreshFuture = null;
@@ -235,8 +259,18 @@ class ApiClient {
     try {
       await _sessionStore.clear();
     } finally {
+      _logRefresh('session cleared');
       _notifySessionExpired();
     }
+  }
+
+  void _logRefresh(String result, {int? statusCode, String? detail}) {
+    if (!kDebugMode) return;
+    debugPrint(
+      '[ApiClient] refresh $result'
+      '${statusCode == null ? '' : ' status=$statusCode'}'
+      '${detail == null ? '' : ' detail=$detail'}',
+    );
   }
 
   void dispose() => _sessionExpiredController.close();
