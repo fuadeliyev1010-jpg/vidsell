@@ -83,18 +83,23 @@ class ApiClient {
           final isRetry = requestOptions.extra['isRetry'] == true;
 
           if (isRefreshRequest || isRetry) {
-            await _sessionStore.clear();
-            _notifySessionExpired();
+            await _expireSession();
+            return handler.next(error);
+          }
+
+          AuthSession? newSession;
+          try {
+            _refreshFuture ??= _performTokenRefresh();
+            newSession = await _refreshFuture;
+          } catch (_) {
+            await _expireSession();
+            return handler.next(error);
+          }
+          if (newSession == null || newSession.accessToken.isEmpty) {
             return handler.next(error);
           }
 
           try {
-            _refreshFuture ??= _performTokenRefresh();
-            final newSession = await _refreshFuture;
-            if (newSession == null || newSession.accessToken.isEmpty) {
-              return handler.next(error);
-            }
-
             final retryOptions = Options(
               method: requestOptions.method,
               headers: Map<String, dynamic>.from(requestOptions.headers)
@@ -155,8 +160,7 @@ class ApiClient {
     try {
       final currentSession = await _sessionStore.read();
       if (currentSession == null || currentSession.refreshToken.isEmpty) {
-        await _sessionStore.clear();
-        _notifySessionExpired();
+        await _expireSession();
         return null;
       }
 
@@ -194,15 +198,13 @@ class ApiClient {
       );
       final data = response.data;
       if (data is! Map<String, dynamic>) {
-        await _sessionStore.clear();
-        _notifySessionExpired();
+        await _expireSession();
         return null;
       }
 
       final newAccessToken = (data['accessToken'] ?? data['token']) as String?;
       if (newAccessToken == null || newAccessToken.isEmpty) {
-        await _sessionStore.clear();
-        _notifySessionExpired();
+        await _expireSession();
         return null;
       }
 
@@ -214,11 +216,18 @@ class ApiClient {
       await _sessionStore.write(updatedSession);
       return updatedSession;
     } catch (_) {
-      await _sessionStore.clear();
-      _notifySessionExpired();
+      await _expireSession();
       return null;
     } finally {
       _refreshFuture = null;
+    }
+  }
+
+  Future<void> _expireSession() async {
+    try {
+      await _sessionStore.clear();
+    } finally {
+      _notifySessionExpired();
     }
   }
 
