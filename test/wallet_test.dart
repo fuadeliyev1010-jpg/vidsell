@@ -45,7 +45,7 @@ void main() {
       final intent = await repository.createTopUpIntent(
         request: TopUpRequest(
           amount: 15,
-          method: PaymentMethod.fromCode('CARD'),
+          paymentMethod: PaymentMethod.fromCode('CARD'),
         ),
       );
 
@@ -54,6 +54,27 @@ void main() {
 
       final after = await repository.fetchWallet();
       expect(after.balance, before.balance + 15);
+    },
+  );
+
+  test('top-up amount follows the documented inclusive limits', () {
+    expect(TopUpRequest.isValidAmount(1), isTrue);
+    expect(TopUpRequest.isValidAmount(100000), isTrue);
+    expect(TopUpRequest.isValidAmount(0.99), isFalse);
+    expect(TopUpRequest.isValidAmount(100000.01), isFalse);
+    expect(TopUpRequest.isValidAmount(double.nan), isFalse);
+  });
+
+  test(
+    'payment method parsing supports the documented values and fallback',
+    () {
+      expect(PaymentMethod.fromCode('CARD'), PaymentMethod.card);
+      expect(
+        PaymentMethod.fromCode('bank_transfer'),
+        PaymentMethod.bankTransfer,
+      );
+      expect(PaymentMethod.fromCode('NOT_IN_CONTRACT'), PaymentMethod.unknown);
+      expect(PaymentMethod.fromCode(null).isUnknown, isTrue);
     },
   );
 }

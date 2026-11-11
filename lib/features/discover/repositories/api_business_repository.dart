@@ -6,7 +6,7 @@ import 'package:vidsell/features/discover/models/store_draft.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/store/my_store.dart';
-import 'package:vidsell/models/store/store.dart';
+import 'package:vidsell/models/store/public_store_profile.dart';
 import 'package:vidsell/models/store/store_application_request.dart';
 import 'package:vidsell/models/store/store_statistics.dart';
 import 'package:vidsell/models/store/update_store_request.dart';
@@ -83,7 +83,9 @@ class ApiBusinessRepository implements BusinessRepository {
   }
 
   Future<MyStore> _myStoreFromMutationResponse(Object? data) async {
-    if (data is Map<String, dynamic>) return MyStore.fromJson(data);
+    if (data is Map<String, dynamic>) {
+      return MyStore.fromJson(data, mediaOrigin: _client.mediaOrigin);
+    }
     if (data != null && data != '') {
       throw StateError('Invalid store response.');
     }
@@ -106,7 +108,7 @@ class ApiBusinessRepository implements BusinessRepository {
       if (data is! Map<String, dynamic>) {
         throw StateError('Invalid store response.');
       }
-      return MyStore.fromJson(data);
+      return MyStore.fromJson(data, mediaOrigin: _client.mediaOrigin);
     } on ApiException catch (error) {
       if (error.statusCode == 404) return null;
       rethrow;
@@ -114,12 +116,22 @@ class ApiBusinessRepository implements BusinessRepository {
   }
 
   @override
-  Future<Store> fetchPublicStore(String sellerId) async {
-    final data = await _client.get('/storefronts/$sellerId');
-    if (data is! Map<String, dynamic>) {
-      throw StateError('Invalid store response.');
+  Future<PublicStoreProfile?> fetchPublicStore(String sellerId) async {
+    try {
+      final data = await _client.get('/storefronts/$sellerId');
+      if (data is! Map<String, dynamic>) {
+        throw StateError('Invalid store response.');
+      }
+      return PublicStoreProfile.fromJson(
+        data,
+        mediaOrigin: _client.mediaOrigin,
+      );
+    } on ApiException catch (error) {
+      if (error.statusCode == 404 && error.code == 'STORE_NOT_FOUND') {
+        return null;
+      }
+      rethrow;
     }
-    return Store.fromJson(data);
   }
 
   @override
@@ -131,7 +143,10 @@ class ApiBusinessRepository implements BusinessRepository {
       '/storefronts/$sellerId/products',
       queryParameters: {'page': page},
     );
-    return parsePage(data, Product.fromJson).items;
+    return parsePage(
+      data,
+      (json) => Product.fromJson(json, mediaOrigin: _client.mediaOrigin),
+    ).items;
   }
 
   @override

@@ -15,6 +15,9 @@ import 'package:vidsell/features/discover/pages/filter_page.dart';
 import 'package:vidsell/features/discover/pages/selected_items_page.dart';
 import 'package:vidsell/features/discover/widgets/map_view.dart';
 import 'package:vidsell/features/discover/widgets/product_card.dart';
+import 'package:vidsell/features/discover/widgets/category_chip_rows.dart';
+import 'package:vidsell/features/discover/repositories/subcategory_repository.dart';
+import 'package:vidsell/features/discover/models/subcategory.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -37,18 +40,12 @@ class CategoryResultsPage extends StatefulWidget {
 }
 
 class _CategoryResultsPageState extends State<CategoryResultsPage> {
-  static const _brands = [
-    'Apple iPhone',
-    'Samsung',
-    'Xiaomi',
-    'Honor',
-    'Huawei',
-  ];
-
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
   late ListingFilter? _activeFilter = widget.filter;
   late final HomeRepository _homeRepository;
+  late final Future<List<Subcategory>> _subcategoriesFuture;
+  String? _selectedSubcategoryId;
   List<Product> _allListings = const [];
   bool _isLoadingListings = true;
   String? _loadError;
@@ -60,6 +57,12 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
   void initState() {
     super.initState();
     _homeRepository = context.read<HomeRepository>();
+    _selectedSubcategoryId =
+        _activeFilter?.subcategoryId ?? widget.subcategoryId;
+    final categoryId = _activeFilter?.categoryId ?? widget.categoryId;
+    _subcategoriesFuture = categoryId == null
+        ? Future.value(const [])
+        : context.read<SubcategoryRepository>().fetchForCategory(categoryId);
     _loadListings();
     _searchFocus.addListener(() {
       if (mounted) setState(() {});
@@ -76,7 +79,7 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
       final page = await _homeRepository.fetchListings(
         size: 50,
         categoryId: activeFilter?.categoryId ?? widget.categoryId,
-        subcategoryId: activeFilter?.subcategoryId ?? widget.subcategoryId,
+        subcategoryId: _selectedSubcategoryId,
         cityId: activeFilter?.cityId,
         sellerType: activeFilter?.sellerType,
       );
@@ -108,6 +111,12 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
     final query = _searchQuery.toLowerCase();
     return _allListings
         .where((item) {
+          if (_selectedSubcategoryId != null &&
+              item.subcategoryId?.toUpperCase() !=
+                  _selectedSubcategoryId!.toUpperCase() &&
+              item.subcategory?.code != _selectedSubcategoryId!.toUpperCase()) {
+            return false;
+          }
           if (_selectedBrand != 'all' &&
               !item.brand.toLowerCase().contains(
                 _selectedBrand.toLowerCase(),
@@ -152,6 +161,7 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
     if (result != null && mounted) {
       setState(() {
         _activeFilter = result;
+        _selectedSubcategoryId = result.subcategoryId;
         _activeFilterCount = 1;
         if (result.minPrice != null) _activeFilterCount++;
         if (result.maxPrice != null) _activeFilterCount++;
@@ -203,7 +213,33 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
                           child: _buildSearchBarAndActions(),
                         ),
                       ),
-                      SliverToBoxAdapter(child: _buildBrandChipsRow()),
+                      SliverToBoxAdapter(
+                        child: FutureBuilder<List<Subcategory>>(
+                          future: _subcategoriesFuture,
+                          builder: (context, snapshot) {
+                            final subcategories =
+                                snapshot.data ?? const <Subcategory>[];
+                            if (!shouldShowCategoryChipRow(subcategories)) {
+                              return const SizedBox.shrink();
+                            }
+                            return CategoryChipRows(
+                              categoryId: widget.categoryId,
+                              subcategories: subcategories,
+                              selectedSubcategoryId: _selectedSubcategoryId,
+                              selectedBrand: _selectedBrand,
+                              onSubcategorySelected: (subcategoryId) {
+                                setState(() {
+                                  _selectedSubcategoryId = subcategoryId;
+                                });
+                                _loadListings();
+                              },
+                              onBrandSelected: (brand) {
+                                setState(() => _selectedBrand = brand);
+                              },
+                            );
+                          },
+                        ),
+                      ),
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(16.w, 28.h, 16.w, 18.h),
@@ -445,46 +481,6 @@ class _CategoryResultsPageState extends State<CategoryResultsPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBrandChipsRow() {
-    return SizedBox(
-      height: 38.h,
-      child: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        scrollDirection: Axis.horizontal,
-        itemCount: _brands.length + 1,
-        separatorBuilder: (_, _) => 8.width,
-        itemBuilder: (context, index) {
-          final brand = index == _brands.length ? 'all' : _brands[index];
-          final isSelected = _selectedBrand == brand;
-          return InkWell(
-            onTap: () => setState(() => _selectedBrand = brand),
-            borderRadius: BorderRadius.circular(8.r),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColor.bgSurfaceColor
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: AppColor.bgSurfaceColor),
-              ),
-              child: Center(
-                child: Text(
-                  brand == 'all' ? context.l10n.all : brand,
-                  style: AppTextStyle.primaryText.copyWith(
-                    color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

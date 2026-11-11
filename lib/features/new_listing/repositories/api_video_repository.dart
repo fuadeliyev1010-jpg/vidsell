@@ -68,6 +68,9 @@ class ApiVideoRepository implements VideoRepository {
       throw StateError('Invalid video response.');
     }
     final nested = data['video'];
-    return Video.fromJson(nested is Map<String, dynamic> ? nested : data);
+    return Video.fromJson(
+      nested is Map<String, dynamic> ? nested : data,
+      mediaOrigin: _client.mediaOrigin,
+    );
   }
 }

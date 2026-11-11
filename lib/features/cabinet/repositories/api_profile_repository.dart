@@ -70,6 +70,6 @@ class ApiProfileRepository implements ProfileRepository {
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid profile response.');
     }
-    return User.fromJson(data);
+    return User.fromJson(data, mediaOrigin: _client.mediaOrigin);
   }
 }

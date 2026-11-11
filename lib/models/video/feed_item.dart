@@ -1,4 +1,5 @@
 import '../../core/utils/video_url_resolver.dart';
+import '../../core/network/media_url.dart';
 import '../enums/feed_content_type.dart';
 import '../product/product.dart';
 
@@ -53,37 +54,57 @@ class FeedItem {
     ownerAvatarUrl: ownerAvatarUrl,
   );
 
-  factory FeedItem.fromJson(Map<String, dynamic> json) => FeedItem(
-    videoId: '${json['videoId'] ?? json['id'] ?? ''}',
-    thumbnailUrl: json['thumbnailUrl'] as String?,
-    hlsUrl: json['hlsUrl'] as String?,
-    rawUrl: json['rawUrl'] as String? ?? json['url'] as String?,
-    durationSeconds: json['durationSeconds'] as int?,
-    contentType: json['contentType'] == null
-        ? null
-        : FeedContentType.fromCode(json['contentType'] as String?),
-    products: _products(json),
-    createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
-    ownerId: json['ownerId'] as String?,
-    ownerName: json['ownerFullName'] as String? ?? json['ownerName'] as String?,
-    ownerAvatarUrl: json['ownerAvatarUrl'] as String?,
-  );
+  factory FeedItem.fromJson(Map<String, dynamic> json, {String? mediaOrigin}) =>
+      FeedItem(
+        videoId: '${json['videoId'] ?? json['id'] ?? ''}',
+        thumbnailUrl: _mediaUrl(json['thumbnailUrl'], mediaOrigin),
+        hlsUrl: _mediaUrl(json['hlsUrl'], mediaOrigin),
+        rawUrl: _mediaUrl(json['rawUrl'] ?? json['url'], mediaOrigin),
+        durationSeconds: json['durationSeconds'] as int?,
+        contentType: json['contentType'] == null
+            ? null
+            : FeedContentType.fromCode(json['contentType'] as String?),
+        products: _products(json, mediaOrigin: mediaOrigin),
+        createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+        ownerId: json['ownerId'] as String?,
+        ownerName:
+            json['ownerFullName'] as String? ?? json['ownerName'] as String?,
+        ownerAvatarUrl: _mediaUrl(json['ownerAvatarUrl'], mediaOrigin),
+      );
 
-  static List<Product> _products(Map<String, dynamic> json) {
+  static List<Product> _products(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) {
     final rawProducts = json['products'];
     if (rawProducts is List) {
       return rawProducts
           .whereType<Map>()
-          .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) => Product.fromJson(
+              Map<String, dynamic>.from(item),
+              mediaOrigin: mediaOrigin,
+            ),
+          )
           .toList(growable: false);
     }
 
     if (json['product'] is Map) {
       return [
-        Product.fromJson(Map<String, dynamic>.from(json['product'] as Map)),
+        Product.fromJson(
+          Map<String, dynamic>.from(json['product'] as Map),
+          mediaOrigin: mediaOrigin,
+        ),
       ];
     }
-    if (json.containsKey('title')) return [Product.fromJson(json)];
+    if (json.containsKey('title')) {
+      return [Product.fromJson(json, mediaOrigin: mediaOrigin)];
+    }
     return const [];
+  }
+
+  static String? _mediaUrl(dynamic value, String? origin) {
+    if (value is! String) return null;
+    return origin == null ? value : resolveMediaUrl(value, origin: origin);
   }
 }

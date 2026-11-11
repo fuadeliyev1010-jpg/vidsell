@@ -947,7 +947,7 @@ abstract class AppLocalizations {
   /// No description provided for @amountRangeError.
   ///
   /// In en, this message translates to:
-  /// **'Enter an amount between 1 and 5000 {currency}'**
+  /// **'Enter an amount between 1 and 100000 {currency}'**
   String amountRangeError(String currency);
 
   /// No description provided for @cardholderName.
@@ -1309,6 +1309,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All listings from this user'**
   String get storeListings;
+
+  /// No description provided for @individualSellerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual seller'**
+  String get individualSellerLabel;
 
   /// No description provided for @blockedSeller.
   ///
@@ -4621,6 +4627,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment method'**
   String get paymentMethod;
+
+  /// No description provided for @paymentMethodCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get paymentMethodCard;
+
+  /// No description provided for @paymentMethodBankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer'**
+  String get paymentMethodBankTransfer;
 
   /// No description provided for @topUpInvoiceNumber.
   ///

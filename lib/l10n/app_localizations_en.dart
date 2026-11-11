@@ -443,7 +443,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String amountRangeError(String currency) {
-    return 'Enter an amount between 1 and 5000 $currency';
+    return 'Enter an amount between 1 and 100000 $currency';
   }
 
   @override
@@ -635,6 +635,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeListings => 'All listings from this user';
+
+  @override
+  String get individualSellerLabel => 'Individual seller';
 
   @override
   String get blockedSeller =>
@@ -2481,6 +2484,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentMethod => 'Payment method';
+
+  @override
+  String get paymentMethodCard => 'Card';
+
+  @override
+  String get paymentMethodBankTransfer => 'Bank transfer';
 
   @override
   String topUpInvoiceNumber(String number) {

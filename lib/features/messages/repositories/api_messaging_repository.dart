@@ -15,7 +15,8 @@ class ApiMessagingRepository implements MessagingRepository {
     final data = await _client.get('/conversations');
     return parsePage(
       data,
-      ConversationModel.fromJson,
+      (json) =>
+          ConversationModel.fromJson(json, mediaOrigin: _client.mediaOrigin),
       itemKey: 'conversations',
     ).items;
   }
@@ -38,7 +39,10 @@ class ApiMessagingRepository implements MessagingRepository {
         'content': '',
       },
     );
-    return ConversationModel.fromJson(_object(data, 'conversation'));
+    return ConversationModel.fromJson(
+      _object(data, 'conversation'),
+      mediaOrigin: _client.mediaOrigin,
+    );
   }
 
   @override
@@ -49,6 +53,7 @@ class ApiMessagingRepository implements MessagingRepository {
       (item) => ChatMessageModel.fromJson(
         item,
         defaultConversationId: conversationId,
+        mediaOrigin: _client.mediaOrigin,
       ),
       itemKey: 'messages',
     ).items;
@@ -71,6 +76,7 @@ class ApiMessagingRepository implements MessagingRepository {
     return ChatMessageModel.fromJson(
       _object(data, 'message'),
       defaultConversationId: conversationId,
+      mediaOrigin: _client.mediaOrigin,
     ).copyWith(isMe: true);
   }
 

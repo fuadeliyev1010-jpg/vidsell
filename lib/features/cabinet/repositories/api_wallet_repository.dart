@@ -1,7 +1,6 @@
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/core/network/page_response_parser.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
-import 'package:vidsell/models/enums/payment_method.dart';
 import 'package:vidsell/models/wallet/top_up_intent.dart';
 import 'package:vidsell/models/wallet/top_up_request.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
@@ -30,15 +29,6 @@ class ApiWalletRepository implements WalletRepository {
       queryParameters: {'page': 1, 'size': 20},
     );
     return parsePage(data, _transaction).items;
-  }
-
-  @override
-  Future<List<PaymentMethodOption>> fetchPaymentMethods() async {
-    final data = await _client.get('/i18n/enums');
-    if (data is! Map<String, dynamic>) {
-      throw StateError('Invalid enum localization response.');
-    }
-    return PaymentMethod.optionsFromI18nResponse(data);
   }
 
   @override

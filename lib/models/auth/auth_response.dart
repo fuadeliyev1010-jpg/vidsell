@@ -14,13 +14,16 @@ class AuthResponse {
   final String tokenType;
   final User user;
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
+  factory AuthResponse.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) => AuthResponse(
     accessToken: normalizeAuthToken(json['accessToken']),
     refreshToken: normalizeAuthToken(json['refreshToken']),
     tokenType: json['tokenType'] is String
         ? (json['tokenType'] as String).trim()
         : 'Bearer',
-    user: User.fromJson(_map(json['user'])),
+    user: User.fromJson(_map(json['user']), mediaOrigin: mediaOrigin),
   );
 
   Map<String, dynamic> toJson() => {

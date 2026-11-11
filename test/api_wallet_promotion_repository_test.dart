@@ -33,9 +33,11 @@ void main() {
     final repository = ApiWalletRepository(client);
     final balance = await repository.fetchWallet();
     final transactions = await repository.fetchTransactions();
-    final methods = await repository.fetchPaymentMethods();
     final intent = await repository.createTopUpIntent(
-      request: TopUpRequest(amount: 25, method: PaymentMethod.fromCode('CARD')),
+      request: TopUpRequest(
+        amount: 25,
+        paymentMethod: PaymentMethod.fromCode('CARD'),
+      ),
     );
     final pending = await repository.fetchTopUpIntent(intent.id);
     final completed = await repository.confirmTopUp(intent.id);
@@ -43,21 +45,21 @@ void main() {
     expect(balance.balance, 12.5);
     expect(balance.currency, 'TRY');
     expect(transactions.single.id, 'transaction-1');
-    expect(methods.single.label, 'Card');
-    expect(methods.single.method.code, 'CARD');
+    expect(intent.invoiceNumber, 'INV-123456');
+    expect(intent.methodLabel, 'Card');
+    expect(intent.statusLabel, 'Pending');
     expect(pending.status, 'PENDING');
     expect(completed.status, 'COMPLETED');
 
     expect(adapter.requests.map((request) => request.path), [
       '/wallet/balance',
       '/wallet/transactions',
-      '/i18n/enums',
       '/wallet/top-up',
       '/wallet/top-up/intent-1',
       '/wallet/top-up/intent-1/confirm',
     ]);
     expect(adapter.requests[1].queryParameters, {'page': 1, 'size': 20});
-    expect(adapter.requests[3].data, {'amount': 25, 'method': 'CARD'});
+    expect(adapter.requests[2].data, {'amount': 25, 'paymentMethod': 'CARD'});
   });
 
   test(
@@ -270,8 +272,11 @@ class _WalletPromotionAdapter implements HttpClientAdapter {
     'id': 'intent-1',
     'amount': 25,
     'method': 'CARD',
+    'methodLabel': 'Card',
     'status': status,
-    'invoiceNumber': 'INV-123456',
+    'statusLabel': status == 'PENDING' ? 'Pending' : 'Completed',
+    'invoiceNo': 'INV-123456',
+    'createdAt': '2026-09-21T10:00:00Z',
   };
 
   ResponseBody _response(Map<String, dynamic> body, {int status = 200}) =>

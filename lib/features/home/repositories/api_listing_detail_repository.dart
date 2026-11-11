@@ -13,6 +13,6 @@ class ApiListingDetailRepository implements ListingDetailRepository {
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid listing detail response.');
     }
-    return Product.fromJson(data);
+    return Product.fromJson(data, mediaOrigin: _client.mediaOrigin);
   }
 }

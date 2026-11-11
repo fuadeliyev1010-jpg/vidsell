@@ -2,9 +2,9 @@ import 'package:vidsell/features/discover/models/store_draft.dart';
 import 'package:vidsell/features/discover/repositories/business_repository.dart';
 import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/store/my_store.dart';
-import 'package:vidsell/models/store/store.dart';
 import 'package:vidsell/models/store/store_statistics.dart';
 import 'package:vidsell/models/store/store_stats.dart';
+import 'package:vidsell/models/store/public_store_profile.dart';
 
 class MockBusinessRepository implements BusinessRepository {
   MockBusinessRepository._();
@@ -107,10 +107,22 @@ class MockBusinessRepository implements BusinessRepository {
   Future<MyStore?> fetchMyStore() async => _myStore;
 
   @override
-  Future<Store> fetchPublicStore(String sellerId) async {
+  Future<PublicStoreProfile?> fetchPublicStore(String sellerId) async {
     final store = _myStore;
     if (store == null) throw StateError('Mağaza tapılmadı.');
-    return Store.fromJson(store.toJson());
+    return PublicStoreProfile(
+      sellerId: sellerId,
+      storeName: store.name,
+      category: store.category,
+      description: store.description,
+      logoUrl: store.logoUrl,
+      open24Hours: store.openUntil == null,
+      opensAt: store.workingHours.split('-').firstOrNull,
+      closesAt: store.workingHours.split('-').lastOrNull,
+      products: store.stats?.products,
+      views: store.stats?.views,
+      followers: store.stats?.followers,
+    );
   }
 
   @override

@@ -65,10 +65,7 @@ class _HomePageState extends State<HomePage> {
     if (product == null) return;
     final nextValue = !context.read<FavoritesCubit>().isFavorite(product.id);
     _homeBloc.add(
-      HomeListingFavoriteChanged(
-        listingId: product.id,
-        isFavorite: nextValue,
-      ),
+      HomeListingFavoriteChanged(listingId: product.id, isFavorite: nextValue),
     );
     try {
       await context.read<FavoritesCubit>().toggle(
@@ -616,7 +613,8 @@ class _HomePageState extends State<HomePage> {
   Widget _buildRightActions(FeedItem listing) {
     final product = listing.product;
     final sellerId = listing.ownerId ?? product?.sellerId;
-    final isFavorite = product != null &&
+    final isFavorite =
+        product != null &&
         context.watch<FavoritesCubit>().isFavorite(product.id);
     final actions = <Widget>[];
     if (product != null) {
@@ -647,9 +645,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ]);
     }
-    return Column(
-      children: actions,
-    );
+    return Column(children: actions);
   }
 
   void _openSearchPage() {
@@ -664,8 +660,9 @@ class _HomePageState extends State<HomePage> {
         StorePage(
           storeName: _sellerName(listing),
           sellerId: sellerId,
-          sellerAvatar: listing.ownerAvatarUrl ?? listing.product?.sellerAvatarUrl,
-          category: context.l10n.categoryElectronics,
+          sellerAvatar:
+              listing.ownerAvatarUrl ?? listing.product?.sellerAvatarUrl,
+          sellerType: listing.product?.sellerType,
         ),
       ),
     );
@@ -738,7 +735,8 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBottomContent(FeedItem listing) {
     final product = listing.product;
     final sellerId = listing.ownerId ?? product?.sellerId;
-    final isFollowing = sellerId != null &&
+    final isFollowing =
+        sellerId != null &&
         context.watch<FollowingCubit>().isFollowing(sellerId);
     return Padding(
       padding: EdgeInsets.only(

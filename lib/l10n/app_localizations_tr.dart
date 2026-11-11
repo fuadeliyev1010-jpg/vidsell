@@ -446,7 +446,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String amountRangeError(String currency) {
-    return '1-5000 $currency arasında bir tutar girin';
+    return '1-100000 $currency arasında bir tutar girin';
   }
 
   @override
@@ -637,6 +637,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get storeListings => 'Bu kullanıcının tüm ilanları';
+
+  @override
+  String get individualSellerLabel => 'Bireysel satıcı';
 
   @override
   String get blockedSeller =>
@@ -2462,6 +2465,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get paymentMethod => 'Ödeme yöntemi';
+
+  @override
+  String get paymentMethodCard => 'Kart';
+
+  @override
+  String get paymentMethodBankTransfer => 'Banka havalesi';
 
   @override
   String topUpInvoiceNumber(String number) {

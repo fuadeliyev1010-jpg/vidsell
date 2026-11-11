@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/network/api_exception.dart';
+import 'package:vidsell/core/network/media_url.dart';
 import 'package:vidsell/core/storage/session_store.dart';
 import 'package:vidsell/features/auth/models/auth_session.dart';
 import 'package:vidsell/features/auth/models/auth_token.dart';
@@ -141,13 +142,40 @@ class ApiClient {
       StreamController<void>.broadcast();
 
   Future<AuthSession?>? _refreshFuture;
+  Future<Map<String, dynamic>>? _enumCatalogFuture;
+  int _enumCatalogRevision = 0;
   String _languageCode = 'tr';
+
+  String? get mediaOrigin => mediaOriginFromApiBaseUrl(_dio.options.baseUrl);
 
   Stream<void> get onSessionExpired => _sessionExpiredController.stream;
 
   void setLanguage(String languageCode) {
     if (languageCode == 'tr' || languageCode == 'en') {
+      if (_languageCode != languageCode) {
+        _enumCatalogRevision++;
+        _enumCatalogFuture = null;
+      }
       _languageCode = languageCode;
+    }
+  }
+
+  Future<Map<String, dynamic>> getEnumCatalog() {
+    return _enumCatalogFuture ??= _fetchEnumCatalog(_enumCatalogRevision);
+  }
+
+  Future<Map<String, dynamic>> _fetchEnumCatalog(int revision) async {
+    try {
+      final data = await get('/i18n/enums');
+      if (data is! Map<String, dynamic>) {
+        throw StateError('Invalid enum localization response.');
+      }
+      return Map.unmodifiable(data);
+    } catch (_) {
+      if (revision == _enumCatalogRevision) {
+        _enumCatalogFuture = null;
+      }
+      rethrow;
     }
   }
 
@@ -220,7 +248,10 @@ class ApiClient {
         return null;
       }
 
-      final authResponse = AuthResponse.fromJson(data);
+      final authResponse = AuthResponse.fromJson(
+        data,
+        mediaOrigin: mediaOrigin,
+      );
       final newAccessToken = authResponse.accessToken;
       if (newAccessToken.isEmpty) {
         _logRefresh('missing access token', statusCode: response.statusCode);
@@ -314,6 +345,7 @@ class ApiClient {
         statusCode: error.response?.statusCode,
         apiError: apiError,
         underlyingType: error.type,
+        rawResponseBody: error.response?.data,
       );
     }
   }

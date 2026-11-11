@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
 import 'package:vidsell/core/constants/app_text_style.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/pager/context_go.dart';
 import 'package:vidsell/core/utils/int_sizedbox_extention.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
@@ -57,7 +59,17 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
         subCategories = subcategories;
         _isLoading = false;
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        final rawBody = error is ApiException
+            ? error.rawResponseBody
+            : 'unavailable; see repository diagnostics';
+        debugPrint(
+          '[CategoryDetails] Subcategory load failed: $error\n'
+          '$stackTrace\n'
+          'Raw response body: $rawBody',
+        );
+      }
       if (!mounted) return;
       setState(() {
         _loadError = error.toString();
@@ -66,7 +78,7 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
     }
   }
 
-  void _navigateToNewListingForm(Subcategory subCategory) {
+  void _navigateToNewListingForm(Subcategory? subCategory) {
     context.goTo(
       NewListingFormPage(
         category: widget.category,
@@ -100,7 +112,10 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
                   ? _buildEmptyState()
                   : _buildSubCategoryList(),
             ),
-            _buildAllListingsButton(),
+            if (!_isLoading && _loadError == null && subCategories.isEmpty)
+              _buildContinueButton()
+            else
+              _buildAllListingsButton(),
           ],
         ),
       ),
@@ -190,13 +205,33 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
           ),
           16.height,
           Text(
-            context.l10n.subcategoryNotFound,
+            'Bu kategoride alt kategori yok',
             style: AppTextStyle.primaryText.copyWith(
               color: AppColor.tertiaryTextColor,
               fontSize: 14.sp,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContinueButton() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColor.primaryColor,
+        border: Border(top: BorderSide(color: AppColor.bgSecondary, width: 1)),
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: () => _navigateToNewListingForm(null),
+            child: const Text('Devam et'),
+          ),
+        ),
       ),
     );
   }

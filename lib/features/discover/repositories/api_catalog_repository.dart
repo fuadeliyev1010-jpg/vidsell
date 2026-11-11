@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/features/discover/models/city.dart';
 import 'package:vidsell/features/discover/models/subcategory.dart';
@@ -27,21 +29,39 @@ class ApiSubcategoryRepository implements SubcategoryRepository {
 
   @override
   Future<List<Subcategory>> fetchForCategory(String categoryId) async {
-    final category = switch (categoryId) {
-      'electronics' => 'ELECTRONICS',
-      'vehicles' || 'transport' => 'TRANSPORT',
-      'real-estate' => 'REAL_ESTATE',
-      'home-appliances' => 'HOME_APPLIANCES',
-      'special-occasion-clothing' => 'SPECIAL_OCCASION',
-      'cosmetics' => 'COSMETICS',
-      _ => throw StateError('Unsupported product category.'),
-    };
-    final data = await _client.get(
-      '/products/subcategories',
-      queryParameters: {'category': category},
-    );
-    final enumData = await _client.get('/i18n/enums');
-    return Subcategory.fromApiResponse(data, enumData, categoryId: categoryId);
+    dynamic subcategoryData;
+    dynamic enumData;
+    var loadingSubcategories = true;
+    try {
+      subcategoryData = await _client.get('/products/subcategories');
+      loadingSubcategories = false;
+      enumData = await _client.getEnumCatalog();
+      return Subcategory.fromApiResponse(
+        subcategoryData,
+        enumData,
+        categoryId: categoryId,
+      );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        final rawSubcategories =
+            subcategoryData ??
+            (loadingSubcategories && error is ApiException
+                ? error.rawResponseBody
+                : null);
+        final rawEnums =
+            enumData ??
+            (!loadingSubcategories && error is ApiException
+                ? error.rawResponseBody
+                : null);
+        debugPrint(
+          '[Subcategory] Load failed: $error\n'
+          '$stackTrace\n'
+          'GET /products/subcategories body: $rawSubcategories\n'
+          'GET /i18n/enums body: $rawEnums',
+        );
+      }
+      rethrow;
+    }
   }
 }
 

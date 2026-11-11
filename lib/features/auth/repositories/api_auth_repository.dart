@@ -93,7 +93,9 @@ class ApiAuthRepository implements AuthRepository {
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid authentication response.');
     }
-    final session = AuthSession.fromAuthResponse(AuthResponse.fromJson(data));
+    final session = AuthSession.fromAuthResponse(
+      AuthResponse.fromJson(data, mediaOrigin: _client.mediaOrigin),
+    );
     await _sessionStore.write(session);
     return session;
   }

@@ -12,7 +12,10 @@ class ApiSearchRepository implements SearchRepository {
   @override
   Future<List<Product>> search(String query) async {
     final data = await _client.get('/search', queryParameters: {'q': query});
-    return parsePage(data, Product.fromJson).items.toList(growable: false);
+    return parsePage(
+      data,
+      (json) => Product.fromJson(json, mediaOrigin: _client.mediaOrigin),
+    ).items.toList(growable: false);
   }
 
   @override

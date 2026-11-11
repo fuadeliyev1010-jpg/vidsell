@@ -32,12 +32,16 @@ class MockListingRepository implements ListingRepository {
       description: draft.description,
       category: _category(draft.categoryId),
       categoryLabel: draft.categoryName,
-      subcategory: ProductSubcategory.fromCode(draft.subcategoryId),
-      subcategoryName: draft.subcategoryName,
+      subcategory: draft.subcategoryId.isEmpty
+          ? null
+          : ProductSubcategory.fromCode(draft.subcategoryId),
+      subcategoryName: draft.subcategoryName.isEmpty
+          ? null
+          : draft.subcategoryName,
       status: ProductStatus.active,
       sellerId: 'mock-user',
       categoryId: draft.categoryId,
-      subcategoryId: draft.subcategoryId,
+      subcategoryId: draft.subcategoryId.isEmpty ? null : draft.subcategoryId,
       cityId: draft.cityId,
       city: draft.city,
       sellerName: draft.sellerName,

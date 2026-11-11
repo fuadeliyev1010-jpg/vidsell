@@ -1,3 +1,4 @@
+import 'package:vidsell/core/network/media_url.dart';
 import 'package:vidsell/models/messaging/conversation.dart';
 import 'package:vidsell/models/product/product_summary.dart';
 import 'package:vidsell/models/user/user.dart';
@@ -34,7 +35,10 @@ class ConversationModel extends Conversation {
                ),
        );
 
-  factory ConversationModel.fromJson(Map<String, dynamic> json) {
+  factory ConversationModel.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) {
     final participant =
         _map(json['otherUser']) ??
         _map(json['otherParticipant']) ??
@@ -60,10 +64,20 @@ class ConversationModel extends Conversation {
             json['participantName'] ??
             json['sellerName'],
       ),
-      participantAvatar: participant['avatarUrl'] as String?,
+      participantAvatar: mediaOrigin == null
+          ? participant['avatarUrl'] as String?
+          : resolveMediaUrl(
+              participant['avatarUrl'] as String?,
+              origin: mediaOrigin,
+            ),
       listingId: _nullable(listing['id'] ?? json['listingId']),
       listingTitle: _nullable(listing['title'] ?? json['listingTitle']),
-      listingImage: _nullable(listing['imageUrl'] ?? json['listingImage']),
+      listingImage: mediaOrigin == null
+          ? _nullable(listing['imageUrl'] ?? json['listingImage'])
+          : resolveMediaUrl(
+              _nullable(listing['imageUrl'] ?? json['listingImage']),
+              origin: mediaOrigin,
+            ),
       listingPrice: _display(
         listing['priceLabel'] ?? listing['price'] ?? json['listingPrice'],
       ),

@@ -29,14 +29,14 @@ class NewListingFormPage extends StatefulWidget {
   const NewListingFormPage({
     super.key,
     required this.category,
-    required this.subcategory,
+    this.subcategory,
     required this.title,
     this.repository,
     this.cityRepository,
   });
 
   final CategoryItem category;
-  final Subcategory subcategory;
+  final Subcategory? subcategory;
   final String title;
   final ListingRepository? repository;
   final CityRepository? cityRepository;
@@ -348,8 +348,10 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
                 ),
                 2.height,
                 Text(
-                  '${widget.category.localizedLabel(context.l10n)}/'
-                  '${widget.subcategory.localizedLabel(context.l10n)}',
+                  widget.subcategory == null
+                      ? widget.category.localizedLabel(context.l10n)
+                      : '${widget.category.localizedLabel(context.l10n)}/'
+                            '${widget.subcategory!.localizedLabel(context.l10n)}',
                   style: AppTextStyle.primaryText.copyWith(
                     color: Colors.white,
                     fontSize: 14.sp,
@@ -495,8 +497,8 @@ class _NewListingFormPageState extends State<NewListingFormPage> {
       final draft = ListingDraft(
         categoryId: widget.category.id,
         categoryName: widget.category.localizedLabel(l10n),
-        subcategoryId: widget.subcategory.id,
-        subcategoryName: widget.subcategory.localizedLabel(l10n),
+        subcategoryId: widget.subcategory?.id ?? '',
+        subcategoryName: widget.subcategory?.localizedLabel(l10n) ?? '',
         brand: _brandController.text.trim(),
         model: _modelController.text.trim(),
         price: price!,

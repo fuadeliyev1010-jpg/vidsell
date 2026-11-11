@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/pager/context_go.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vidsell/core/constants/app_color.dart';
@@ -39,7 +41,6 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
   final TextEditingController _cvvController = TextEditingController();
   bool _isSubmitting = false;
   late final bool _isMockBackend;
-  late Future<List<PaymentMethodOption>>? _paymentMethodsFuture;
   String? _selectedPaymentMethod;
   TopUpIntent? _topUpIntent;
 
@@ -57,9 +58,6 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
   void initState() {
     super.initState();
     _isMockBackend = context.read<AppConfig>().useMockBackend;
-    _paymentMethodsFuture = _isMockBackend
-        ? null
-        : context.read<WalletRepository>().fetchPaymentMethods();
   }
 
   @override
@@ -264,15 +262,6 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
     );
   }
 
-  void _reloadPaymentMethods() {
-    final paymentMethodsFuture = context
-        .read<WalletRepository>()
-        .fetchPaymentMethods();
-    setState(() {
-      _paymentMethodsFuture = paymentMethodsFuture;
-    });
-  }
-
   Widget _buildApiTopUpCard() {
     return Container(
       width: double.infinity,
@@ -281,51 +270,30 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
         color: AppColor.bgSurfaceColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
-      child: FutureBuilder<List<PaymentMethodOption>>(
-        future: _paymentMethodsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Column(
-              children: [
-                Text(context.l10n.genericError),
-                12.height,
-                TextButton(
-                  onPressed: _reloadPaymentMethods,
-                  child: Text(context.l10n.retry),
-                ),
-              ],
-            );
-          }
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColor.activeColor),
-            );
-          }
-
-          final methods = snapshot.data!;
-          if (methods.isEmpty) {
-            return Center(child: Text(context.l10n.paymentUnavailable));
-          }
-          final selectedMethod = methods
-              .where((option) => option.method.code == _selectedPaymentMethod)
-              .firstOrNull;
-          final currentMethod = selectedMethod ?? methods.first;
+      child: Builder(
+        builder: (context) {
+          const methods = PaymentMethod.values;
+          final currentMethod =
+              methods
+                  .where((method) => method.code == _selectedPaymentMethod)
+                  .firstOrNull ??
+              methods.first;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                initialValue: currentMethod.method.code,
+                initialValue: currentMethod.code,
                 dropdownColor: AppColor.bgSurfaceColor,
                 decoration: InputDecoration(
                   labelText: context.l10n.paymentMethod,
                   labelStyle: TextStyle(color: Colors.grey.shade400),
                 ),
                 items: [
-                  for (final option in methods)
+                  for (final method in methods)
                     DropdownMenuItem(
-                      value: option.method.code,
-                      child: Text(option.label),
+                      value: method.code,
+                      child: Text(_paymentMethodLabel(method)),
                     ),
                 ],
                 onChanged: _topUpIntent == null
@@ -381,22 +349,49 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
     );
   }
 
-  Future<void> _createTopUpIntent(PaymentMethodOption method) async {
+  String _paymentMethodLabel(PaymentMethod method) => switch (method.code) {
+    'CARD' => context.l10n.paymentMethodCard,
+    'BANK_TRANSFER' => context.l10n.paymentMethodBankTransfer,
+    _ => method.code,
+  };
+
+  Future<void> _createTopUpIntent(PaymentMethod method) async {
+    if (!TopUpRequest.isValidAmount(widget.amount)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.amountRangeError(
+              CurrencyFormatter.formatCurrency(widget.currency),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
     setState(() => _isSubmitting = true);
     try {
       final intent = await context.read<WalletRepository>().createTopUpIntent(
-        request: TopUpRequest(amount: widget.amount, method: method.method),
+        request: TopUpRequest(amount: widget.amount, paymentMethod: method),
       );
       if (mounted) setState(() => _topUpIntent = intent);
-    } on Exception {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.l10n.genericError)));
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[TopUp] Create intent failed: $error\n$stackTrace');
       }
+      _showRequestError(error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showRequestError(Object error) {
+    if (!mounted) return;
+    final message = error is ApiException && error.code != null
+        ? '${error.code}: ${error.message}'
+        : error.toString();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _checkTopUpStatus() async {
@@ -412,12 +407,11 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
       if (TopUpStatus.fromCode(updated.status) == TopUpStatus.completed) {
         context.goBack(true);
       }
-    } on Exception {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.l10n.genericError)));
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[TopUp] Status check failed: $error\n$stackTrace');
       }
+      _showRequestError(error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -436,12 +430,11 @@ class _TopUpPaymentPageState extends State<TopUpPaymentPage> {
       if (TopUpStatus.fromCode(updated.status) == TopUpStatus.completed) {
         context.goBack(true);
       }
-    } on Exception {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.paymentUnavailable)),
-        );
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[TopUp] Confirmation failed: $error\n$stackTrace');
       }
+      _showRequestError(error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

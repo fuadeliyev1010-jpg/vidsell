@@ -1,4 +1,5 @@
 import '../enums/product_category.dart';
+import '../../core/network/media_url.dart';
 
 class Favorite {
   const Favorite({
@@ -21,7 +22,7 @@ class Favorite {
   final String sellerId;
   final DateTime? favoritedAt;
 
-  factory Favorite.fromJson(Map<String, dynamic> json) {
+  factory Favorite.fromJson(Map<String, dynamic> json, {String? mediaOrigin}) {
     final product = json['product'] is Map
         ? Map<String, dynamic>.from(json['product'] as Map)
         : json['listing'] is Map
@@ -32,10 +33,12 @@ class Favorite {
       title: '${product['title'] ?? ''}',
       price: _double(product['price']),
       city: '${product['city'] ?? product['cityName'] ?? ''}',
-      imageUrl:
-          product['imageUrl'] as String? ??
-          product['thumbnailUrl'] as String? ??
-          _firstImage(product['imageUrls']),
+      imageUrl: _resolveMedia(
+        product['imageUrl'] as String? ??
+            product['thumbnailUrl'] as String? ??
+            _firstImage(product['imageUrls']),
+        mediaOrigin,
+      ),
       sellerId: '${product['sellerId'] ?? ''}',
       favoritedAt: DateTime.tryParse(
         '${json['favoritedAt'] ?? json['createdAt'] ?? ''}',
@@ -53,4 +56,7 @@ class Favorite {
       value is List && value.isNotEmpty && value.first is String
       ? value.first as String
       : null;
+
+  static String? _resolveMedia(String? value, String? origin) =>
+      origin == null ? value : resolveMediaUrl(value, origin: origin);
 }

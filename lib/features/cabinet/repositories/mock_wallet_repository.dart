@@ -1,7 +1,6 @@
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/models/wallet/top_up_intent.dart';
 import 'package:vidsell/models/wallet/top_up_request.dart';
-import 'package:vidsell/models/enums/payment_method.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
 import 'package:vidsell/models/wallet/wallet_transaction.dart';
 import 'package:vidsell/models/enums/transaction_type.dart';
@@ -30,12 +29,6 @@ class MockWalletRepository implements WalletRepository {
   }
 
   @override
-  Future<List<PaymentMethodOption>> fetchPaymentMethods() async =>
-      throw UnsupportedError(
-        'Mock top-up uses the local card form, not API payment methods.',
-      );
-
-  @override
   Future<WalletTransaction> topUp({
     required double amount,
     required String cardholderName,
@@ -44,8 +37,8 @@ class MockWalletRepository implements WalletRepository {
     required int expiryYear,
     required String cvv,
   }) async {
-    if (amount < 1 || amount > 5000) {
-      throw ArgumentError('Məbləğ 1 və 5000 AZN arasında olmalıdır');
+    if (!TopUpRequest.isValidAmount(amount)) {
+      throw ArgumentError('Məbləğ 1 ve 100000 AZN arasında olmalıdır');
     }
     if (cardholderName.trim().length < 3) {
       throw ArgumentError('Kart sahibinin adı düzgün deyil');
@@ -99,14 +92,14 @@ class MockWalletRepository implements WalletRepository {
 
   @override
   Future<TopUpIntent> createTopUpIntent({required TopUpRequest request}) async {
-    if (request.amount < 1 || request.amount > 5000) {
-      throw ArgumentError('Məbləğ 1 və 5000 AZN arasında olmalıdır');
+    if (!TopUpRequest.isValidAmount(request.amount)) {
+      throw ArgumentError('Məbləğ 1 ve 100000 AZN arasında olmalıdır');
     }
     final id = 'top-up-${_topUpIntents.length + 1}';
     final intent = TopUpIntent(
       id: id,
       amount: request.amount,
-      method: request.method.code,
+      method: request.paymentMethod.code,
       status: 'PENDING',
       invoiceNumber: 'INV-${_topUpIntents.length + 1}',
     );

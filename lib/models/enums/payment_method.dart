@@ -1,11 +1,11 @@
-import '../common/localized_enum_values.dart';
-
+// TODO(api): not exposed by /i18n/enums; confirm with backend.
 final class PaymentMethod {
   const PaymentMethod._(this.code);
 
   static const unknown = PaymentMethod._('UNKNOWN');
   static const card = PaymentMethod._('CARD');
   static const bankTransfer = PaymentMethod._('BANK_TRANSFER');
+  static const values = [card, bankTransfer];
 
   final String code;
 
@@ -17,21 +17,8 @@ final class PaymentMethod {
       'CARD' => card,
       'BANK_TRANSFER' => bankTransfer,
       null || '' => unknown,
-      _ => PaymentMethod._(code!),
+      _ => unknown,
     };
-  }
-
-  static List<PaymentMethodOption> optionsFromI18nResponse(
-    Map<String, dynamic> response,
-  ) {
-    final labels = LocalizedEnumValues.fromResponse(
-      response,
-      group: 'paymentMethod',
-    );
-    return List.unmodifiable([
-      for (final entry in labels.entries)
-        PaymentMethodOption(method: fromCode(entry.key), label: entry.value),
-    ]);
   }
 
   @override
@@ -40,11 +27,4 @@ final class PaymentMethod {
 
   @override
   int get hashCode => code.hashCode;
-}
-
-class PaymentMethodOption {
-  const PaymentMethodOption({required this.method, required this.label});
-
-  final PaymentMethod method;
-  final String label;
 }

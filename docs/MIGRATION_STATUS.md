@@ -36,6 +36,7 @@ Use `--dart-define=BACKEND_MODE=mock` to select mock mode. Do not put credential
 
 ## Contract notes
 
+- backend returns relative media URLs; client resolves them against the API origin.
 - `POST /storefronts/{sellerId}/call-log` has no request body in OpenAPI.
 - Neither `ProductResponse` nor the public `StoreProfileResponse` contains a phone field; API-mode call controls are hidden until the backend exposes a number.
 - Product image upload is not defined; API listing creation only submits hosted URLs in `imageUrls`.
@@ -45,6 +46,7 @@ Use `--dart-define=BACKEND_MODE=mock` to select mock mode. Do not put credential
 1. Can the backend publish the authoritative category association for each `ProductSubcategory` code?
 2. Is a product-image upload endpoint planned, or should clients continue to submit externally hosted URLs only?
 3. Will seller phone become available through `ProductResponse`, the public storefront response, or a separate consent-aware endpoint?
+4. GET /products/subcategories returns a flat list with no category relation; client uses a hard-coded map until the backend adds a category filter or returns {value, category}.
 
 ## Manual device checklist
 

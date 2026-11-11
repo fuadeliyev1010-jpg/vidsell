@@ -1,3 +1,4 @@
+import '../../core/network/media_url.dart';
 import 'store_stats.dart';
 import '../enums/store_status.dart';
 
@@ -12,6 +13,7 @@ class MyStore {
     required this.status,
     required this.isOpen,
     this.logoUrl,
+    this.bannerUrl,
     this.rejectionReason,
     this.reviewedAt,
     this.createdAt,
@@ -23,6 +25,7 @@ class MyStore {
   final String name;
   final String category;
   final String? logoUrl;
+  final String? bannerUrl;
   final String description;
   final String phone;
   final String workingHours;
@@ -36,11 +39,26 @@ class MyStore {
 
   StoreStatus get statusValue => StoreStatus.fromCode(status);
 
-  factory MyStore.fromJson(Map<String, dynamic> json) => MyStore(
+  factory MyStore.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) => MyStore(
     id: '${json['id'] ?? json['sellerId'] ?? json['storeId'] ?? ''}',
     name: '${json['name'] ?? json['storeName'] ?? ''}',
     category: '${json['category'] ?? json['categoryName'] ?? ''}',
-    logoUrl: json['logoUrl'] as String? ?? json['logoPath'] as String?,
+    logoUrl: mediaOrigin == null
+        ? json['logoUrl'] as String? ??
+              json['avatarUrl'] as String? ??
+              json['logoPath'] as String?
+        : resolveMediaUrl(
+            json['logoUrl'] as String? ??
+                json['avatarUrl'] as String? ??
+                json['logoPath'] as String?,
+            origin: mediaOrigin,
+          ),
+    bannerUrl: mediaOrigin == null
+        ? json['bannerUrl'] as String?
+        : resolveMediaUrl(json['bannerUrl'] as String?, origin: mediaOrigin),
     description: '${json['description'] ?? ''}',
     phone: '${json['phone'] ?? json['phoneNumber'] ?? ''}',
     workingHours: '${json['workingHours'] ?? ''}',
@@ -60,6 +78,7 @@ class MyStore {
     'name': name,
     'category': category,
     if (logoUrl != null) 'logoUrl': logoUrl,
+    if (bannerUrl != null) 'bannerUrl': bannerUrl,
     'description': description,
     'phone': phone,
     'workingHours': workingHours,

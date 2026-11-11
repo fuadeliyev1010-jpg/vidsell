@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
+import 'package:vidsell/features/discover/models/subcategory_category_map.dart';
 import 'package:vidsell/l10n/app_localizations.dart';
-import 'package:vidsell/models/common/localized_enum_values.dart';
 
 class Subcategory {
   const Subcategory({
@@ -20,25 +21,70 @@ class Subcategory {
     if (response is! List) {
       throw StateError('Invalid product subcategories response.');
     }
-    final labels = LocalizedEnumValues.fromResponse(
-      enumResponse,
-      group: 'productSubcategory',
-    );
-    return List.unmodifiable([
-      for (final value in response)
-        if (value is String && value.trim().isNotEmpty)
-          Subcategory(
-            id: value.trim().toUpperCase(),
-            label:
-                labels[value.trim().toUpperCase()] ??
-                (throw StateError(
-                  'Missing localized label for subcategory ${value.trim()}.',
-                )),
-            categoryId: categoryId,
-          )
-        else
-          throw StateError('Invalid product subcategory value.'),
-    ]);
+    final categoryCode = switch (categoryId.toLowerCase()) {
+      'electronics' => 'ELECTRONICS',
+      'vehicles' || 'transport' => 'TRANSPORT',
+      'real-estate' => 'REAL_ESTATE',
+      'home-appliances' => 'HOME_APPLIANCES',
+      'special-occasion-clothing' => 'SPECIAL_OCCASION',
+      'cosmetics' => 'COSMETICS',
+      _ => categoryId.toUpperCase(),
+    };
+    final allowedValues = subcategoryCategoryMap[categoryCode] ?? const [];
+    final labels = _labels(enumResponse);
+    final seenValues = <String>{};
+    final knownValues = subcategoryCategoryMap.values
+        .expand((values) => values)
+        .toSet();
+    final subcategories = <Subcategory>[];
+    for (final value in response) {
+      if (value is! String || value.trim().isEmpty) {
+        throw StateError('Invalid product subcategory value.');
+      }
+      final code = value.trim().toUpperCase();
+      if (!knownValues.contains(code)) {
+        _logUnknownSubcategory(code);
+        continue;
+      }
+      if (!seenValues.add(code) || !allowedValues.contains(code)) continue;
+      subcategories.add(
+        Subcategory(
+          id: code,
+          label: labels[code] ?? code,
+          categoryId: categoryId,
+        ),
+      );
+    }
+    return List.unmodifiable(subcategories);
+  }
+
+  static Map<String, String> _labels(dynamic response) {
+    if (response is! Map) {
+      throw StateError('Invalid enum localization response.');
+    }
+    final root = Map<String, dynamic>.from(response);
+    final groups = root['groups'] is Map
+        ? Map<String, dynamic>.from(root['groups'] as Map)
+        : root;
+    final values = groups['productSubcategory'];
+    if (values is! List) {
+      throw StateError('The productSubcategory enum group is missing.');
+    }
+    return {
+      for (final item in values)
+        if (item is Map && item['value'] is String)
+          (item['value'] as String).toUpperCase():
+              item['labelTr'] is String &&
+                  (item['labelTr'] as String).isNotEmpty
+              ? item['labelTr'] as String
+              : item['value'] as String,
+    };
+  }
+
+  static void _logUnknownSubcategory(String value) {
+    if (kDebugMode) {
+      debugPrint('[Subcategory] Ignoring unmapped backend value: $value');
+    }
   }
 }
 

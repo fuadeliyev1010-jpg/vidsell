@@ -1,3 +1,4 @@
+import '../../core/network/media_url.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../product/product_summary.dart';
 import '../user/user.dart';
@@ -31,16 +32,28 @@ class Conversation {
       ? null
       : CurrencyFormatter.formatPrice(product!.price, product!.currency);
 
-  factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
+  factory Conversation.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) => Conversation(
     id: '${json['id'] ?? ''}',
     otherUser: User.fromJson(
       json['otherUser'] is Map
-          ? Map<String, dynamic>.from(json['otherUser'] as Map)
+          ? {
+              ...Map<String, dynamic>.from(json['otherUser'] as Map),
+              if (mediaOrigin != null)
+                'avatarUrl': resolveMediaUrl(
+                  (json['otherUser'] as Map)['avatarUrl'] as String?,
+                  origin: mediaOrigin,
+                ),
+            }
           : const <String, dynamic>{},
+      mediaOrigin: mediaOrigin,
     ),
     product: json['product'] is Map
         ? ProductSummary.fromJson(
             Map<String, dynamic>.from(json['product'] as Map),
+            mediaOrigin: mediaOrigin,
           )
         : null,
     lastMessage: json['lastMessage'] is Map

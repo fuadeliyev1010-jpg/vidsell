@@ -7,7 +7,7 @@ import 'package:vidsell/core/config/app_environment.dart';
 import 'package:vidsell/core/network/api_client.dart';
 import 'package:vidsell/features/discover/models/store_draft.dart';
 import 'package:vidsell/features/discover/repositories/api_business_repository.dart';
-import 'package:vidsell/models/store/store.dart';
+import 'package:vidsell/models/store/public_store_profile.dart';
 
 void main() {
   test('store application and profile edits send documented fields', () async {
@@ -114,9 +114,14 @@ void main() {
       final repository = ApiBusinessRepository(client);
 
       final store = await repository.fetchPublicStore('seller-2');
-      expect(store.displayName, 'Həsən Məmmədov');
-      expect(store.logoUrl, 'https://example.test/avatar.png');
-      expect(store.isOpen, isNull);
+      expect(store?.fullName, 'Həsən Məmmədov');
+      expect(store?.avatarUrl, 'https://example.test/avatar.png');
+      expect(store?.storeName, 'Demo store name');
+      expect(store?.category, 'ELECTRONICS');
+      expect(store?.isOpen, isNull);
+      expect(store?.products, 48);
+      expect(store?.views, 24561);
+      expect(store?.followers, 71);
       expect(
         await repository.fetchPublicStoreProducts('seller-2', page: 2),
         isEmpty,
@@ -126,6 +131,45 @@ void main() {
       expect(adapter.requests[1].path, '/storefronts/seller-2/products');
     },
   );
+
+  test(
+    'treats STORE_NOT_FOUND as a normal individual seller profile',
+    () async {
+      final adapter = _StoreResponseAdapter(
+        notFound: true,
+        notFoundCode: 'STORE_NOT_FOUND',
+      );
+      final (client, dio) = _createClient(adapter);
+      addTearDown(() {
+        client.dispose();
+        dio.close(force: true);
+      });
+
+      expect(
+        await ApiBusinessRepository(client).fetchPublicStore('seller-2'),
+        isNull,
+      );
+      expect(adapter.requests.single.path, '/storefronts/seller-2');
+    },
+  );
+
+  test('parses only populated storefront fields and nullable stats', () async {
+    final profile = PublicStoreProfile.fromJson({
+      'id': 'seller-2',
+      'fullName': 'Real Seller',
+      'store': {'name': 'Real Store', 'category': 'ELECTRONICS'},
+      'stats': {'products': 3},
+    });
+
+    expect(profile.fullName, 'Real Seller');
+    expect(profile.storeName, 'Real Store');
+    expect(profile.category, 'ELECTRONICS');
+    expect(profile.products, 3);
+    expect(profile.views, isNull);
+    expect(profile.followers, isNull);
+    expect(profile.description, isNull);
+    expect(profile.workingHours, isEmpty);
+  });
 }
 
 (ApiClient, Dio) _createClient(_StoreResponseAdapter adapter) {
@@ -145,10 +189,12 @@ class _StoreResponseAdapter implements HttpClientAdapter {
   _StoreResponseAdapter({
     this.notFound = false,
     this.emptyMutationResponses = false,
+    this.notFoundCode,
   });
 
   final bool notFound;
   final bool emptyMutationResponses;
+  final String? notFoundCode;
   final List<RequestOptions> requests = [];
   String _status = 'APPLICATION';
 
@@ -161,7 +207,10 @@ class _StoreResponseAdapter implements HttpClientAdapter {
     requests.add(options);
     if (notFound) {
       return ResponseBody.fromString(
-        '{"message":"No store"}',
+        jsonEncode({
+          'message': 'No store',
+          if (notFoundCode != null) 'code': notFoundCode,
+        }),
         404,
         headers: {
           Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -192,6 +241,11 @@ class _StoreResponseAdapter implements HttpClientAdapter {
             'fullName': 'Həsən Məmmədov',
             'avatarUrl': 'https://example.test/avatar.png',
             'createdAt': '2026-01-15T10:00:00Z',
+            'store': {
+              'id': 'store-2',
+              'name': 'Demo store name',
+              'category': 'ELECTRONICS',
+            },
             'stats': {'products': 48, 'views': 24561, 'followers': 71},
           }
         : options.path.endsWith('/products')

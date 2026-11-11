@@ -50,7 +50,7 @@ class ApiListingRepository implements ListingRepository {
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid product response.');
     }
-    final product = Product.fromJson(data);
+    final product = Product.fromJson(data, mediaOrigin: _client.mediaOrigin);
     if (product.id.trim().isEmpty) {
       throw StateError('Product response has no ID.');
     }

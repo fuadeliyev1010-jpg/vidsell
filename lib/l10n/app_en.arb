@@ -141,7 +141,7 @@
   "walletBalance": "Your wallet balance",
   "topUpBalance": "Top up balance",
   "amountAzn": "Amount",
-  "amountRangeError": "Enter an amount between 1 and 5000 {currency}",
+  "amountRangeError": "Enter an amount between 1 and 100000 {currency}",
   "@amountRangeError": {
     "placeholders": {
       "currency": {
@@ -209,6 +209,7 @@
   "privacy": "Privacy policy",
   "searchPlaceholder": "Search",
   "storeListings": "All listings from this user",
+  "individualSellerLabel": "Individual seller",
   "blockedSeller": "This user is blocked. Unblock them to see their listings.",
   "sellerHours": "Working hours",
   "storeProfileTab": "Profile",
@@ -791,6 +792,8 @@
   ,"districtYasamal": "Yasamal"
   ,"districtGanjlik": "Ganjlik"
   ,"paymentMethod": "Payment method"
+  ,"paymentMethodCard": "Card"
+  ,"paymentMethodBankTransfer": "Bank transfer"
   ,"topUpInvoiceNumber": "Invoice: {number}"
   ,"@topUpInvoiceNumber": {"placeholders": {"number": {"type": "String"}}}
   ,"checkPaymentStatus": "Check payment status"

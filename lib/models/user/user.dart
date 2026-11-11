@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../core/network/media_url.dart';
 import '../enums/gender.dart';
 import '../enums/role.dart';
 
@@ -72,18 +73,21 @@ class User extends Equatable {
     emailVerified: emailVerified ?? this.emailVerified,
   );
 
-  factory User.fromJson(Map<String, dynamic> json) => User(
+  factory User.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) => User(
     id: '${json['id'] ?? ''}',
     fullName: '${json['fullName'] ?? json['name'] ?? ''}',
     countryCode: '${json['countryCode'] ?? ''}',
     phoneNumber: '${json['phoneNumber'] ?? json['phone'] ?? ''}',
-    avatarUrl: json['avatarUrl'] as String?,
+    avatarUrl: mediaOrigin == null
+        ? json['avatarUrl'] as String?
+        : resolveMediaUrl(json['avatarUrl'] as String?, origin: mediaOrigin),
     gender: json['gender'] == null
         ? null
         : Gender.fromCode(json['gender'] as String?),
-    role: json['role'] == null
-        ? null
-        : Role.fromCode(json['role'] as String?),
+    role: json['role'] == null ? null : Role.fromCode(json['role'] as String?),
     createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
     identifier: '${json['identifier'] ?? ''}',
     email: '${json['email'] ?? ''}',

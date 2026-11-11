@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../core/utils/currency_formatter.dart';
+import '../../core/network/media_url.dart';
 import '../enums/delivery_type.dart';
 import '../enums/product_category.dart';
 import '../enums/product_condition.dart';
@@ -120,74 +121,79 @@ class Product {
 
   List<String> get mediaUrls => imageUrls;
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-    id: '${json['id'] ?? json['productId'] ?? ''}',
-    title: '${json['title'] ?? ''}',
-    price: _double(json['price']),
-    originalPrice: _doubleOrNull(json['originalPrice']),
-    discountPercent: _doubleOrNull(json['discountPercent']),
-    currency: '${json['currency'] ?? fallbackCurrencyCode}',
-    description: '${json['description'] ?? ''}',
-    category: _category(json['category']),
-    categoryLabel: json['categoryLabel'] as String?,
-    subcategory: json['subcategory'] == null
-        ? null
-        : ProductSubcategory.fromCode(json['subcategory']),
-    city: json['city'] as String?,
-    condition: _condition(json['condition']),
-    conditionLabel: json['conditionLabel'] as String?,
-    status: _status(json['status']),
-    statusLabel: json['statusLabel'] as String?,
-    promotionType: json['promotionType'] == null
-        ? null
-        : PromotionType.fromCode(
-            json['promotionType']?.toString().toUpperCase(),
-          ),
-    promotionTypeLabel: json['promotionTypeLabel'] as String?,
-    imageUrls: _strings(
-      json['imageUrls'] ??
-          [if (json['imageUrl'] is String) json['imageUrl'] as String],
-    ),
-    averageRating: _doubleOrNull(json['averageRating']),
-    reviewCount: _int(json['reviewCount']),
-    viewCount: _int(json['viewCount']),
-    shareCount: _int(json['shareCount']),
-    distanceKm: _doubleOrNull(json['distanceKm']),
-    sellerId: json['sellerId'] as String?,
-    sellerName:
-        json['sellerName'] as String? ?? json['sellerFullName'] as String?,
-    sellerHandle: json['sellerHandle'] as String?,
-    sellerAvatarUrl:
-        json['sellerAvatarUrl'] as String? ?? json['sellerAvatar'] as String?,
-    businessId: json['businessId']?.toString(),
-    categoryId: json['categoryId']?.toString(),
-    subcategoryId: json['subcategoryId']?.toString(),
-    subcategoryName: json['subcategoryName'] as String?,
-    subcategoryLabel: json['subcategoryLabel'] as String?,
-    cityId: json['cityId']?.toString(),
-    shareUrl: json['shareUrl'] as String? ?? json['shareLink'] as String?,
-    listingNumber: json['listingNumber']?.toString(),
-    isFavorite: json['isFavorite'] == true,
-    isVip: json['isVip'] == true || json['isPremium'] == true,
-    latitude: _doubleOrNull(json['latitude']),
-    longitude: _doubleOrNull(json['longitude']),
-    brand: json['brand'] as String? ?? '',
-    model: json['model'] as String? ?? json['modelName'] as String? ?? '',
-    color: json['color'] as String? ?? '',
-    storage: json['storage'] as String? ?? '',
-    simCard: json['simCard'] as String? ?? '',
-    deliveryLabel: json['delivery'] as String? ?? '',
-    deliveryType: json['deliveryType'] == null
-        ? null
-        : DeliveryType.fromCode(json['deliveryType']?.toString().toUpperCase()),
-    deliveryTypeLabel: json['deliveryTypeLabel'] as String?,
-    sellerType: json['sellerType'] == null
-        ? null
-        : SellerType.fromCode(json['sellerType']?.toString().toUpperCase()),
-    sellerTypeLabel: json['sellerTypeLabel'] as String?,
-    createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
-    updatedAt: DateTime.tryParse('${json['updatedAt'] ?? ''}'),
-  );
+  factory Product.fromJson(Map<String, dynamic> json, {String? mediaOrigin}) =>
+      Product(
+        id: '${json['id'] ?? json['productId'] ?? ''}',
+        title: '${json['title'] ?? ''}',
+        price: _double(json['price']),
+        originalPrice: _doubleOrNull(json['originalPrice']),
+        discountPercent: _doubleOrNull(json['discountPercent']),
+        currency: '${json['currency'] ?? fallbackCurrencyCode}',
+        description: '${json['description'] ?? ''}',
+        category: _category(json['category']),
+        categoryLabel: json['categoryLabel'] as String?,
+        subcategory: json['subcategory'] == null
+            ? null
+            : ProductSubcategory.fromCode(json['subcategory']),
+        city: json['city'] as String?,
+        condition: _condition(json['condition']),
+        conditionLabel: json['conditionLabel'] as String?,
+        status: _status(json['status']),
+        statusLabel: json['statusLabel'] as String?,
+        promotionType: json['promotionType'] == null
+            ? null
+            : PromotionType.fromCode(
+                json['promotionType']?.toString().toUpperCase(),
+              ),
+        promotionTypeLabel: json['promotionTypeLabel'] as String?,
+        imageUrls: _strings(
+          json['imageUrls'] ??
+              [if (json['imageUrl'] is String) json['imageUrl'] as String],
+        ).map((url) => _resolveMedia(url, mediaOrigin)).nonNulls.toList(),
+        averageRating: _doubleOrNull(json['averageRating']),
+        reviewCount: _int(json['reviewCount']),
+        viewCount: _int(json['viewCount']),
+        shareCount: _int(json['shareCount']),
+        distanceKm: _doubleOrNull(json['distanceKm']),
+        sellerId: json['sellerId'] as String?,
+        sellerName:
+            json['sellerName'] as String? ?? json['sellerFullName'] as String?,
+        sellerHandle: json['sellerHandle'] as String?,
+        sellerAvatarUrl: _resolveMedia(
+          json['sellerAvatarUrl'] as String? ?? json['sellerAvatar'] as String?,
+          mediaOrigin,
+        ),
+        businessId: json['businessId']?.toString(),
+        categoryId: json['categoryId']?.toString(),
+        subcategoryId: json['subcategoryId']?.toString(),
+        subcategoryName: json['subcategoryName'] as String?,
+        subcategoryLabel: json['subcategoryLabel'] as String?,
+        cityId: json['cityId']?.toString(),
+        shareUrl: json['shareUrl'] as String? ?? json['shareLink'] as String?,
+        listingNumber: json['listingNumber']?.toString(),
+        isFavorite: json['isFavorite'] == true,
+        isVip: json['isVip'] == true || json['isPremium'] == true,
+        latitude: _doubleOrNull(json['latitude']),
+        longitude: _doubleOrNull(json['longitude']),
+        brand: json['brand'] as String? ?? '',
+        model: json['model'] as String? ?? json['modelName'] as String? ?? '',
+        color: json['color'] as String? ?? '',
+        storage: json['storage'] as String? ?? '',
+        simCard: json['simCard'] as String? ?? '',
+        deliveryLabel: json['delivery'] as String? ?? '',
+        deliveryType: json['deliveryType'] == null
+            ? null
+            : DeliveryType.fromCode(
+                json['deliveryType']?.toString().toUpperCase(),
+              ),
+        deliveryTypeLabel: json['deliveryTypeLabel'] as String?,
+        sellerType: json['sellerType'] == null
+            ? null
+            : SellerType.fromCode(json['sellerType']?.toString().toUpperCase()),
+        sellerTypeLabel: json['sellerTypeLabel'] as String?,
+        createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+        updatedAt: DateTime.tryParse('${json['updatedAt'] ?? ''}'),
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -246,6 +252,8 @@ class Product {
   };
 
   static double _double(dynamic value) => _doubleOrNull(value) ?? 0;
+  static String? _resolveMedia(String? value, String? origin) =>
+      origin == null ? value : resolveMediaUrl(value, origin: origin);
   static double? _doubleOrNull(dynamic value) =>
       value is num ? value.toDouble() : double.tryParse('$value');
   static int _int(dynamic value) =>

@@ -28,6 +28,9 @@ void main() {
                     Text(context.l10n.goToStore),
                     Text(context.l10n.mockIphoneListingTitle),
                     Text(context.l10n.localizedAuthError('INVALID_OTP')),
+                    Text(context.l10n.paymentMethodCard),
+                    Text(context.l10n.paymentMethodBankTransfer),
+                    Text(context.l10n.amountRangeError('TRY')),
                   ],
                 ),
               ),
@@ -45,6 +48,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Doğrulama kodu geçersiz.'), findsOneWidget);
+    expect(find.text('Kart'), findsOneWidget);
+    expect(find.text('Banka havalesi'), findsOneWidget);
+    expect(find.text('1-100000 TRY arasında bir tutar girin'), findsOneWidget);
 
     localeCubit.setLocale(const Locale('en'));
     await tester.pumpAndSettle();
@@ -56,6 +62,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('The verification code is invalid.'), findsOneWidget);
+    expect(find.text('Card'), findsOneWidget);
+    expect(find.text('Bank transfer'), findsOneWidget);
+    expect(
+      find.text('Enter an amount between 1 and 100000 TRY'),
+      findsOneWidget,
+    );
 
     localeCubit.setLocale(const Locale('tr'));
     await tester.pumpAndSettle();

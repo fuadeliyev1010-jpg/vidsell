@@ -7,12 +7,14 @@ class ApiException implements Exception {
     this.statusCode,
     this.apiError,
     this.underlyingType,
+    this.rawResponseBody,
   });
 
   final String message;
   final int? statusCode;
   final ApiError? apiError;
   final DioExceptionType? underlyingType;
+  final Object? rawResponseBody;
   String? get code => apiError?.code;
 
   @override

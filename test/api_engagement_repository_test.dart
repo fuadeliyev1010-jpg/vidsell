@@ -42,6 +42,7 @@ void main() {
 
       expect(favorites.single.id, 'listing-1');
       expect(favorites.single.title, 'Camera');
+      expect(favorites.single.imageUrl, 'https://cdn.example.test/camera.jpg');
       expect(followed.single.id, 'seller-1');
       expect(followed.single.title, 'Camera Store');
       expect(adapter.requests.map((request) => request.path), [

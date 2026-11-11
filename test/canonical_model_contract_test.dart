@@ -114,7 +114,7 @@ void main() {
     expect(NotificationType.fromCode('future'), NotificationType.unknown);
     expect(PaymentMethod.fromCode('CARD'), PaymentMethod.card);
     expect(PaymentMethod.fromCode('BANK_TRANSFER'), PaymentMethod.bankTransfer);
-    expect(PaymentMethod.fromCode('future').code, 'future');
+    expect(PaymentMethod.fromCode('future'), PaymentMethod.unknown);
     expect(TopUpStatus.fromCode('future'), TopUpStatus.unknown);
     expect(TopUpStatus.fromCode('future').code, 'future');
     expect(TopUpStatus.fromCode('EXPIRED'), TopUpStatus.expired);

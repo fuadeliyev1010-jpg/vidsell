@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vidsell/features/cabinet/repositories/wallet_repository.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
 import 'package:vidsell/models/wallet/wallet_transaction.dart';
+import 'package:vidsell/models/wallet/top_up_request.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -304,7 +305,7 @@ class _WalletPageState extends State<WalletPage> {
                   return;
                 }
                 if (!context.mounted) return;
-                if (amount == null || amount < 1 || amount > 5000) {
+                if (amount == null || !TopUpRequest.isValidAmount(amount)) {
                   messenger.showSnackBar(
                     SnackBar(
                       content: Text(

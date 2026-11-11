@@ -1,3 +1,4 @@
+import '../../core/network/media_url.dart';
 import 'store_stats.dart';
 import '../enums/store_status.dart';
 
@@ -7,6 +8,7 @@ class Store {
     required this.name,
     this.category = '',
     this.logoUrl,
+    this.bannerUrl,
     this.description = '',
     this.phone = '',
     this.workingHours = '',
@@ -23,6 +25,7 @@ class Store {
   final String name;
   final String category;
   final String? logoUrl;
+  final String? bannerUrl;
   final String description;
   final String phone;
   final String workingHours;
@@ -38,33 +41,49 @@ class Store {
   String? get avatarUrl => logoUrl;
   StoreStatus get statusValue => StoreStatus.fromCode(status);
 
-  factory Store.fromJson(Map<String, dynamic> json) => Store(
-    id: '${json['id'] ?? json['sellerId'] ?? json['storeId'] ?? ''}',
-    name: '${json['name'] ?? json['storeName'] ?? json['fullName'] ?? ''}',
-    category: '${json['category'] ?? json['categoryName'] ?? ''}',
-    logoUrl:
-        json['logoUrl'] as String? ??
-        json['avatarUrl'] as String? ??
-        json['logoPath'] as String?,
-    description: '${json['description'] ?? ''}',
-    phone: '${json['phone'] ?? json['phoneNumber'] ?? ''}',
-    workingHours: '${json['workingHours'] ?? ''}',
-    status: '${json['status'] ?? ''}',
-    rejectionReason: json['rejectionReason'] as String?,
-    reviewedAt: DateTime.tryParse('${json['reviewedAt'] ?? ''}'),
-    createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
-    stats: json['stats'] is Map
-        ? StoreStats.fromJson(Map<String, dynamic>.from(json['stats'] as Map))
-        : null,
-    isOpen: (json['open'] ?? json['isOpen']) as bool?,
-    openUntil: json['openUntil']?.toString(),
-  );
+  factory Store.fromJson(Map<String, dynamic> json, {String? mediaOrigin}) {
+    final nestedStore = json['store'] is Map
+        ? Map<String, dynamic>.from(json['store'] as Map)
+        : const <String, dynamic>{};
+    final values = {...nestedStore, ...json};
+    return Store(
+      id: '${values['id'] ?? values['sellerId'] ?? values['storeId'] ?? ''}',
+      name:
+          '${values['name'] ?? values['storeName'] ?? values['fullName'] ?? ''}',
+      category: '${values['category'] ?? values['categoryName'] ?? ''}',
+      logoUrl: _resolveMedia(
+        values['logoUrl'] as String? ??
+            values['avatarUrl'] as String? ??
+            values['logoPath'] as String?,
+        mediaOrigin,
+      ),
+      bannerUrl: _resolveMedia(values['bannerUrl'] as String?, mediaOrigin),
+      description: '${values['description'] ?? ''}',
+      phone: '${values['phone'] ?? values['phoneNumber'] ?? ''}',
+      workingHours: '${values['workingHours'] ?? ''}',
+      status: '${values['status'] ?? ''}',
+      rejectionReason: values['rejectionReason'] as String?,
+      reviewedAt: DateTime.tryParse('${values['reviewedAt'] ?? ''}'),
+      createdAt: DateTime.tryParse('${values['createdAt'] ?? ''}'),
+      stats: values['stats'] is Map
+          ? StoreStats.fromJson(
+              Map<String, dynamic>.from(values['stats'] as Map),
+            )
+          : null,
+      isOpen: (values['open'] ?? values['isOpen']) as bool?,
+      openUntil: values['openUntil']?.toString(),
+    );
+  }
+
+  static String? _resolveMedia(String? value, String? origin) =>
+      origin == null ? value : resolveMediaUrl(value, origin: origin);
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'category': category,
     if (logoUrl != null) 'logoUrl': logoUrl,
+    if (bannerUrl != null) 'bannerUrl': bannerUrl,
     'description': description,
     'phone': phone,
     'workingHours': workingHours,

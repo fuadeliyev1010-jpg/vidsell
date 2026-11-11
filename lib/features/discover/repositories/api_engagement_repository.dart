@@ -20,7 +20,10 @@ class ApiEngagementRepository implements EngagementRepository {
   @override
   Future<List<Favorite>> fetchFavoriteModels() async {
     final data = await _client.get('/favorites');
-    return parsePage(data, Favorite.fromJson).items;
+    return parsePage(
+      data,
+      (json) => Favorite.fromJson(json, mediaOrigin: _client.mediaOrigin),
+    ).items;
   }
 
   @override
@@ -235,7 +238,10 @@ class ApiEngagementRepository implements EngagementRepository {
 
   Future<List<EngagementItem>> _items(String path) async {
     final data = await _client.get(path);
-    return parsePage(data, EngagementItem.fromJson).items;
+    return parsePage(
+      data,
+      (json) => EngagementItem.fromJson(json, mediaOrigin: _client.mediaOrigin),
+    ).items;
   }
 
   static double _double(dynamic value) =>

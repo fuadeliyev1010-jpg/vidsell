@@ -23,6 +23,7 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
+  late final MessagingRepository _repository;
   int _selectedFilterIndex = 0;
   int _selectedSortIndex = 0;
 
@@ -70,6 +71,7 @@ class _MessagesPageState extends State<MessagesPage> {
   @override
   void initState() {
     super.initState();
+    _repository = context.read<MessagingRepository>();
     _loadConversations();
   }
 
@@ -79,9 +81,7 @@ class _MessagesPageState extends State<MessagesPage> {
       _loadError = null;
     });
     try {
-      final conversations = await context
-          .read<MessagingRepository>()
-          .fetchConversations();
+      final conversations = await _repository.fetchConversations();
       if (!mounted) return;
       setState(() {
         _conversations = conversations;
@@ -191,26 +191,28 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 
   Future<void> _performDeleteAction() async {
-    final repository = context.read<MessagingRepository>();
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     final selectedIds = _selectedItemIds.toList();
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await repository.deleteConversations(selectedIds);
-      final conversations = await repository.fetchConversations();
+      await _repository.deleteConversations(selectedIds);
+      final conversations = await _repository.fetchConversations();
       if (!mounted) return;
       setState(() {
         _conversations = conversations;
         _isLoading = false;
-        _exitSelectionMode();
+        _isSelectionMode = false;
+        _selectedItemIds.clear();
       });
     } catch (error) {
       if (!mounted) return;
       var displayedError = error;
       try {
-        final conversations = await repository.fetchConversations();
+        final conversations = await _repository.fetchConversations();
         if (!mounted) return;
         setState(() {
           _conversations = conversations;
@@ -226,9 +228,11 @@ class _MessagesPageState extends State<MessagesPage> {
           _isLoading = false;
         });
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(displayedError.toString())));
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(displayedError.toString())),
+        );
+      }
     }
   }
 

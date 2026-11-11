@@ -88,6 +88,7 @@ class _HomeFeedMediaState extends State<HomeFeedMedia> {
           _videoFailed = true;
           return;
         }
+        if (kDebugMode) debugPrint('HomeFeedMedia video URL: $networkUri');
         controller = VideoPlayerController.networkUrl(networkUri);
       }
     }
@@ -120,7 +121,7 @@ class _HomeFeedMediaState extends State<HomeFeedMedia> {
     if (!mounted || controller != _controller || _videoFailed) return;
     if (kDebugMode) {
       debugPrint(
-        'HomeFeedMedia video error: '
+        'HomeFeedMedia video error for ${widget.listing.videoUrl}: '
         '${controller.value.errorDescription}; caught: $error',
       );
     }

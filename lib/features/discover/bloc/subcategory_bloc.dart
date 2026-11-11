@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vidsell/core/network/api_exception.dart';
 import 'package:vidsell/features/discover/models/subcategory.dart';
 import 'package:vidsell/features/discover/repositories/mock_subcategory_repository.dart';
 import 'package:vidsell/features/discover/repositories/subcategory_repository.dart';
@@ -52,7 +54,17 @@ class SubcategoryBloc extends Bloc<SubcategoryEvent, SubcategoryState> {
           subcategories: List.unmodifiable(subcategories),
         ),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        final rawBody = error is ApiException
+            ? error.rawResponseBody
+            : 'unavailable; see repository diagnostics';
+        debugPrint(
+          '[SubcategoryBloc] Load failed: $error\n'
+          '$stackTrace\n'
+          'Raw response body: $rawBody',
+        );
+      }
       emit(
         SubcategoryState(
           status: SubcategoryStatus.failure,

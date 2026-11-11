@@ -15,7 +15,10 @@ class ApiUserListingRepository implements UserListingRepository {
       '/products/me',
       queryParameters: {if (status != null) 'status': status.code},
     );
-    return parsePage(data, Product.fromJson).items;
+    return parsePage(
+      data,
+      (json) => Product.fromJson(json, mediaOrigin: _client.mediaOrigin),
+    ).items;
   }
 
   @override

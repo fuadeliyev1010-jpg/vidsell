@@ -163,6 +163,7 @@ class _ProductCardState extends State<ProductCard> {
           _videoFailed = true;
           return;
         }
+        if (kDebugMode) debugPrint('ProductCard video URL: $networkUri');
         controller = VideoPlayerController.networkUrl(networkUri);
       }
     }
@@ -194,7 +195,7 @@ class _ProductCardState extends State<ProductCard> {
     if (!mounted || controller != _controller || _videoFailed) return;
     if (kDebugMode) {
       debugPrint(
-        'ProductCard video error: '
+        'ProductCard video error for $_videoUrl: '
         '${controller.value.errorDescription}; caught: $error',
       );
     }
@@ -480,7 +481,16 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Widget _buildPoster() {
-    const fallback = ColoredBox(color: Color(0xFF161A22));
+    const fallback = ColoredBox(
+      color: Color(0xFF161A22),
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          color: Colors.white38,
+          size: 32,
+        ),
+      ),
+    );
     final path = _imagePath.trim();
     if (path.isEmpty) return fallback;
     final uri = Uri.tryParse(path);
@@ -507,6 +517,7 @@ class _ProductCardState extends State<ProductCard> {
     }
     final networkUri = VideoUrlResolver.resolveNetworkUrl(path);
     if (networkUri != null) {
+      if (kDebugMode) debugPrint('ProductCard image URL: $networkUri');
       return Image.network(
         networkUri.toString(),
         fit: BoxFit.cover,

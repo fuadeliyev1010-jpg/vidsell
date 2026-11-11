@@ -10,6 +10,7 @@ import 'package:vidsell/features/discover/bloc/subcategory_bloc.dart';
 import 'package:vidsell/features/discover/models/category_item.dart';
 import 'package:vidsell/features/discover/models/subcategory.dart';
 import 'package:vidsell/features/discover/pages/category_results_page.dart';
+import 'package:vidsell/features/discover/repositories/subcategory_repository.dart';
 
 import 'package:vidsell/l10n/app_localizations_extensions.dart';
 
@@ -29,7 +30,8 @@ class SubcategoryListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
-          SubcategoryBloc()..add(SubcategoriesRequested(category.id)),
+          SubcategoryBloc(repository: context.read<SubcategoryRepository>())
+            ..add(SubcategoriesRequested(category.id)),
       child: BlocBuilder<SubcategoryBloc, SubcategoryState>(
         builder: (context, state) {
           return Scaffold(
@@ -62,10 +64,39 @@ class SubcategoryListPage extends StatelessWidget {
 
     if (state.status == SubcategoryStatus.failure) {
       return Center(
-        child: Text(
-          context.l10n.loadFailed,
-          textAlign: TextAlign.center,
-          style: AppTextStyle.primaryText.copyWith(color: Colors.white),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.l10n.loadFailed,
+              textAlign: TextAlign.center,
+              style: AppTextStyle.primaryText.copyWith(color: Colors.white),
+            ),
+            TextButton(
+              onPressed: () => context.read<SubcategoryBloc>().add(
+                SubcategoriesRequested(category.id),
+              ),
+              child: Text(context.l10n.retryAgain),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state.subcategories.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Bu kategoride alt kategori yok',
+              style: TextStyle(color: Colors.white),
+            ),
+            TextButton(
+              onPressed: () => _continueWithCategory(context),
+              child: const Text('Devam et'),
+            ),
+          ],
         ),
       );
     }
@@ -184,23 +215,7 @@ class SubcategoryListPage extends StatelessWidget {
   Widget _buildShowAllButton(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(24.r),
-      onTap: () {
-        if (returnSubcategory) {
-          context.goBack({
-            'id': category.id,
-            'name': category.label,
-            'categoryId': category.id,
-            'categoryName': category.label,
-          });
-        } else {
-          context.goTo(
-            CategoryResultsPage(
-              title: category.localizedLabel(context.l10n),
-              categoryId: category.id,
-            ),
-          );
-        }
-      },
+      onTap: () => _continueWithCategory(context),
       child: Container(
         height: 44.h,
         decoration: BoxDecoration(
@@ -224,5 +239,23 @@ class SubcategoryListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _continueWithCategory(BuildContext context) {
+    if (returnSubcategory) {
+      context.goBack({
+        'id': category.id,
+        'name': category.label,
+        'categoryId': category.id,
+        'categoryName': category.label,
+      });
+    } else {
+      context.goTo(
+        CategoryResultsPage(
+          title: category.localizedLabel(context.l10n),
+          categoryId: category.id,
+        ),
+      );
+    }
   }
 }

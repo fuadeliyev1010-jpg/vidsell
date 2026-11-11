@@ -60,7 +60,7 @@ class ApiHomeRepository implements HomeRepository {
     if (useProducts) {
       final responsePage = parsePage(
         data,
-        FeedItem.fromJson,
+        (json) => FeedItem.fromJson(json, mediaOrigin: _client.mediaOrigin),
         requestedPage: page - 1,
       );
       return PageResponse(
@@ -74,7 +74,7 @@ class ApiHomeRepository implements HomeRepository {
     }
     final responsePage = parsePage(
       data,
-      FeedItem.fromJson,
+      (json) => FeedItem.fromJson(json, mediaOrigin: _client.mediaOrigin),
       requestedPage: page,
     );
     return PageResponse(

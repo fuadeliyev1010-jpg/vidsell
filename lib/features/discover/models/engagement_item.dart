@@ -1,3 +1,5 @@
+import 'package:vidsell/core/network/media_url.dart';
+
 class EngagementItem {
   const EngagementItem({
     required this.id,
@@ -15,7 +17,10 @@ class EngagementItem {
   final String? videoUrl;
   final String? categoryId;
 
-  factory EngagementItem.fromJson(Map<String, dynamic> json) {
+  factory EngagementItem.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaOrigin,
+  }) {
     final resource =
         _object(json['listing']) ??
         _object(json['store']) ??
@@ -37,9 +42,11 @@ class EngagementItem {
             json['name'] ??
             json['fullName'],
       ),
-      imageUrl:
-          _imageUrl(resource) ??
-          _stringOrNull(json['imageUrl'] ?? json['avatarUrl']),
+      imageUrl: _resolveMedia(
+        _imageUrl(resource) ??
+            _stringOrNull(json['imageUrl'] ?? json['avatarUrl']),
+        mediaOrigin,
+      ),
       subtitle: _string(
         resource['subtitle'] ??
             resource['handle'] ??
@@ -49,7 +56,7 @@ class EngagementItem {
             json['handle'] ??
             json['price'],
       ),
-      videoUrl: _videoUrl(resource),
+      videoUrl: _resolveMedia(_videoUrl(resource), mediaOrigin),
       categoryId: _stringOrNull(resource['categoryId'] ?? json['categoryId']),
     );
   }
@@ -65,7 +72,10 @@ class EngagementItem {
 
   static String? _imageUrl(Map<String, dynamic> resource) {
     final image = _stringOrNull(
-      resource['imageUrl'] ?? resource['thumbnailUrl'] ?? resource['avatarUrl'],
+      resource['imageUrl'] ??
+          resource['thumbnailUrl'] ??
+          resource['avatarUrl'] ??
+          resource['logoUrl'],
     );
     if (image != null) return image;
     final media = resource['media'];
@@ -110,4 +120,7 @@ class EngagementItem {
 
   static String? _stringOrNull(dynamic value) =>
       value is String && value.isNotEmpty ? value : null;
+
+  static String? _resolveMedia(String? value, String? origin) =>
+      origin == null ? value : resolveMediaUrl(value, origin: origin);
 }

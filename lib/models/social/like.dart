@@ -1,3 +1,5 @@
+import '../../core/network/media_url.dart';
+
 class LikeResponse {
   const LikeResponse({
     required this.videoId,
@@ -25,9 +27,15 @@ class LikeUser {
   final String fullName;
   final String? avatarUrl;
 
-  factory LikeUser.fromJson(Map<String, dynamic> json) => LikeUser(
-    id: '${json['id'] ?? json['userId'] ?? ''}',
-    fullName: '${json['fullName'] ?? json['name'] ?? ''}',
-    avatarUrl: json['avatarUrl'] as String?,
-  );
+  factory LikeUser.fromJson(Map<String, dynamic> json, {String? mediaOrigin}) =>
+      LikeUser(
+        id: '${json['id'] ?? json['userId'] ?? ''}',
+        fullName: '${json['fullName'] ?? json['name'] ?? ''}',
+        avatarUrl: mediaOrigin == null
+            ? json['avatarUrl'] as String?
+            : resolveMediaUrl(
+                json['avatarUrl'] as String?,
+                origin: mediaOrigin,
+              ),
+      );
 }

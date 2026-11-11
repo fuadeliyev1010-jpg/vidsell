@@ -18,7 +18,7 @@ import 'package:vidsell/models/common/api_error.dart';
 import 'package:vidsell/models/enums/product_status.dart';
 import 'package:vidsell/models/product/product.dart';
 import 'package:vidsell/models/store/my_store.dart';
-import 'package:vidsell/models/store/store.dart';
+import 'package:vidsell/models/store/public_store_profile.dart';
 import 'package:vidsell/models/store/store_statistics.dart';
 import 'package:vidsell/models/user/user.dart';
 import 'package:vidsell/models/wallet/wallet_balance.dart';
@@ -182,7 +182,7 @@ class _FailingStoreRepository implements BusinessRepository {
   );
 
   @override
-  Future<Store> fetchPublicStore(String sellerId) =>
+  Future<PublicStoreProfile?> fetchPublicStore(String sellerId) =>
       _delegate.fetchPublicStore(sellerId);
 
   @override
