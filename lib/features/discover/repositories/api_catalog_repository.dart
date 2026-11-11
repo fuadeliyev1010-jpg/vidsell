@@ -1,5 +1,4 @@
 import 'package:vidsell/core/network/api_client.dart';
-import 'package:vidsell/core/network/page_response_parser.dart';
 import 'package:vidsell/features/discover/models/city.dart';
 import 'package:vidsell/features/discover/models/subcategory.dart';
 import 'package:vidsell/features/discover/repositories/city_repository.dart';
@@ -9,6 +8,22 @@ class ApiSubcategoryRepository implements SubcategoryRepository {
   ApiSubcategoryRepository(this._client);
 
   final ApiClient _client;
+
+  @override
+  Future<List<String>> fetchCategories() async {
+    final data = await _client.get('/products/categories');
+    if (data is! List) {
+      throw StateError('Invalid product categories response.');
+    }
+    return List.unmodifiable(
+      data.map((category) {
+        if (category is! String || category.trim().isEmpty) {
+          throw StateError('Invalid product category value.');
+        }
+        return category.trim();
+      }),
+    );
+  }
 
   @override
   Future<List<Subcategory>> fetchForCategory(String categoryId) async {
@@ -37,14 +52,18 @@ class ApiCityRepository implements CityRepository {
 
   @override
   Future<List<City>> fetchCities() async {
-    final data = await _client.get('/cities');
-    return parsePage(data, (json) => json).items
-        .map(
-          (json) => City(
-            id: json['id'].toString(),
-            name: json['name'] as String? ?? '',
-          ),
-        )
-        .toList(growable: false);
+    final data = await _client.get('/products/cities');
+    if (data is! List) {
+      throw StateError('Invalid product cities response.');
+    }
+    return List.unmodifiable(
+      data.map((city) {
+        if (city is! String || city.trim().isEmpty) {
+          throw StateError('Invalid product city value.');
+        }
+        final name = city.trim();
+        return City(id: name, name: name);
+      }),
+    );
   }
 }

@@ -252,7 +252,7 @@ class Product {
       value is int ? value : int.tryParse('$value') ?? 0;
   static List<String> _strings(dynamic value) {
     final decoded = switch (value) {
-      String raw => _decodeList(raw),
+      String raw => _decodeStringOrUrl(raw),
       List<dynamic> list => list,
       _ => const <dynamic>[],
     };
@@ -268,14 +268,16 @@ class Product {
         .toList(growable: false);
   }
 
-  static List<dynamic> _decodeList(String raw) {
-    if (raw.trim().isEmpty) return const [];
+  static List<dynamic> _decodeStringOrUrl(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return const [];
     try {
-      final decoded = jsonDecode(raw);
-      return decoded is List ? decoded : const [];
+      final decoded = jsonDecode(value);
+      if (decoded is List) return decoded;
     } on FormatException {
-      return const [];
+      return [value];
     }
+    return [value];
   }
 
   static ProductCategory? _category(dynamic value) {

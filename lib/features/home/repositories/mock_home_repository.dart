@@ -372,6 +372,7 @@ class MockHomeRepository implements HomeRepository {
     double? latitude,
     double? longitude,
     SellerType? sellerType,
+    bool productsOnly = false,
   }) async {
     final start = (page - 1) * size;
     final userListings =
@@ -383,22 +384,26 @@ class MockHomeRepository implements HomeRepository {
       ...userListings.map(_feedItemFromProduct),
       ..._listings,
     ];
-    final listings = allListings.where((item) {
-      final product = item.product;
-      if (product == null) {
-        return categoryId == null &&
-            subcategoryId == null &&
-            cityId == null &&
-            sellerId == null;
-      }
-      if (categoryId != null && product.categoryId != categoryId) return false;
-      if (subcategoryId != null && product.subcategoryId != subcategoryId) {
-        return false;
-      }
-      if (cityId != null && product.cityId != cityId) return false;
-      if (sellerId != null && product.sellerId != sellerId) return false;
-      return true;
-    }).toList(growable: false);
+    final listings = allListings
+        .where((item) {
+          final product = item.product;
+          if (product == null) {
+            return categoryId == null &&
+                subcategoryId == null &&
+                cityId == null &&
+                sellerId == null;
+          }
+          if (categoryId != null && product.categoryId != categoryId) {
+            return false;
+          }
+          if (subcategoryId != null && product.subcategoryId != subcategoryId) {
+            return false;
+          }
+          if (cityId != null && product.cityId != cityId) return false;
+          if (sellerId != null && product.sellerId != sellerId) return false;
+          return true;
+        })
+        .toList(growable: false);
     final end = (start + size).clamp(0, listings.length);
     final items = listings.sublist(start, end);
     return PageResponse(

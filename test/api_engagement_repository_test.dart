@@ -31,8 +31,8 @@ void main() {
       final followed = await repository.fetchFollowedStores();
       await repository.setFavorite('listing-1', true);
       await repository.setFavorite('listing-1', false);
-      await repository.setFollowing('store-1', true);
-      await repository.setFollowing('store-1', false);
+      await repository.setFollowing('seller-1', true);
+      await repository.setFollowing('seller-1', false);
       await repository.reportListing(
         listingId: 'listing-1',
         reason: 'spam',
@@ -42,16 +42,16 @@ void main() {
 
       expect(favorites.single.id, 'listing-1');
       expect(favorites.single.title, 'Camera');
-      expect(followed.single.id, 'store-1');
+      expect(followed.single.id, 'seller-1');
       expect(followed.single.title, 'Camera Store');
       expect(adapter.requests.map((request) => request.path), [
-        '/me/favorites',
-        '/me/follows',
-        '/listings/listing-1/favorite',
-        '/listings/listing-1/favorite',
-        '/stores/store-1/follow',
-        '/stores/store-1/follow',
-        '/listings/listing-1/reports',
+        '/favorites',
+        '/storefronts/following',
+        '/favorites/listing-1',
+        '/favorites/listing-1',
+        '/storefronts/seller-1/follow',
+        '/storefronts/seller-1/follow',
+        '/products/listing-1/report',
         '/users/user-1/block',
       ]);
       expect(adapter.requests.map((request) => request.method), [
@@ -79,25 +79,22 @@ class _EngagementResponseAdapter implements HttpClientAdapter {
   ) async {
     requests.add(options);
     final body = switch (options.path) {
-      '/me/favorites' => {
-        'data': {
-          'items': [
-            {
-              'id': 'favorite-row-1',
-              'listing': {
-                'id': 'listing-1',
-                'title': 'Camera',
-                'price': '500 AZN',
-                'imageUrl': 'https://cdn.example.test/camera.jpg',
-              },
-            },
-          ],
-        },
-      },
-      '/me/follows' => {
+      '/favorites' => {
         'items': [
           {
-            'id': 'follow-row-1',
+            'id': 'listing-1',
+            'title': 'Camera',
+            'price': 500,
+            'currency': 'AZN',
+            'imageUrl': 'https://cdn.example.test/camera.jpg',
+          },
+        ],
+      },
+      '/storefronts/following' => {
+        'items': [
+          {
+            'id': 'seller-1',
+            'fullName': 'Seller',
             'store': {'id': 'store-1', 'name': 'Camera Store'},
           },
         ],

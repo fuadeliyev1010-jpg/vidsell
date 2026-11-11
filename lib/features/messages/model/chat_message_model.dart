@@ -7,12 +7,13 @@ class ChatMessageModel extends Message {
     required super.id,
     required super.conversationId,
     required String text,
+    super.senderId = '',
     required super.createdAt,
     required super.isMe,
     super.imageUrl,
     super.isRead,
     super.type,
-  }) : super(content: text, senderId: '');
+  }) : super(content: text);
 
   String get time {
     final date = createdAt;
@@ -26,6 +27,7 @@ class ChatMessageModel extends Message {
     id: id,
     conversationId: conversationId,
     text: text,
+    senderId: senderId,
     imageUrl: imageUrl,
     createdAt: createdAt,
     isMe: isMe ?? this.isMe,
@@ -47,13 +49,14 @@ class ChatMessageModel extends Message {
     return ChatMessageModel(
       id: '$id',
       conversationId: '$conversationId',
-      text: '${json['text'] ?? json['body'] ?? ''}',
+      text: '${json['content'] ?? json['text'] ?? json['body'] ?? ''}',
+      senderId: '${json['senderId'] ?? ''}',
       imageUrl: imageUrl is String ? imageUrl : null,
       createdAt: json['createdAt'] is String
           ? DateTime.tryParse(json['createdAt'] as String)
           : null,
       isMe: json['isMine'] == true || json['isMe'] == true,
-      isRead: json['isRead'] == true,
+      isRead: json['isRead'] == true || json['readAt'] != null,
       type: deleted
           ? MessageType.deleted
           : imageUrl is String && imageUrl.isNotEmpty

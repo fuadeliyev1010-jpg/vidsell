@@ -23,22 +23,55 @@ class ApiHomeRepository implements HomeRepository {
     double? latitude,
     double? longitude,
     SellerType? sellerType,
+    bool productsOnly = false,
   }) async {
-    final data = await _client.get(
-      '/listings',
-      queryParameters: {
-        'page': page,
-        'size': size,
-        'categoryId': ?categoryId,
-        'subcategoryId': ?subcategoryId,
-        'cityId': ?cityId,
-        'sellerId': ?sellerId,
-        'tab': tab.code,
-        'lat': ?latitude,
-        'lng': ?longitude,
-        'sellerType': ?sellerType?.code,
-      },
-    );
+    final useProducts =
+        productsOnly ||
+        categoryId != null ||
+        subcategoryId != null ||
+        cityId != null ||
+        sellerId != null ||
+        sellerType != null;
+    final data = useProducts
+        ? await _client.get(
+            '/products',
+            queryParameters: {
+              'page': page - 1,
+              'size': size,
+              'category': ?_categoryCode(categoryId),
+              'subcategory': ?subcategoryId?.toUpperCase(),
+              'city': ?cityId,
+              'sellerId': ?sellerId,
+              'sellerType': ?sellerType?.code,
+              'lat': ?latitude,
+              'lng': ?longitude,
+            },
+          )
+        : await _client.get(
+            '/feed',
+            queryParameters: {
+              'page': page,
+              'size': size,
+              'tab': tab.code,
+              'lat': ?latitude,
+              'lng': ?longitude,
+            },
+          );
+    if (useProducts) {
+      final responsePage = parsePage(
+        data,
+        FeedItem.fromJson,
+        requestedPage: page - 1,
+      );
+      return PageResponse(
+        items: responsePage.items,
+        page: responsePage.page,
+        size: responsePage.size,
+        totalElements: responsePage.totalElements,
+        totalPages: responsePage.totalPages,
+        last: responsePage.last,
+      );
+    }
     final responsePage = parsePage(
       data,
       FeedItem.fromJson,
@@ -53,4 +86,15 @@ class ApiHomeRepository implements HomeRepository {
       last: responsePage.last,
     );
   }
+
+  static String? _categoryCode(String? categoryId) => switch (categoryId) {
+    'electronics' => 'ELECTRONICS',
+    'vehicles' || 'transport' => 'TRANSPORT',
+    'real-estate' => 'REAL_ESTATE',
+    'home-appliances' => 'HOME_APPLIANCES',
+    'special-occasion-clothing' => 'SPECIAL_OCCASION',
+    'cosmetics' => 'COSMETICS',
+    null => null,
+    _ => categoryId.toUpperCase(),
+  };
 }

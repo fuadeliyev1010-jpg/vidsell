@@ -19,8 +19,8 @@ class ApiEngagementRepository implements EngagementRepository {
 
   @override
   Future<List<Favorite>> fetchFavoriteModels() async {
-    final data = await _client.get('/me/favorites');
-    return parsePage(data, Favorite.fromJson, itemKey: 'favorites').items;
+    final data = await _client.get('/favorites');
+    return parsePage(data, Favorite.fromJson).items;
   }
 
   @override
@@ -28,9 +28,11 @@ class ApiEngagementRepository implements EngagementRepository {
     required String videoId,
     required bool liked,
   }) async {
-    final data = liked
-        ? await _client.post('/videos/$videoId/like')
-        : await _client.delete('/videos/$videoId/like');
+    if (!liked) {
+      await _client.delete('/videos/$videoId/like');
+      return LikeResponse(videoId: videoId, liked: false, likeCount: 0);
+    }
+    final data = await _client.post('/videos/$videoId/like');
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid video like response.');
     }
@@ -44,14 +46,9 @@ class ApiEngagementRepository implements EngagementRepository {
   }) async {
     final data = await _client.get(
       '/videos/$videoId/comments',
-      queryParameters: {'page': page - 1},
+      queryParameters: {'page': page, 'size': 20},
     );
-    return parsePage(
-      data,
-      Comment.fromJson,
-      requestedPage: page,
-      itemKey: 'comments',
-    );
+    return parsePage(data, Comment.fromJson, requestedPage: page);
   }
 
   @override
@@ -70,8 +67,8 @@ class ApiEngagementRepository implements EngagementRepository {
   }
 
   @override
-  Future<void> deleteVideoComment(String commentId) async {
-    await _client.delete('/comments/$commentId');
+  Future<void> deleteVideoComment(String videoId, String commentId) async {
+    await _client.delete('/videos/$videoId/comments/$commentId');
   }
 
   @override
@@ -81,7 +78,7 @@ class ApiEngagementRepository implements EngagementRepository {
   }) async {
     final data = await _client.get(
       '/products/$productId/reviews',
-      queryParameters: {'page': page - 1},
+      queryParameters: {'page': page, 'size': 20},
     );
     final pageResponse = parsePage(
       data,
@@ -103,9 +100,16 @@ class ApiEngagementRepository implements EngagementRepository {
     required double rating,
     required String comment,
   }) async {
+    if (rating < 1 || rating > 5 || rating != rating.roundToDouble()) {
+      throw ArgumentError.value(
+        rating,
+        'rating',
+        'Rating must be an integer from 1 to 5.',
+      );
+    }
     final data = await _client.post(
       '/products/$productId/reviews',
-      data: {'rating': rating, 'comment': comment},
+      data: {'rating': rating.toInt(), 'comment': comment},
     );
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid review response.');
@@ -118,7 +122,7 @@ class ApiEngagementRepository implements EngagementRepository {
     required String listingId,
     required ReportRequest request,
   }) async {
-    await _client.post('/listings/$listingId/reports', data: request.toJson());
+    await _client.post('/products/$listingId/report', data: request.toJson());
   }
 
   @override
@@ -144,19 +148,22 @@ class ApiEngagementRepository implements EngagementRepository {
     EngagementItem? item,
   }) async {
     if (enabled) {
-      await _client.post('/listings/$listingId/favorite');
+      await _client.post('/favorites/$listingId');
     } else {
-      await _client.delete('/listings/$listingId/favorite');
+      await _client.delete('/favorites/$listingId');
     }
   }
 
   @override
   Future<void> clearFavorites() async {
-    await _client.delete('/me/favorites');
+    for (final favorite in await fetchFavoriteModels()) {
+      await setFavorite(favorite.id, false);
+    }
   }
 
   @override
-  Future<List<EngagementItem>> fetchFollowedStores() => _items('/me/follows');
+  Future<List<EngagementItem>> fetchFollowedStores() =>
+      _items('/storefronts/following');
 
   @override
   Future<void> setFollowing(
@@ -165,33 +172,28 @@ class ApiEngagementRepository implements EngagementRepository {
     EngagementItem? item,
   }) async {
     if (enabled) {
-      await _client.post('/stores/$storeId/follow');
+      await _client.post('/storefronts/$storeId/follow');
     } else {
-      await _client.delete('/stores/$storeId/follow');
+      await _client.delete('/storefronts/$storeId/follow');
     }
   }
 
   @override
   Future<void> clearFollowedStores() async {
-    await _client.delete('/me/follows');
+    for (final store in await fetchFollowedStores()) {
+      await setFollowing(store.id, false);
+    }
   }
 
   @override
   Future<List<SavedSearch>> fetchSavedSearches() async {
-    final data = await _client.get('/me/saved-searches');
-    return parsePage(
-      data,
-      SavedSearch.fromJson,
-      itemKey: 'savedSearches',
-    ).items;
+    final data = await _client.get('/search/saved');
+    return parsePage(data, SavedSearch.fromJson).items;
   }
 
   @override
   Future<SavedSearch> saveSearch(String query) async {
-    final data = await _client.post(
-      '/me/saved-searches',
-      data: {'query': query},
-    );
+    final data = await _client.post('/search/saved', data: {'query': query});
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid saved search response.');
     }
@@ -200,12 +202,14 @@ class ApiEngagementRepository implements EngagementRepository {
 
   @override
   Future<void> deleteSavedSearch(String savedSearchId) async {
-    await _client.delete('/me/saved-searches/$savedSearchId');
+    await _client.delete('/search/saved/$savedSearchId');
   }
 
   @override
   Future<void> clearSavedSearches() async {
-    await _client.delete('/me/saved-searches');
+    for (final search in await fetchSavedSearches()) {
+      await deleteSavedSearch(search.id);
+    }
   }
 
   @override

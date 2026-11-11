@@ -26,7 +26,7 @@ abstract interface class EngagementRepository {
     required String content,
   });
 
-  Future<void> deleteVideoComment(String commentId);
+  Future<void> deleteVideoComment(String videoId, String commentId);
 
   Future<ReviewPage> fetchProductReviews(String productId, {int page = 1});
 

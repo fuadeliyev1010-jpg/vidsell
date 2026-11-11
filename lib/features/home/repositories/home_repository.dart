@@ -15,5 +15,6 @@ abstract interface class HomeRepository {
     double? latitude,
     double? longitude,
     SellerType? sellerType,
+    bool productsOnly = false,
   });
 }

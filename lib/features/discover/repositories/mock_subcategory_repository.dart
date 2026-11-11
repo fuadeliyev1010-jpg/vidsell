@@ -2,6 +2,16 @@ import 'package:vidsell/features/discover/models/subcategory.dart';
 import 'package:vidsell/features/discover/repositories/subcategory_repository.dart';
 
 class MockSubcategoryRepository implements SubcategoryRepository {
+  @override
+  Future<List<String>> fetchCategories() async => const [
+    'ELECTRONICS',
+    'TRANSPORT',
+    'HOME_APPLIANCES',
+    'SPECIAL_OCCASION',
+    'REAL_ESTATE',
+    'COSMETICS',
+  ];
+
   static const Map<String, List<String>> _subcategoriesByCategory = {
     'electronics': [
       'Telefonlar',

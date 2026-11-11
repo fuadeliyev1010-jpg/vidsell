@@ -22,7 +22,7 @@ class EngagementItem {
         _object(json['item']) ??
         json;
     final rawId =
-        resource['id'] ?? json['listingId'] ?? json['storeId'] ?? json['id'];
+        json['listingId'] ?? json['storeId'] ?? json['id'] ?? resource['id'];
     if (rawId == null || '$rawId'.isEmpty) {
       throw const FormatException('Engagement response has no resource ID.');
     }
@@ -30,7 +30,12 @@ class EngagementItem {
     return EngagementItem(
       id: '$rawId',
       title: _string(
-        resource['title'] ?? resource['name'] ?? json['title'] ?? json['name'],
+        resource['title'] ??
+            resource['name'] ??
+            resource['fullName'] ??
+            json['title'] ??
+            json['name'] ??
+            json['fullName'],
       ),
       imageUrl:
           _imageUrl(resource) ??

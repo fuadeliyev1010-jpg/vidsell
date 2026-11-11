@@ -12,7 +12,7 @@ class ApiMessagingRepository implements MessagingRepository {
 
   @override
   Future<List<ConversationModel>> fetchConversations() async {
-    final data = await _client.get('/me/conversations');
+    final data = await _client.get('/conversations');
     return parsePage(
       data,
       ConversationModel.fromJson,
@@ -31,17 +31,19 @@ class ApiMessagingRepository implements MessagingRepository {
     String? listingPrice,
   }) async {
     final data = await _client.post(
-      '/me/conversations',
-      data: {'participantId': participantId, 'listingId': ?listingId},
+      '/conversations',
+      data: {
+        'recipientId': participantId,
+        'productId': ?listingId,
+        'content': '',
+      },
     );
     return ConversationModel.fromJson(_object(data, 'conversation'));
   }
 
   @override
   Future<List<ChatMessageModel>> fetchMessages(String conversationId) async {
-    final data = await _client.get(
-      '/me/conversations/$conversationId/messages',
-    );
+    final data = await _client.get('/conversations/$conversationId/messages');
     return parsePage(
       data,
       (item) => ChatMessageModel.fromJson(
@@ -54,10 +56,7 @@ class ApiMessagingRepository implements MessagingRepository {
 
   @override
   Future<void> markConversationRead(String conversationId) async {
-    await _client.patch(
-      '/me/conversations/$conversationId/read',
-      data: {'isRead': true},
-    );
+    await _client.patch('/conversations/$conversationId/read');
   }
 
   @override
@@ -66,8 +65,8 @@ class ApiMessagingRepository implements MessagingRepository {
     String text,
   ) async {
     final data = await _client.post(
-      '/me/conversations/$conversationId/messages',
-      data: {'text': text},
+      '/conversations/$conversationId/messages',
+      data: {'content': text},
     );
     return ChatMessageModel.fromJson(
       _object(data, 'message'),
@@ -78,7 +77,7 @@ class ApiMessagingRepository implements MessagingRepository {
   @override
   Future<void> deleteConversations(List<String> conversationIds) async {
     for (final id in conversationIds) {
-      await _client.delete('/me/conversations/$id');
+      await _client.delete('/conversations/$id');
     }
   }
 
@@ -86,20 +85,19 @@ class ApiMessagingRepository implements MessagingRepository {
   Future<void> deleteMessages(
     String conversationId,
     List<String> messageIds,
-  ) async {
-    for (final id in messageIds) {
-      await _client.delete('/me/conversations/$conversationId/messages/$id');
-    }
-  }
+  ) async => throw UnsupportedError(
+    'Deleting individual messages is not available in the backend API.',
+  );
 
   @override
-  Future<void> clearMessages(String conversationId) async {
-    await _client.delete('/me/conversations/$conversationId/messages');
-  }
+  Future<void> clearMessages(String conversationId) async =>
+      throw UnsupportedError(
+        'Clearing messages is not available in the backend API.',
+      );
 
   @override
   Future<List<NotificationItemModel>> fetchNotifications() async {
-    final data = await _client.get('/me/notifications');
+    final data = await _client.get('/notifications');
     return parsePage(
       data,
       NotificationItemModel.fromJson,
@@ -109,20 +107,17 @@ class ApiMessagingRepository implements MessagingRepository {
 
   @override
   Future<void> markNotificationRead(String notificationId) async {
-    await _client.patch(
-      '/me/notifications/$notificationId',
-      data: {'isRead': true},
-    );
+    await _client.patch('/notifications/$notificationId/read');
   }
 
   @override
   Future<void> markAllNotificationsRead() async {
-    await _client.patch('/me/notifications/read', data: {'isRead': true});
+    await _client.patch('/notifications/read-all');
   }
 
   @override
   Future<void> deleteNotification(String notificationId) async {
-    await _client.delete('/me/notifications/$notificationId');
+    await _client.delete('/notifications/$notificationId');
   }
 
   Map<String, dynamic> _object(dynamic data, String name) {

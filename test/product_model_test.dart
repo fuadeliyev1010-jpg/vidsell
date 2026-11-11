@@ -10,11 +10,14 @@ void main() {
   });
 
   test(
-    'decodes imageUrls from null, JSON strings, and request-style lists',
+    'decodes imageUrls from JSON strings, plain URLs, and request-style lists',
     () {
       expect(parse(null).imageUrls, isEmpty);
       expect(parse('[]').imageUrls, isEmpty);
       expect(parse('["https://example.com/image.jpg"]').imageUrls, [
+        'https://example.com/image.jpg',
+      ]);
+      expect(parse('https://example.com/image.jpg').imageUrls, [
         'https://example.com/image.jpg',
       ]);
       expect(parse(['https://example.com/image.jpg']).imageUrls, [

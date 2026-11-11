@@ -17,6 +17,7 @@ import 'package:vidsell/features/discover/pages/search_page.dart';
 import 'package:vidsell/features/discover/pages/selected_items_page.dart';
 import 'package:vidsell/features/discover/models/listing_filter.dart';
 import 'package:vidsell/features/discover/pages/category_results_page.dart';
+import 'package:vidsell/features/discover/repositories/subcategory_repository.dart';
 import 'package:vidsell/features/discover/widgets/product_card.dart';
 import 'package:vidsell/features/discover/utils/video_slot_pool.dart';
 import 'package:vidsell/features/home/repositories/home_repository.dart';
@@ -35,6 +36,7 @@ class _DiscoverPageState extends State<DiscoverPage>
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
   int _selectedCategory = 0;
+  List<CategoryItem> _categoryItems = CategoryItem.categories;
 
   static const int _bannerCount = 5;
 
@@ -60,6 +62,7 @@ class _DiscoverPageState extends State<DiscoverPage>
   void initState() {
     super.initState();
     _homeRepository = context.read<HomeRepository>();
+    _loadCategories();
     _loadListings();
   }
 
@@ -76,7 +79,10 @@ class _DiscoverPageState extends State<DiscoverPage>
       _listingsError = null;
     });
     try {
-      final page = await _homeRepository.fetchListings(size: 50);
+      final page = await _homeRepository.fetchListings(
+        size: 50,
+        productsOnly: true,
+      );
       if (!mounted) return;
       setState(() {
         _listings = page.items
@@ -91,6 +97,37 @@ class _DiscoverPageState extends State<DiscoverPage>
         _listingsError = context.l10n.homeLoadError;
         _isLoadingListings = false;
       });
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await context
+          .read<SubcategoryRepository>()
+          .fetchCategories();
+      if (!mounted) return;
+      final availableCodes = categories
+          .map((code) => code.toUpperCase())
+          .toSet();
+      setState(() {
+        _categoryItems = CategoryItem.categories
+            .where(
+              (category) =>
+                  category.apiCode == null ||
+                  availableCodes.contains(category.apiCode),
+            )
+            .toList(growable: false);
+        _selectedCategory = 0;
+      });
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'discover categories',
+          context: ErrorDescription('while loading product categories'),
+        ),
+      );
     }
   }
 
@@ -326,12 +363,12 @@ class _DiscoverPageState extends State<DiscoverPage>
   Future<void> _onCategoryTap(int index) async {
     if (index == 0) {
       final selected = await context.goTo<CategoryItem>(
-        CategoryGridPage(categories: CategoryItem.categories.skip(1).toList()),
+        CategoryGridPage(categories: _categoryItems.skip(1).toList()),
       );
 
       if (selected == null) return;
 
-      final matchedIndex = CategoryItem.categories.indexOf(selected);
+      final matchedIndex = _categoryItems.indexOf(selected);
       if (matchedIndex != -1) {
         setState(() => _selectedCategory = matchedIndex);
       }
@@ -339,7 +376,7 @@ class _DiscoverPageState extends State<DiscoverPage>
     }
 
     setState(() => _selectedCategory = index);
-    final category = CategoryItem.categories[index];
+    final category = _categoryItems[index];
     context.goTo(
       CategoryResultsPage(
         title: category.localizedLabel(context.l10n),
@@ -571,10 +608,10 @@ class _DiscoverPageState extends State<DiscoverPage>
       height: 80.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: CategoryItem.categories.length,
+        itemCount: _categoryItems.length,
         separatorBuilder: (context, index) => 12.width,
         itemBuilder: (context, index) {
-          final category = CategoryItem.categories[index];
+          final category = _categoryItems[index];
           final isActive = _selectedCategory == index;
 
           return InkWell(

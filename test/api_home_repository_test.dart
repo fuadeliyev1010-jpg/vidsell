@@ -9,7 +9,7 @@ import 'package:vidsell/features/home/repositories/api_home_repository.dart';
 
 void main() {
   test(
-    'listing feeds filter by category, subcategory, city and seller IDs',
+    'filtered Discover products use documented filters and product response shape',
     () async {
       final adapter = _HomeResponseAdapter();
       final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test'));
@@ -29,25 +29,55 @@ void main() {
       final page = await ApiHomeRepository(client).fetchListings(
         page: 1,
         size: 50,
-        categoryId: 'category-1',
-        subcategoryId: 'subcategory-1',
-        cityId: 'city-1',
+        categoryId: 'electronics',
+        subcategoryId: 'PHONES',
+        cityId: 'Baku',
         sellerId: 'seller-1',
       );
 
-      expect(page.listings, isEmpty);
+      expect(page.items.single.videoId, 'product-1');
+      expect(page.items.single.product?.title, 'Camera');
+      expect(page.items.single.product?.imageUrls, [
+        'https://cdn.example.test/camera.jpg',
+      ]);
       expect(page.page, 0);
+      expect(adapter.request!.path, '/products');
       expect(adapter.request!.queryParameters, {
-        'page': 1,
+        'page': 0,
         'size': 50,
-        'categoryId': 'category-1',
-        'subcategoryId': 'subcategory-1',
-        'cityId': 'city-1',
+        'category': 'ELECTRONICS',
+        'subcategory': 'PHONES',
+        'city': 'Baku',
         'sellerId': 'seller-1',
-        'tab': 'FOR_YOU',
       });
     },
   );
+
+  test('unfiltered Home feed uses the feed endpoint', () async {
+    final adapter = _HomeResponseAdapter();
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test'));
+    dio.httpClientAdapter = adapter;
+    final client = ApiClient(
+      config: const AppConfig(
+        apiBaseUrl: 'https://api.example.test',
+        useMockBackend: false,
+      ),
+      dio: dio,
+    );
+    addTearDown(() {
+      client.dispose();
+      dio.close(force: true);
+    });
+
+    await ApiHomeRepository(client).fetchListings();
+
+    expect(adapter.request!.path, '/feed');
+    expect(adapter.request!.queryParameters, {
+      'page': 1,
+      'size': 5,
+      'tab': 'FOR_YOU',
+    });
+  });
 }
 
 class _HomeResponseAdapter implements HttpClientAdapter {
@@ -60,15 +90,35 @@ class _HomeResponseAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     request = options;
+    final productResponse = options.path == '/products'
+        ? {
+            'items': [
+              {
+                'id': 'product-1',
+                'title': 'Camera',
+                'price': 500,
+                'currency': 'AZN',
+                'imageUrls': 'https://cdn.example.test/camera.jpg',
+                'category': 'ELECTRONICS',
+                'createdAt': '2026-10-30T12:00:00Z',
+              },
+            ],
+            'page': 0,
+            'size': 50,
+            'totalElements': 1,
+            'totalPages': 1,
+            'last': true,
+          }
+        : {
+            'items': [],
+            'page': 0,
+            'size': 50,
+            'totalElements': 0,
+            'totalPages': 0,
+            'last': true,
+          };
     return ResponseBody.fromString(
-      jsonEncode({
-        'items': [],
-        'page': 0,
-        'size': 50,
-        'totalElements': 0,
-        'totalPages': 0,
-        'last': true,
-      }),
+      jsonEncode(productResponse),
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],

@@ -13,6 +13,16 @@ class CategoryItem {
     this.secondIconPath,
   });
 
+  String? get apiCode => switch (id) {
+    'electronics' => 'ELECTRONICS',
+    'vehicles' => 'TRANSPORT',
+    'home-appliances' => 'HOME_APPLIANCES',
+    'special-occasion-clothing' => 'SPECIAL_OCCASION',
+    'real-estate' => 'REAL_ESTATE',
+    'cosmetics' => 'COSMETICS',
+    _ => null,
+  };
+
   static const List<CategoryItem> categories = [
     CategoryItem(
       id: 'catalog',

@@ -98,10 +98,8 @@ class MockEngagementRepository implements EngagementRepository {
   }
 
   @override
-  Future<void> deleteVideoComment(String commentId) async {
-    for (final comments in _videoComments.values) {
-      comments.removeWhere((comment) => comment.id == commentId);
-    }
+  Future<void> deleteVideoComment(String videoId, String commentId) async {
+    _videoComments[videoId]?.removeWhere((comment) => comment.id == commentId);
   }
 
   @override

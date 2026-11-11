@@ -12,23 +12,28 @@ class ApiSearchRepository implements SearchRepository {
   @override
   Future<List<Product>> search(String query) async {
     final data = await _client.get('/search', queryParameters: {'q': query});
-    return parsePage(
-      data,
-      Product.fromJson,
-    ).items.toList(growable: false);
+    return parsePage(data, Product.fromJson).items.toList(growable: false);
   }
 
   @override
   Future<List<SearchSuggestion>> suggestions(String query) async {
     final data = await _client.get(
-      '/search/suggestions',
+      '/search/autocomplete',
       queryParameters: {'q': query},
     );
-    return parsePage(data, (item) => item).items
+    if (data is! Map<String, dynamic> || data['suggestions'] is! List) {
+      throw StateError('Invalid search autocomplete response.');
+    }
+    return (data['suggestions'] as List)
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
         .map(
           (item) => SearchSuggestion(
             title: item['title'] as String? ?? '',
-            subtitle: item['subtitle'] as String? ?? '',
+            subtitle: [
+              item['brand'] as String?,
+              item['city'] as String?,
+            ].whereType<String>().where((value) => value.isNotEmpty).join(', '),
           ),
         )
         .toList(growable: false);

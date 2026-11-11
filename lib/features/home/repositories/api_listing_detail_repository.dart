@@ -9,7 +9,7 @@ class ApiListingDetailRepository implements ListingDetailRepository {
 
   @override
   Future<Product> fetchListing(String listingId) async {
-    final data = await _client.get('/listings/$listingId');
+    final data = await _client.get('/products/$listingId');
     if (data is! Map<String, dynamic>) {
       throw StateError('Invalid listing detail response.');
     }
